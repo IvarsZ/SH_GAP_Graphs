@@ -1,20 +1,16 @@
-The GAP (www.gap-system.org) is a free open-source program for computing with various mathematical structures such as grahs, groups and fields. The graph related algorithms are in a package called Graph Algorithms using permutation groups (GRAPE).
-In a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneosly by multiple programs to provide communication and remove redundancy. In a distributed memory each cpu has its own private memory.
-The problem is to parallelise some of the graph algorithms to take this addition and analyise the performance of the new implementations compared to the old ones. In addition the current graph package does not support any search algorithms, thus an additional task would be to add parallel implementations for some common graph search algorithms such as Breadth-first-search (BFS) and Depth-first-search (DFS).
+The GAP (www.gap-system.org) is a free open-source program for computing with various mathematical structures such as grahs, groups and fields. The graph related algorithms are in a package called Graph Algorithms using permutation groups (GRAPE). This package is primarily for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
+Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneosly by multiple programs to provide communication and remove redundancy. In a distributed memory each cpu has its own private memory. All of the current implementations in GRAPE are non-parallelised.
+
+The problem is to develop a new package with parallelised versions of some of the previously mentioned algorithms, analyse their performance and provide a converter between GRAPE graphs and those of the new implementation. An additional problem is to include parallelised versions of graph colouring and isomorphism algorithms in the new package and compare them with the non-parallelised versions found in GRAPE.
 
 Primary objectives:
-  * Parallel implementations of some graph algorithms from the package GRAPE.
-  * Implementations of graph search algorithms - BFS and DFS.
-  * Paralellel implementations of the graph previously implemented graph search algorithms.
-  * A robust performance analysis of these implementations.
+  * Parallel implementations of some traversal, path finding, minimum spanning tree and connected components indirected graphs.
+  * Parallel implementations of graph colouring and isomorphism algorithms.
+  * A robust performance analysis of these implementations and comparison with non-parallel versions.
 
-Secondary objectives:
-  * More parallel implementations of GRAPE or search algorithms.
-  * A robust performance analysis of these implementations.
-
-Tertiary objectives:
+Optional objectives:
   * Create testing, benchmarking and debuggin tools for HPCGAP.
 
 Ethics - no humans involved.
 
-Resources - a machine on which to carry out performance tests.
+Resources - a research group machine.
