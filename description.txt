@@ -4,12 +4,13 @@ Moreover, in a recent addition HPC-GAP supports both shared and distributed memo
 The problem is to develop a new package with parallelised versions of some of the previously mentioned algorithms, analyse their performance and provide a converter between GRAPE graphs and those of the new implementation. An additional problem is to include parallelised versions of graph colouring and isomorphism algorithms in the new package and compare them with the non-parallelised versions found in GRAPE.
 
 Primary objectives:
-  * Parallel implementations of some traversal, path finding, minimum spanning tree and connected components indirected graphs.
-  * Parallel implementations of graph colouring and isomorphism algorithms.
-  * A robust performance analysis of these implementations and comparison with non-parallel versions.
+  * Serial implementations of some traversal, path finding, minimum spanning tree, connected components in indirected graphs, graph colouring and graph isomorphism that work with the regular GAP version.
+  * Parallel version implementations of the same algorithms that use the HPC-GAP.
+  * A robust performance analysis of these implementations and comparison between serial and parallel versions.
+  * Implement a converter to and from GRAPE graphs.
 
 Optional objectives:
-  * Create testing, benchmarking and debuggin tools for HPCGAP.
+  * Create testing, benchmarking and debugging tools for HPC-GAP.
 
 Ethics - no humans involved.
 
