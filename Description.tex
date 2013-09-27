@@ -1,0 +1,48 @@
+\documentclass{article}
+
+\usepackage{cite}
+
+\title{Parallelising graph algorithms in HPC-GAP \\ \vspace{2 mm} {\large A Project Description}}
+\author{Ivars Zubkans \\ \small Supervised by: Steve Linton}
+\date{September 2013}
+
+\begin{document}
+\maketitle
+\section{Description}
+Efficient implementations of graph theory algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}. The project aims to parallelise graph algorithms to improve their performance and explore the possible performance gains compared to serial implementations.
+
+The GAP (www.gap-system.org) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
+
+Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each cpu has its own private memory. All of the current implementations in GRAPE are non-parallelised.
+
+The problem is to develop a new package with parallelised versions of some of the previously mentioned algorithms, analyse their performance and provide a converter between GRAPE graphs and those of the new implementation. An additional problem is to include parallelised versions of graph colouring and isomorphism algorithms in the new package and compare them with the non-parallelised versions found in GRAPE.
+
+\section{Primary Objectives}
+\begin{enumerate}
+  \item Serial implementations, which work with the regular GAP version, of:
+  \begin{itemize}
+    \item traversal algorithms
+    \item path finding algorithms
+    \item minimum spanning tree algorithms
+    \item graph colouring algorithms
+  \end{itemize}
+  \item Parallel implementations of the same algorithms using HPC-GAP.
+  \item A robust performance analysis of these implementations and a comparison between the serial and parallel versions.
+  \item A converter to and from GRAPE graphs.
+  \item A comparison with graph colouring in GRAPE.
+\end{enumerate}
+\section{Optional Objectives}
+\begin{enumerate}
+  \item Serial and parallel implementations with performance analysis and a comparison of:
+  \begin{itemize}
+    \item graph isomorphism algorithms
+    \item connected components in (un)directed graphs
+  \end{itemize}
+\end{enumerate}
+\section{Ethics}
+There are no ethical issues raised by this project.
+\section{Resources}
+A machine of the HPC-GAP research group machine will be used to analyse the performance of the implementations.
+\bibliographystyle{plain}
+\bibliography{References}
+\end{document}
