@@ -1,0 +1,16 @@
+Week 1
+
+  I met with Steve and came up with a draft for the project description.
+
+Week 2
+
+  I had meetings with Steve and Max. Refined the description, converted it to latex and submitted it.
+
+Week 3
+
+  Tasks:
+    * Install gap and hpc-gap.
+    * Implement a graph representation.
+    * Write BFS.
+  
+
