@@ -7,4 +7,5 @@ syntax: glob
 *.bbl
 *.aux
 *.gz
+*.blghg 
 *.blg
