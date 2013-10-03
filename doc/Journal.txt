@@ -10,6 +10,7 @@ Week 3
 
   Tasks:
     * Install gap and hpc-gap.
+    * Read documentation on creating new objects.
     * Implement a graph representation.
     * Write BFS.
   
