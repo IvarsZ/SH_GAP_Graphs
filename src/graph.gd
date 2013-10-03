@@ -8,6 +8,10 @@ DeclareGlobalFunction("AddVertex");
 
 DeclareGlobalFunction("AddEdge");
 
+DeclareGlobalFunction("VertexCount");
+
+DeclareGlobalFunction("VertexSuccessors");
+
 DeclareGlobalFunction("DFS");
 
 DeclareGlobalFunction("BFS");
