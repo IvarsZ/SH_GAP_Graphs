@@ -25,6 +25,25 @@ InstallGlobalFunction(AddEdge, function(graph, startIndex, endIndex)
   Add(graph!.vertices[startIndex], endIndex);
 end);
 
-InstallGlobalFunction(BFS, function(graph, start)
+visited := BlistList([], []);
+ord := [];
+
+dfs := function(graph, cur)
   
+  visited[cur] := true;
+  Add(ord, cur);
+
+  for successor in graph!.vertices[cur] do
+    if visited[successor] = false then
+      dfs(graph, successor);
+    fi;
+  od;
+end;
+
+InstallGlobalFunction(DFS, function(graph, start)
+
+  visited := BlistList([1..Length(graph!.vertices)], []);
+  dfs(graph, start);
+  return ord;
 end);
+

@@ -8,4 +8,4 @@ DeclareGlobalFunction("AddVertex");
 
 DeclareGlobalFunction("AddEdge");
 
-DeclareGlobalFunction("BFS");
+DeclareGlobalFunction("DFS");
