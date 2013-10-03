@@ -1,11 +1,13 @@
 DeclareCategory("IsGraph", IsObject);
 
-DeclareGlobalFunction("Graph");
-
 DeclareGlobalFunction("EmptyGraph");
+
+DeclareGlobalFunction("Graph");
 
 DeclareGlobalFunction("AddVertex");
 
 DeclareGlobalFunction("AddEdge");
 
 DeclareGlobalFunction("DFS");
+
+DeclareGlobalFunction("BFS");
