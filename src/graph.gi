@@ -13,9 +13,7 @@ InstallGlobalFunction(EmptyGraph,  function()
 end);
 
 # PRIVATE FUNCTIONS AND VARIABLES RECORD
-GRAPH := rec(dfs            := false,
-             traversalOrder := false,
-             isVisited      := false);
+GRAPH := rec();
 
 InstallGlobalFunction(AddVertex, function(graph)
 
@@ -29,19 +27,38 @@ InstallGlobalFunction(AddEdge, function(graph, startIndex, endIndex)
 end);
 
 InstallGlobalFunction(DFS, function(graph, start)
+  local stack, stackTop, isVisited, order, current, successor;
 
-  GRAPH.isVisited := BlistList([1..Length(graph!.vertices)], []);
-  GRAPH.traversalOrder := [];
+  isVisited := BlistList([1..Length(graph!.vertices)], []);
+  order := [];
 
-  GRAPH.dfs(graph, start);
-  return GRAPH.traversalOrder;
+  stack := [start];
+  stackTop := 1;
+
+  while (stackTop > 0) do
+    
+    current := stack[stackTop];
+    stackTop := stackTop - 1;
+   
+    Add(order, current);
+    isVisited[current] := true;
+
+    for successor in graph!.vertices[current] do
+      if isVisited[successor] = false then
+        stackTop := stackTop + 1;
+        stack[stackTop] := successor;
+      fi;
+    od;  
+  od;
+
+  return order;
 end);
 
 InstallGlobalFunction(BFS, function(graph, start)
-  local queue, queueStart, current, successor;
+  local queue, queueStart, isVisited, order, current, successor;
 
-  GRAPH.isVisited := BlistList([1..Length(graph!.vertices)], []);
-  GRAPH.traversalOrder := [];
+  isVisited := BlistList([1..Length(graph!.vertices)], []);
+  order := [];
   
   queue := [start]; # TODO make of right size.
   queueStart := 1;
@@ -50,27 +67,14 @@ InstallGlobalFunction(BFS, function(graph, start)
     
     current := queue[queueStart];
     queueStart := queueStart + 1;
-    Add(GRAPH.traversalOrder, current);
+    Add(order, current);
 
     for successor in graph!.vertices[current] do
-      if GRAPH.isVisited[successor] = false then
+      if isVisited[successor] = false then
         Add(queue, successor);
       fi;
     od;
   od; 
 
-  return GRAPH.traversalOrder;
+  return order;
 end);
-
-GRAPH.dfs := function(graph, cur)
-  local successor;
-
-  GRAPH.isVisited[cur] := true;
-  Add(GRAPH.traversalOrder, cur);
-
-  for successor in graph!.vertices[cur] do
-    if GRAPH.isVisited[successor] = false then
-      GRAPH.dfs(graph, successor);
-    fi;
-  od;
-end;
