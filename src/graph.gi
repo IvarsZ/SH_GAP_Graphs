@@ -39,7 +39,7 @@ InstallGlobalFunction(DFS, function(graph, start)
   local stack, stackTop, isVisited, order, current, successor;
 
   isVisited := BlistList([1..VertexCount(graph)], []);
-  order := [];
+  order := EmptyPlist(VertexCount(graph));
 
   stack := [start];
   stackTop := 1;
@@ -69,9 +69,9 @@ InstallGlobalFunction(BFS, function(graph, start)
   local queue, queueStart, isVisited, order, current, successor;
 
   isVisited := BlistList([1..VertexCount(graph)], []);
-  order := [];
+  order := EmptyPlist(VertexCount(graph));
   
-  queue := [start]; # TODO make of right size.
+  queue := [start];
   queueStart := 1;
   isVisited[start] := true;
   
@@ -93,9 +93,6 @@ InstallGlobalFunction(BFS, function(graph, start)
 end);
 
 InstallGlobalFunction(GetColouring, function(graph, numberOfColours)
-  local vertex, colouring, colourCounts, colour;
+local vertex, colouring, colourCounts, colour;
 
-  # Colour counts, colouring all to 0.
-
-  return b;
 end);
