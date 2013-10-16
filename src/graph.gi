@@ -91,3 +91,11 @@ InstallGlobalFunction(BFS, function(graph, start)
 
   return order;
 end);
+
+InstallGlobalFunction(GetColouring, function(graph, numberOfColours)
+  local vertex, colouring, colourCounts, colour;
+
+  # Colour counts, colouring all to 0.
+
+  return b;
+end);

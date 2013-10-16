@@ -15,3 +15,5 @@ DeclareGlobalFunction("VertexSuccessors");
 DeclareGlobalFunction("DFS");
 
 DeclareGlobalFunction("BFS");
+
+DeclareGlobalFunction("GetColouring");
