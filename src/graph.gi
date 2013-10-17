@@ -93,6 +93,67 @@ InstallGlobalFunction(BFS, function(graph, start)
 end);
 
 InstallGlobalFunction(GetColouring, function(graph, numberOfColours)
-local vertex, colouring, colourCounts, colour;
+local vertex, colouring, colourCounts, colour, successor, isClash, v;
 
+  vertex := 1;
+  colouring := EmptyPlist(VertexCount(graph));
+  colourCounts := EmptyPlist(numberOfColours);
+
+  for colour in [1..numberOfColours] do
+    colourCounts[colour] := 0;
+  od;
+
+  for v in [1..VertexCount(graph)] do
+    colouring[v] := -1;
+  od;
+  
+  colouring[1] := 1;
+  colourCounts[1] := 1;
+
+  while (vertex < VertexCount(graph)) do
+
+    #Print(vertex);
+    #Print("\n");
+    # Check for colour clash.
+    isClash := false;
+    for successor in VertexSuccessors(graph, vertex) do
+      if (colouring[vertex] = colouring[successor]) then
+        isClash := true;
+        # BREAK !!!
+      fi;
+    od;
+
+    if (isClash) then
+      
+      colourCounts[colouring[vertex]] := colourCounts[colouring[vertex]] - 1;
+      colouring[vertex] := colouring[vertex] + 1;
+      
+      #Print(colourCounts[colouring[vertex]]);
+      #Print("\n");
+      #Print(colouring[vertex]);
+      #Print( "\n");
+      while (colourCounts[colouring[vertex] - 1] = 0 or
+             colouring[vertex] = numberOfColours + 1) do
+
+        if (vertex = 1) then
+          return false;
+        else
+          vertex := vertex - 1;
+        fi;
+
+        colourCounts[colouring[vertex]] := colourCounts[colouring[vertex]] - 1;
+        colouring[vertex] := colouring[vertex] + 1;
+      od;
+
+      colourCounts[colouring[vertex]] := colourCounts[colouring[vertex]] + 1;
+    else
+      vertex := vertex + 1;
+      if (vertex <= VertexCount(graph)) then
+        colouring[vertex] := 1;
+        colourCounts[1] := colourCounts[1] + 1;
+      fi;
+    fi;
+  od;
+
+  return colouring;
 end);
