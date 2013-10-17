@@ -17,3 +17,5 @@ DeclareGlobalFunction("DFS");
 DeclareGlobalFunction("BFS");
 
 DeclareGlobalFunction("GetColouring");
+
+DeclareGlobalFunction("GetStrongComponents");

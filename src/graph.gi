@@ -157,3 +157,60 @@ local vertex, colouring, colourCounts, colour, successor, isClash, v;
 
   return colouring;
 end);
+
+SCC_DFS := function(graph, vertex)
+
+  topOfS := topOfS + 1;
+  S[topOfS] := vertex;
+
+  Print(I);
+  Print("\n");
+  Print(S);
+  Print("\n");
+
+  I[vertex] := S[topOfS];
+  topOfB := topOfB + 1;
+  B[topOfB] := I[vertex];
+
+  for successor in VertexSuccessors(graph, vertex) do
+    if (I[successor] = 0) then
+      SCC_DFS(graph, successor);
+    else
+      while (I[successor] < B[topOfB]) do
+        topOfB := topOfB - 1;
+      od;
+    fi;
+  od;
+
+  if (I[vertex] = B[topOfB]) then
+    topOfB := topOfB - 1;
+    c := c + 1;
+    while (topOfS > 0 and I[vertex] <= S[topOfS]) do
+      I[S[topOfS]] := c;
+      topOfS := topOfS - 1;
+    od;
+  fi;
+end;
+
+# Uses Gabow's algorihtm.
+InstallGlobalFunction(GetStrongComponents, function(graph)
+
+  S := [];
+  B := [];
+  topOfS := 0;
+  topOfB := 0;
+
+  I := EmptyPlist(VertexCount(graph));
+  for vertex in [1..VertexCount(graph)] do
+    I[vertex] := 0;
+  od;
+
+  c := VertexCount(graph);
+  for vertex in [1..VertexCount(graph)] do
+    if (I[vertex] = 0) then
+      SCC_DFS(graph, vertex);
+    fi;
+  od;
+
+  return I;
+end);
