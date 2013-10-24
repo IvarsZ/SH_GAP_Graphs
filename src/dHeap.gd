@@ -2,6 +2,6 @@ DeclareCategory("IsDHeap", IsObject);
 
 DeclareGlobalFunction("EmptyDHeap");
 
-DeclareGlobalFunction("Add");
+DeclareGlobalFunction("Enqueue");
 
-DeclareGlobalFunction("Remove");
+DeclareGlobalFunction("Dequeue");
