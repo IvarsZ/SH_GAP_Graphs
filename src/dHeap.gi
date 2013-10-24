@@ -1,9 +1,9 @@
 DeclareRepresentation("IsDHeapRep", IsComponentObjectRep, ["d", "heap"]);
 
-InstallGlobalFunction(EmptyDHeap,  function(d)
+InstallGlobalFunction(EmptyDHeap,  function(d, isLarger)
 
   return Objectify(NewType(NewFamily("DHeaps"), IsDHeap and IsDHeapRep),
-                   rec(d := d, nodes := []));
+                   rec(d := d, nodes := [], isLarger := isLarger));
 end);
 
 D_HEAP := rec(
@@ -54,7 +54,7 @@ D_HEAP := rec(
 
   
   larger := function(dHeap, i, j)
-    return dHeap!.nodes[i] > dHeap!.nodes[j];
+    return dHeap!.isLarger(dHeap!.nodes[i], dHeap!.nodes[j]);
   end,
         
   swap := function(dHeap, firstPosition, secondPosition)

@@ -4,6 +4,6 @@ DeclareGlobalFunction("WeightedGraph");
 
 DeclareGlobalFunction("EmptyWeightedGraph");
 
-DeclareGlobalFunction("minimumSpanningTree");
+DeclareGlobalFunction("MinimumSpanningTree");
 
-DeclareGlobalFunction("shortestPath");
+DeclareGlobalFunction("ShortestPath");
