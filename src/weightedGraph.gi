@@ -65,7 +65,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
 end);
 
 InstallGlobalFunction(ShortestPath, function(graph, startVertex)
-  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLengths;
+  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLengths, pathLength;
 
   tree := [];
   verticesLeft := VertexCount(graph);
@@ -81,7 +81,7 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
   isAdded := BlistList([1..VertexCount(graph)], []);
   pathLengths := EmptyPlist(VertexCount(graph));
 
-  Add(tree, startVertex);
+  tree[startVertex] := 0;
   isAdded[startVertex] := true;
   pathLengths[startVertex] := 0;
   verticesLeft := verticesLeft - 1; 
@@ -89,7 +89,14 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
   nextVertex := startVertex;
   successors := VertexSuccessors(graph, nextVertex);
   for i in [1..Length(successors)] do
-    Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := graph!.weights[nextVertex][i] + pathLengths[nextVertex]));
+    Print(nextVertex);
+    Print("\n");
+    Print(pathLengths);
+    Print("\n");
+    Print(pathLengths[nextVertex]);
+    Print("\n");
+    pathLength := graph!.weights[nextVertex][i] + pathLengths[nextVertex];
+    Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
   od;
 
   while (verticesLeft > 0 and Length(heap!.nodes) > 0 ) do
@@ -102,11 +109,19 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
     tree[nextVertex] := minEdge.startVertex;
     isAdded[nextVertex] := true;
     verticesLeft := verticesLeft - 1;
+    pathLengths[nextVertex] := minEdge.pathLength; # can get rid of this.
     
     # Add the edges of the added vertex.
     successors := VertexSuccessors(graph, nextVertex);
     for i in [1..Length(successors)] do
-      Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := graph!.weights[nextVertex][i] + pathLengths[nextVertex]));
+      Print(nextVertex);
+      Print("\n");
+      Print(pathLengths);
+      Print("\n");
+      Print(pathLengths[nextVertex]);
+      Print("\n");
+      pathLength := graph!.weights[nextVertex][i] + pathLengths[nextVertex];
+      Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
     od;
 
     Print(tree);
