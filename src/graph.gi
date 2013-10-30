@@ -1,6 +1,8 @@
 #
 # An adjacency list for graphs is a record with successor vertices for each vertex.
 #
+# Each vertex is represented by an index starting at 1.
+#
 DeclareRepresentation("IsGraphAdjacencyListRep", IsComponentObjectRep, ["successors"]);
 
 #
