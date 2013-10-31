@@ -17,23 +17,29 @@ D_HEAP := rec(
   end,
 
   sink :=  function(dHeap, position)
-    local i;
+    local i, min;
 
-    while (2 * position <= D_HEAP.size(dHeap)) do
+    while (dHeap!.d * (position - 1) + 2 <= D_HEAP.size(dHeap)) do
     
-      # Picks the smallest child if there are two children.
-      i := 2 * position;
-      if (i + 1 <= D_HEAP.size(dHeap) and D_HEAP.larger(dHeap, i, i + 1)) then
+      # Picks the smallest child.
+      i := dHeap!.d * (position - 1) + 2;
+      min := i;
+      while (i < dHeap!.d * position + 2 and i <= D_HEAP.size(dHeap)) do
+
+        # TODO use proper smaller.
+        if (D_HEAP.larger(dHeap, min, i)) then
+          min := i;
+        fi;
       
         i := i + 1;
-      fi;
+      od;
 
       # If the element is greater than or equal to its smallest child,
-      if (D_HEAP.larger(dHeap, position, i)) then
+      if (D_HEAP.larger(dHeap, position, min)) then
         
         # Otherwise swaps them.
-        D_HEAP.swap(dHeap, i, position);
-        position := i;
+        D_HEAP.swap(dHeap, min, position);
+        position := min;
       else
         return;
       fi;
@@ -44,9 +50,9 @@ D_HEAP := rec(
     local next;
 
     # Keeps exchanging the element at k-th position with its parent till it isn't smaller than its parent.
-    while (position > 1 and D_HEAP.larger(dHeap, Int(position / 2), position)) do
+    while (position > 1 and D_HEAP.larger(dHeap, Int(Ceil(Float((position - 1)/ dHeap!.d))), position)) do
      
-      next := Int(position/2);
+      next := Int(Ceil(Float((position - 1)/dHeap!.d)));
       D_HEAP.swap(dHeap, position, next);
       position := next;
     od;
