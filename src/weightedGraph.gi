@@ -71,8 +71,6 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     for i in [1..Length(successors)] do
       Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := graph!.weights[nextVertex][i]));
     od;
-
-    Print(tree);
   od;
 
   return tree;
@@ -125,7 +123,7 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
     tree[nextVertex] := minEdge.startVertex;
     isAdded[nextVertex] := true;
     verticesLeft := verticesLeft - 1;
-    pathLengths[nextVertex] := minEdge.pathLengt;
+    pathLengths[nextVertex] := minEdge.pathLength;
     
     # Add the edges of the visited vertex.
     successors := VertexSuccessors(graph, nextVertex);

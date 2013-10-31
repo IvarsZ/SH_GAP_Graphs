@@ -1,0 +1,9 @@
+gap> START_TEST("strongComponentsTest");
+
+# Test strongly connected components.
+gap> g := Graph([[2, 6, 7], [3], [4, 6], [5, 7], [6], [2], [], [9, 10], [], [8]]);
+<object>
+gap> GetStrongComponents(g);
+[ 13, 12, 12, 12, 12, 12, 11, 15, 14, 15 ]
+
+gap> STOP_TEST("strongComponents.test", 1000);

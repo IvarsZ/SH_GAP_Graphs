@@ -1,11 +1,11 @@
-gap> START_TEST("bfsTest");
+gap> START_TEST("dfsTest");
 gap> g := Graph([[2, 4], [3, 5], [], [6], [3, 4], [1]]);
 <object>
-gap> BFS(g, 1);
-[ 1, 2, 4, 3, 5, 6 ]
+gap> DFS(g, 1);
+[ 1, 4, 6, 2, 5, 3 ]
 
 gap> g := Graph([[2, 4], [3, 5], [], [6], [3, 2], [1]]);
 <object>
-gap> BFS(g, 2);
-[ 2, 3, 5 ]
-gap> STOP_TEST("bfs.test", 1000);
+gap> DFS(g, 2);
+[ 2, 5, 3 ]
+gap> STOP_TEST("dfs.test", 1000);
