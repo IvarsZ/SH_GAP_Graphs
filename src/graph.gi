@@ -137,10 +137,52 @@ end);
 # to use, or false otherwise.
 #
 InstallGlobalFunction(GetColouring, function(graph, numberOfColours)
-local vertex, colouring, colourCounts, colour, successor, isClash, v;
+  local i, tmp, vertex, vertexIndex, colouring, colourCounts, colour, successor, isClash, v, order, isOrderChanged, degrees, unorderedEnd, position;
 
-  # TODO optimize.
-  vertex := 1;
+  # TODO order the list beforehand.
+  
+  order := EmptyPlist(VertexCount(graph));
+  position := EmptyPlist(VertexCount(graph));
+  degrees := EmptyPlist(VertexCount(graph));
+  for vertex in [1..VertexCount(graph)] do
+    order[vertex] := vertex;
+    position[vertex] := vertex;
+    degrees[vertex] := Length(VertexSuccessors(graph, vertex));
+  od;
+
+  unorderedEnd := VertexCount(graph);
+  isOrderChanged := true;
+
+  while (isOrderChanged) do
+
+    isOrderChanged := false;
+    
+    i := 1;
+    while (i <= unorderedEnd) do
+      vertex := order[i];
+
+      if (degrees[vertex] < numberOfColours) then
+      
+        
+        position[unorderedEnd] := position[vertex];
+        position[vertex] := unorderedEnd;
+        order[position[unorderedEnd]] := order[unorderedEnd];
+        order[position[vertex]] := vertex;
+
+        for successor in VertexSuccessors(graph, vertex) do
+          degrees[successor] := degrees[successor] - 1;
+        od;
+
+        unorderedEnd := unorderedEnd - 1;
+        isOrderChanged := true;
+
+      else
+        i := i + 1;
+      fi;
+    od;
+ 
+  od;
+
   colouring := EmptyPlist(VertexCount(graph));
   colourCounts := EmptyPlist(numberOfColours);
 
@@ -151,12 +193,16 @@ local vertex, colouring, colourCounts, colour, successor, isClash, v;
   for v in [1..VertexCount(graph)] do
     colouring[v] := -1;
   od;
-  
-  colouring[1] := 1;
+ 
+  vertex := order[1];
+  colouring[vertex] := 1;
   colourCounts[1] := 1;
+  vertexIndex := 1;
 
   # While there are still vertices left to colour,
-  while (vertex <= VertexCount(graph)) do
+  while (vertexIndex <= VertexCount(graph)) do
+
+    vertex := order[vertexIndex];
 
     # Check if no two adjacent vertices have the same colour,
     isClash := false;
@@ -177,16 +223,17 @@ local vertex, colouring, colourCounts, colour, successor, isClash, v;
       # Keep backtracking if the clash is due to other vertex or we're out of colours.
       while (colourCounts[colouring[vertex] - 1] = 0 or
              colouring[vertex] = numberOfColours + 1) do
-  
+ 
         # If there are no more vertices to backtrack,
-        if (vertex = 1) then
+        if (vertexIndex = 1) then
           
           # no colouring exists.
           return false;
         else
 
           # otherwise backtract one more vertex.
-          vertex := vertex - 1;
+          vertexIndex := vertexIndex - 1;
+          vertex := order[vertexIndex];
         fi;
 
         colourCounts[colouring[vertex]] := colourCounts[colouring[vertex]] - 1;
@@ -197,9 +244,9 @@ local vertex, colouring, colourCounts, colour, successor, isClash, v;
     else
 
       # If there is no clash colour the next vertex and repeat.
-      vertex := vertex + 1;
-      if (vertex <= VertexCount(graph)) then
-        colouring[vertex] := 1;
+      vertexIndex := vertexIndex + 1;
+      if (vertexIndex <= VertexCount(graph)) then
+        colouring[order[vertexIndex]] := 1;
         colourCounts[1] := colourCounts[1] + 1;
       fi;
     fi;

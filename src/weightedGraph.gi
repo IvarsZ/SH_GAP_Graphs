@@ -80,7 +80,7 @@ end);
 # Finds the shortest path to each vertex in the given graph from the given start vertex.
 #
 InstallGlobalFunction(ShortestPath, function(graph, startVertex)
-  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLengths, pathLength;
+  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLength;
 
   tree := [];
   verticesLeft := VertexCount(graph);
@@ -90,6 +90,7 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
     return tree;
   fi;
 
+  # TODO experiment what d-ary heap to use.
   # Use a heap to choose the next edge to visit.
   heap := EmptyDHeap(2,
                      function(first, second)
@@ -97,19 +98,17 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
                      end
   );
 
-  # Visit the starting vertex. TODO remove path lengths.
+  # Visit the starting vertex.
   isAdded := BlistList([1..VertexCount(graph)], []);
-  pathLengths := EmptyPlist(VertexCount(graph));
   tree[startVertex] := 0;
   isAdded[startVertex] := true;
-  pathLengths[startVertex] := 0;
   verticesLeft := verticesLeft - 1; 
 
   # Add its outgoing edges to the heap.
   nextVertex := startVertex;
   successors := VertexSuccessors(graph, nextVertex);
   for i in [1..Length(successors)] do
-    pathLength := graph!.weights[nextVertex][i] + pathLengths[nextVertex];
+    pathLength := graph!.weights[nextVertex][i];
     Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
   od;
 
@@ -123,12 +122,11 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
     tree[nextVertex] := minEdge.startVertex;
     isAdded[nextVertex] := true;
     verticesLeft := verticesLeft - 1;
-    pathLengths[nextVertex] := minEdge.pathLength;
     
     # Add the edges of the visited vertex.
     successors := VertexSuccessors(graph, nextVertex);
     for i in [1..Length(successors)] do
-      pathLength := graph!.weights[nextVertex][i] + pathLengths[nextVertex];
+      pathLength := graph!.weights[nextVertex][i] + minEdge.pathLength;
       Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
     od;
 
