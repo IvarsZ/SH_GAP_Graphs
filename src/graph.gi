@@ -180,6 +180,8 @@ GRAPH.orderVerticesForColouring := function(graph, numberOfColours)
       fi;
     od;
   od;
+
+  return order;
 end;
 
 #
