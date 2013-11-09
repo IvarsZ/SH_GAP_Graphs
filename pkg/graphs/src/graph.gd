@@ -8,7 +8,7 @@ DeclareCategory("IsGraph", IsObject);
 #
 # Constructs an empty graph. 
 #
-DeclareGlobalFunction("EmptyGraph");
+DeclareGlobalFunction("EmptyGraph", "Constructs an empty graph");
 
 #
 # Given an adjacency list of successor vertices for each vertex constructs a graph.
