@@ -1,6 +1,6 @@
 #
 # Read the declaration files of the graph package
 #
-ReadPackage("Graphs", "src/dHeap.gd");
-ReadPackage("Graphs", "src/graph.gd");
-ReadPackage("Graphs", "src/weightedGraph.gd");
+ReadPackage("Graphs", "gap/dHeap.gd");
+ReadPackage("Graphs", "gap/graph.gd");
+ReadPackage("Graphs", "gap/weightedGraph.gd");

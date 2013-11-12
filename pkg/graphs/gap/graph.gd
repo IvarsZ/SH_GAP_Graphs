@@ -5,19 +5,19 @@
 # TODO comment here?
 DeclareCategory("IsGraph", IsObject);
 
-#
-# Constructs an empty graph. 
-#
+#!
+#! Constructs an empty graph. 
+#!
 DeclareGlobalFunction("EmptyGraph", "Constructs an empty graph");
 
-#
-# Given an adjacency list of successor vertices for each vertex constructs a graph.
-#
+#!
+#! Given an adjacency list of successor vertices for each vertex constructs a graph.
+#!
 DeclareGlobalFunction("Graph");
 
-#
-# Adds a vertex to a graph.
-#
+#!
+#! Adds a vertex to a graph.
+#!
 DeclareGlobalFunction("AddVertex");
 
 #
