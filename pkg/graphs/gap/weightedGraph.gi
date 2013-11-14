@@ -75,13 +75,17 @@ end);
 InstallGlobalFunction(ShortestPath, function(graph, startVertex)
   local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLength;
 
-  tree := [];
   verticesLeft := VertexCount(graph);
 
   # Empty graph has no paths.
   if (verticesLeft = 0) then
-    return tree;
+    return [];
   fi;
+
+  tree := EmptyPlist(verticesLeft);
+  for i in [1..verticesLeft] do
+    tree[i] := -1;
+  od;
 
   # TODO experiment what d-ary heap to use.
   # Use a heap to choose the next edge to visit.
@@ -105,24 +109,27 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
     Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
   od;
 
-  while (verticesLeft > 0 and Length(heap!.nodes) > 0 ) do
+  while (verticesLeft > 0 and Length(heap!.nodes) > 0) do
   
     # Find the edge of smallest weight, that adds an unadded vertex.
-    while (isAdded[nextVertex] = true) do
+    while (isAdded[nextVertex] = true and Length(heap!.nodes) > 0) do
       minEdge := Dequeue(heap);
       nextVertex := VertexSuccessors(graph, minEdge.startVertex)[minEdge.edgeIndex];
     od;
-    tree[nextVertex] := minEdge.startVertex;
-    isAdded[nextVertex] := true;
-    verticesLeft := verticesLeft - 1;
-    
-    # Add the edges of the visited vertex.
-    successors := VertexSuccessors(graph, nextVertex);
-    for i in [1..Length(successors)] do
-      pathLength := graph!.weights[nextVertex][i] + minEdge.pathLength;
-      Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
-    od;
 
+    if (isAdded[nextVertex] = false) then
+
+      tree[nextVertex] := minEdge.startVertex;
+      isAdded[nextVertex] := true;
+      verticesLeft := verticesLeft - 1;
+    
+      # Add the edges of the visited vertex.
+      successors := VertexSuccessors(graph, nextVertex);
+      for i in [1..Length(successors)] do
+        pathLength := graph!.weights[nextVertex][i] + minEdge.pathLength;
+        Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, pathLength := pathLength));
+      od;
+    fi;
   od;
 
   return tree;

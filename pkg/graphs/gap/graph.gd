@@ -61,6 +61,9 @@ DeclareGlobalFunction("VertexSuccessors");
 #! @Returns a list ordering the vertices of the given graph in the order of a depth first search starting from the given start vertex.
 #!
 #! In depth first search each branch is fully explored before backtracking to another branch. The implementation uses a stack for the recursive traversal of vertices.
+#!
+#! reference
+#!
 DeclareGlobalFunction("DFS");
 
 #! @Description
