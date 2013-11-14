@@ -1,29 +1,25 @@
-#
-# A weighted graph of adjacency list representation has a list of successors and a list of weights for each vertex.
-#
+#! @AutoDoc
+#! @Chapter Graphs
+#! @Section Weighted Graphs
+
+#! @Description
+#!
+#! A weighted graph of adjacency list representation has a list of successors and a list of weights for each vertex.
+#!
 DeclareRepresentation("IsWeightedGraphAdjacencyListRep", IsGraphAdjacencyListRep, ["successors", "weights"]);
 
-#
-# Constructs a weighted graph given its successors and weights lists. 
-#
 InstallGlobalFunction(WeightedGraph, function(successors, weights)
 
   return Objectify(NewType(NewFamily("WeightedGraphs"), IsWeightedGraph and IsWeightedGraphAdjacencyListRep),
                    rec(successors := successors, weights := weights));
 end); 
 
-#
-# Constructs and empty weighted graph.
-#
 InstallGlobalFunction(EmptyWeightedGraph,  function()
 
   return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
                    rec(successors := [], weights := []));
 end);
 
-#
-# Finds the minimum spanning tree of the given weighted graph.
-#
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
   local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors;
 
@@ -76,9 +72,6 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
   return tree;
 end);
 
-#
-# Finds the shortest path to each vertex in the given graph from the given start vertex.
-#
 InstallGlobalFunction(ShortestPath, function(graph, startVertex)
   local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLength;
 

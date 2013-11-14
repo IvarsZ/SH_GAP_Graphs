@@ -1,56 +1,87 @@
+#! @AutoDoc
+#! @Chapter Graphs
+#! @Section Graphs
+
 #
 # Declaration file for directed graps and their functions.
 #
 
-# TODO comment here?
+#! A directed graph with vertices and edges between them.
 DeclareCategory("IsGraph", IsObject);
 
+#! @Description
+#! @Arguments
 #!
-#! Constructs an empty graph. 
+#! @Returns a new empty graph. 
 #!
-DeclareGlobalFunction("EmptyGraph", "Constructs an empty graph");
+#! Constructs the empty graph with no vertices and edges.
+#!
+DeclareGlobalFunction("EmptyGraph");
 
+
+#! @Description
+#! @Arguments successors
 #!
-#! Given an adjacency list of successor vertices for each vertex constructs a graph.
+#! @Returns a new graph.
+#!
+#! Constructs the graph with the given adjacency list of successor vertices for each vertex.
 #!
 DeclareGlobalFunction("Graph");
 
+#! @Description
+#! @Arguments graph
 #!
-#! Adds a vertex to a graph.
+#! Creates and adds a new vertex to the given graph.
 #!
 DeclareGlobalFunction("AddVertex");
 
-#
-# Adds an edge to a graph connecting two specified vertices.
-#
+#! @Description
+#! @Arguments graph, start, end
+#!
+#! Adds an edge to the given graph connecting the given start and end vertices.
+#!
 DeclareGlobalFunction("AddEdge");
 
-#
-# Returns the number of vertices in the graph.
-#
+#! @Description
+#! @Arguments graph
+#!
+#! @Returns the number of vertices in the given graph.
 DeclareGlobalFunction("VertexCount");
 
-#
-# Returns all successor vertices s for a vertex (all edges (vertex, s)).
-#
+#! @Description
+#! @Arguments graph, vertex
+#!
+#! @Returns all direct successor vertices of the given graph and vertex.
+#!
 DeclareGlobalFunction("VertexSuccessors");
 
-#
-# Returns a list ordering the vertices in the order of a depth first search starting from the given vertex.
-#
+#! @Description
+#! @Arguments graph, startVertex
+#!
+#! @Returns a list ordering the vertices of the given graph in the order of a depth first search starting from the given start vertex.
+#!
+#! In depth first search each branch is fully explored before backtracking to another branch. The implementation uses a stack for the recursive traversal of vertices.
 DeclareGlobalFunction("DFS");
 
-#
-# Returns a list ordering the vertices in the order of a breadth first search starting from the given vertex.
-#
+#! @Description
+#! @Arguments graph, startVertex
+#!
+#! @Returns a list ordering the vertices of the given graph in the order of a breadth first search starting from the given start vertex.
+#!
+#! TODO BFS explanation and a reference.
 DeclareGlobalFunction("BFS");
 
-#
-# Returns a list of colours for vertices of the graph for the given number of colours or false if it can't be coloured.
-#
+#! @Description
+#! @Arguments graph, numberOfColours
+#!
+#! @Returns a list of colours for vertices of the given graph for the given number of colours or false if it can't be coloured.
+#!
+#! TODO colouring explanation and a reference.
 DeclareGlobalFunction("GetColouring");
 
-#
-# Returns a list that partitions vertices into strongly connected components.
-#
+#! @Description
+#! @Arguments graph
+#!
+#! @Returns a list that partitions vertices of the given graph into strongly connected components. Each vertex is assigned the index of its component, where the indexes of components start from vertex count + 1.
+#!
 DeclareGlobalFunction("GetStrongComponents");

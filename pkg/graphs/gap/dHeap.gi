@@ -1,17 +1,19 @@
-#
-# The representation for a d-ary heap has a list of nodes and a nodes comparisoon function is Larger. 
-#
+#! @Chapter Graphs 
+#! @Section D-ary Heaps
+
+#! @Description
+#!
+#! The representation for a d-ary heap has a d value, a list of nodes and a nodes comparison function isLarger. 
+#!
 DeclareRepresentation("IsDHeapRep", IsComponentObjectRep, ["d", "nodes", "isLarger"]);
 
-#
-# Constructs and empty heap with the given d value and isLarger function comparing two nodes of the heap.
-#
 InstallGlobalFunction(EmptyDHeap,  function(d, isLarger)
 
   return Objectify(NewType(NewFamily("DHeaps"), IsDHeap and IsDHeapRep),
                    rec(d := d, nodes := [], isLarger := isLarger));
 end);
 
+# Record for private functions.
 D_HEAP := rec(
  
   #
@@ -96,9 +98,6 @@ D_HEAP := rec(
   end
 );
 
-#
-# Adds an element to the heap in its proper place.
-#
 InstallGlobalFunction(Enqueue, function(dHeap, node)
 
   # Adds the element at the end of the array, the heap might become improper,
@@ -111,9 +110,6 @@ InstallGlobalFunction(Enqueue, function(dHeap, node)
 
 end);
 
-#
-# Removes the smallest element of the heap.
-#
 InstallGlobalFunction(Dequeue, function(dHeap)
   local top;
 

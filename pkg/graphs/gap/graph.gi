@@ -1,24 +1,21 @@
-#
-# An adjacency list for graphs is a record with successor vertices for each vertex.
-#
-# Each vertex is represented by an index starting at 1.
-#
+#! @Chapter Graphs
+#! @Section Graphs
+
+#! @Description
+#!
+#! An adjacency list for graphs is a record where each vertex v has list of end vertices for each edge starting at v.
+#!
 DeclareRepresentation("IsGraphAdjacencyListRep", IsComponentObjectRep, ["successors"]);
 
+# Record for private functions.
 GRAPH := rec();
 
-#
-# Constructs a graph given its successors list.
-#
 InstallGlobalFunction(Graph, function(successors)
 
   return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
                    rec(successors := successors));
 end); 
 
-#
-# Constructs an empty graph.
-#
 InstallGlobalFunction(EmptyGraph,  function()
 
   return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
