@@ -131,6 +131,7 @@ InstallGlobalFunction(BFS, function(graph, start)
   return order;
 end);
 
+# Preordes vertices for coluring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
 GRAPH.orderVerticesForColouring := function(graph, numberOfColours)
  local order, position, isOrderChanged, degrees, verticesToOrderEnd, i, vertex, successor; 
  
@@ -269,7 +270,6 @@ end);
 #
 # It returns a list where each vertex is assigned its strongly connected components number,
 # the numbering starts from the largest index of a vertex + 1.
-#
 #
 InstallGlobalFunction(GetStrongComponents, function(graph)
   local S, topOfS, B, topOfB, I, c, vertex, SCC_DFS;

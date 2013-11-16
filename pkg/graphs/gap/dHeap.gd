@@ -2,9 +2,10 @@
 #! @Chapter Graphs
 #! @Section D-ary Heaps
 
-#! TODO : heap description.
+#! A tree where each child node is not larger than its parent node.
 DeclareCategory("IsDHeap", IsObject);
 
+#TODO REWRITE TO OTHER STYLE
 
 #! @Description
 #!
