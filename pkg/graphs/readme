@@ -1,5 +1,6 @@
 To generate documentation with AutoDoc:
 
   1) Install newest autodo from here - http://wwwb.math.rwth-aachen.de/~gutsche/gap_packages/AutoDoc/.
-  2) Add its and graphs package directories as GAP root paths using -l flag.
-  3) Execute the makedoc.g file with GAP.
+  2) Go to the directory where this file is located.
+  3) Add autodoc and graphs package directories as GAP root paths using -l flag.
+  4) Execute the makedoc.g file with GAP.
