@@ -3,7 +3,7 @@
 
 #! @Description
 #!
-#! The representation for a d-ary heap has a d value, a list of nodes and a nodes comparison function isLarger. 
+#! The representation for a d-ary heap is a record with a d value, a list of nodes and a nodes comparison function isLarger. 
 #!
 DeclareRepresentation("IsDHeapRep", IsComponentObjectRep, ["d", "nodes", "isLarger"]);
 

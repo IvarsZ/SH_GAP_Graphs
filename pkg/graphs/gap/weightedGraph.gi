@@ -4,7 +4,7 @@
 
 #! @Description
 #!
-#! A weighted graph of adjacency list representation has a list of successors and a list of weights for each vertex.
+#! The representation is record with  a list of successors and a list of weights for each vertex.
 #!
 DeclareRepresentation("IsWeightedGraphAdjacencyListRep", IsGraphAdjacencyListRep, ["successors", "weights"]);
 

@@ -3,7 +3,7 @@
 
 #! @Description
 #!
-#! An adjacency list for graphs is a record where each vertex v has list of end vertices for each edge starting at v.
+#! The representation is a record with an adjacency list called successors where each vertex v has a list of end vertices for each edge starting at v.
 #!
 DeclareRepresentation("IsGraphAdjacencyListRep", IsComponentObjectRep, ["successors"]);
 

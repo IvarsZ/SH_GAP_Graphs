@@ -36,9 +36,9 @@ DeclareGlobalFunction("Graph");
 DeclareGlobalFunction("AddVertex");
 
 #! @Description
-#! @Arguments graph, start, end
+#! @Arguments graph, startVertex, endVertex
 #!
-#! Adds an edge to the given graph connecting the given start and end vertices.
+#! Adds an edge to the given graph connecting the given start vertex to the given end vertex.
 #!
 DeclareGlobalFunction("AddEdge");
 
@@ -69,16 +69,16 @@ DeclareGlobalFunction("DFS");
 #!
 #! @Returns a list ordering the vertices of the given graph in the order of a breadth first search starting from the given start vertex.
 #!
-#! In breadth first search all successor vertices of a vertex are visited before visiting their successor nodes. Thus it traverses the graph level by level from the start vertex (root). The implementaion uses q first-in-first-out (FIFO) queue to achieve the order.
+#! In breadth first search all successor vertices of a vertex are visited before visiting their successor vertices. Thus it traverses the graph level by level from the start vertex (root). The implementaion uses a first-in-first-out (FIFO) queue to achieve the order.
 #!
 DeclareGlobalFunction("BFS");
 
 #! @Description
 #! @Arguments graph, numberOfColours
 #!
-#! @Returns a list of colours for vertices of the given graph for the given number of colours or false if it can't be coloured.
+#! @Returns a list of colours for vertices of the given undirected, loopless graph for the given number of colours or false if it can't be coloured such that no two adjacent vertices have the same colour.
 #!
-#! The implementation is a backtracking solution where the vertices are coloured with the first available colour and if there is a clash of colours the next colours is tried for the first possible vertex untill a solution is found. To improve the performance the vertices are preordered by colouring the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anyomore.
+#! The implementation is a backtracking solution where the vertices are coloured with the first available colour and if there is a clash of colours the next colours is tried for the first possible vertex untill a solution is found. To improve the performance the vertices are preordered by colouring the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
 #!
 DeclareGlobalFunction("GetColouring");
 
@@ -87,6 +87,6 @@ DeclareGlobalFunction("GetColouring");
 #!
 #! @Returns a list that partitions vertices of the given graph into strongly connected components. Each vertex is assigned the index of its component, where the indexes of components start from vertex count + 1.
 #!
-#! It is an implementation fo Gabov's algorithm. It traverses the graph with DFS and uses two stacks. One to keep track of visited vertices and another one to keep track of vertices which vertices are backwards reachable and are in the same strong component. 
+#! It is an implementation of Gabov's algorithm. It traverses the graph with DFS and uses two stacks. One to keep track of visited vertices and another one to keep track of vertices which vertices are backwards reachable and are in the same strong component. 
 #!
 DeclareGlobalFunction("GetStrongComponents");

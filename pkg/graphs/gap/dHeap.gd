@@ -2,20 +2,19 @@
 #! @Chapter Graphs
 #! @Section D-ary Heaps
 
-#! A tree where each child node is not larger than its parent node.
+#! A d-ary tree where each child node is not larger than its parent node.
 DeclareCategory("IsDHeap", IsObject);
 
-#TODO REWRITE TO OTHER STYLE
-
 #! @Description
+#! @Arguments d, isLarger
 #!
-#! Constructs an empty d ary heap.
+#! @Returns a new empty d ary heap.
+#! Constructs the empty d ary heap with the given arguments:
 #!
-#!  @Arguments d, isLarger
 #!  <List>
 #!  <Mark><A>d</A></Mark>
 #!  <Item>
-#!    The number of successor nodes for each node.
+#!    The number of successor nodes for each node, the very last node might have fewer.
 #!  </Item>
 #!
 #!  <Mark><A>isLarger</A></Mark>
@@ -29,24 +28,14 @@ DeclareCategory("IsDHeap", IsObject);
 DeclareGlobalFunction("EmptyDHeap");
 
 #! @Description
+#! @Arguments heap, node
 #!
-#! Adds a node to a heap in its proper place.
-#!
-#!  @Arguments node
-#!  <List>
-#!  <Mark><A>node</A></Mark>
-#!  <Item>
-#!    The node to add to the heap.
-#!  </Item>
-#!  </List>
-#!
-#! @Returns nothing.
+#! Adds a the given node to the given heap in its proper place.
 #!
 DeclareGlobalFunction("Enqueue");
 
+#! @Description
+#! @Arguments heap
 #!
-#! Removes the smallest element of a heap.
-#!
-#! @Returns the smallest element of the heap.
-#!
+#! @Returns the smallest element of the given heap and removes it.
 DeclareGlobalFunction("Dequeue");
