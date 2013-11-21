@@ -7,7 +7,7 @@ DeclareGlobalFunction("GenerateSimpleDirectGraph");
 
 DeclareGlobalFunction("GenerateSimpleGraph");
 
-DeclareGlobalFunction("GenerateConnectedSimpleWeigtedGraph");
+DeclareGlobalFunction("GenerateConnectedSimpleWeightedGraph");
 
 InstallGlobalFunction(GenerateSimpleDirectGraph, function(vertexCount, density)
   local i, graph, start, endVertex, randomUnitSize, vertices, randomList;
@@ -27,8 +27,10 @@ InstallGlobalFunction(GenerateSimpleDirectGraph, function(vertexCount, density)
   # Each edge has probability equal to density.
   for start in vertices do
     for endVertex in vertices do
-      if (RandomList(randomList) <= density) then
-        AddEdge(graph, start, endVertex);
+      if (start <> endVertex) then
+        if (RandomList(randomList) <= density) then
+          AddEdge(graph, start, endVertex);
+        fi;
       fi;
     od;
   od;
@@ -63,6 +65,51 @@ InstallGlobalFunction(GenerateSimpleGraph, function(vertexCount, density)
   return graph;
 end);
 
-InstallGlobalFunction(GenerateConnectedSimpleWeigtedGraph, function(vertexCount, density, maxWeight)
- 
+InstallGlobalFunction(GenerateConnectedSimpleWeightedGraph, function(vertexCount, density, maxWeight)
+  local i, graph, start, endVertex, randomUnitSize, vertices, randomList, weightList, weight, nextVertex, previousVertex, visitedCount, isVisited;
+
+  # Adjust density to randomUnitSize.
+  randomUnitSize := 100000000;
+  density := Int(density * randomUnitSize);
+
+  graph := EmptyWeightedGraph();
+  for i in [1..vertexCount] do
+    AddWeightedGraphVertex(graph);
+  od;
+
+  vertices := [1..vertexCount];
+  randomList := [1..randomUnitSize];
+  weightList := [1..maxWeight];
+
+  # Create a random minimum spanning tree.
+  isVisited := BlistList([1..vertexCount], []);
+  isVisited[1] := true;
+  visitedCount := 1;
+  previousVertex := 1;
+  while (visitedCount < vertexCount) do
+    nextVertex := RandomList(vertices);
+    if (isVisited[nextVertex] = false) then
+
+      weight := RandomList(weightList);
+      AddWeightedEdge(graph, previousVertex, nextVertex, weight);
+      AddWeightedEdge(graph, nextVertex, previousVertex, weight);
+      previousVertex := nextVertex;
+
+      isVisited[nextVertex] := true;
+      visitedCount := visitedCount + 1;
+    fi;
+  od;
+
+  # Each edge has probability equal to density.
+  for start in [1..vertexCount - 1] do
+    for endVertex in [start + 1..vertexCount] do
+      if (RandomList(randomList) <= density) then  
+        weight := RandomList(weightList);
+        AddWeightedEdge(graph, start, endVertex, RandomList(weightList));
+        AddWeightedEdge(graph, endVertex, start, RandomList(weightList));
+      fi;
+    od;
+  od;
+
+  return graph;
 end);
