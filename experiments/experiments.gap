@@ -11,7 +11,7 @@ for vertexCount in [100, 500, 1000, 5000, 10000] do
 
   for density in [0.01, 0.05, 0.1, 0.5, 1] do
 
-    for i in [1..0] do
+    for i in [1..10] do
       graph := GenerateSimpleDirectGraph(vertexCount, density);
 
       # Strong components.
@@ -110,3 +110,46 @@ for vertexCount in [5, 6, 7, 8, 9, 10] do
     od;
   od;
 od;
+
+# Minimum spanning tree and shortest paths
+for vertexCount in [100, 500, 1000, 5000, 10000] do
+  vertices := [1..vertexCount];
+
+  for density in [0.01, 0.05, 0.1, 0.5, 1] do
+
+    for i in [1..10] do
+      graph := GenerateConnectedSimpleWeightedGraph(vertexCount, density, vertexCount);
+
+      # Minimum spanning tree.
+      n := 1;
+      t := 0;
+      while t < TIMERS_MIN_RUN_LENGTH do
+          GASMAN("collect");
+          t := -Runtime();
+          for j in [1..n] do
+            MinimumSpanningTree(graph);
+          od;
+          t := t + Runtime();
+          n := n * 5;
+      od;
+      Print("mst ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), "\n");
+
+      # Shortest paths.
+      n := 1;
+      t := 0;
+      while t < TIMERS_MIN_RUN_LENGTH do
+          GASMAN("collect");
+
+          t := -Runtime();
+          for j in [1..n] do
+            ShortestPath(graph, 1);
+          od;
+          t := t + Runtime();
+          n := n * 5;
+      od;
+      Print("sp ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), "\n"); 
+    od;
+  od;
+od;
+
+QUIT;
