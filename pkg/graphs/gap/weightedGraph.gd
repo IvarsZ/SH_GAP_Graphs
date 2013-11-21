@@ -26,7 +26,19 @@ DeclareGlobalFunction("EmptyWeightedGraph");
 #!
 DeclareGlobalFunction("WeightedGraph");
 
-# TODO AddWeightedEdge, TODO AddWeightedGraphVertex
+#! @Description
+#! @Arguments graph
+#!
+#! Creates and adds a new vertex to the given weighted graph.
+DeclareGlobalFunction("AddWeightedGraphVertex");
+
+#! @Description
+#! @Arguments graph, startVertex, endVertex, weight
+#!
+#! Creates and adds an edge of the given weight to the given graph connecting the given start vertex to the given end vertex.
+#!
+DeclareGlobalFunction("AddWeightedEdge");
+
 
 #! @Description
 #! @Arguments graph

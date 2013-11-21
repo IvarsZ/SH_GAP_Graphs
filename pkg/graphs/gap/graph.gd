@@ -38,7 +38,7 @@ DeclareGlobalFunction("AddVertex");
 #! @Description
 #! @Arguments graph, startVertex, endVertex
 #!
-#! Adds an edge to the given graph connecting the given start vertex to the given end vertex.
+#! Creates and adds an edge to the given graph connecting the given start vertex to the given end vertex.
 #!
 DeclareGlobalFunction("AddEdge");
 

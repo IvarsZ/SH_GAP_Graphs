@@ -14,10 +14,22 @@ InstallGlobalFunction(WeightedGraph, function(successors, weights)
                    rec(successors := successors, weights := weights));
 end); 
 
-InstallGlobalFunction(EmptyWeightedGraph,  function()
+InstallGlobalFunction(EmptyWeightedGraph, function()
 
   return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
                    rec(successors := [], weights := []));
+end);
+
+InstallGlobalFunction(AddWeightedGraphVertex, function(graph)
+
+  AddVertex(graph);
+  Add(graph!.weights, []);
+end);
+
+InstallGlobalFunction(AddWeightedEdge, function(graph, startVertex, endVertex, weight)
+
+  AddEdge(graph, startVertex, endVertex);
+  Add(graph!.weights[startVertex], weight);
 end);
 
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
