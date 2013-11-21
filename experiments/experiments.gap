@@ -11,7 +11,7 @@ for vertexCount in [100, 500, 1000, 5000, 10000] do
 
   for density in [0.01, 0.05, 0.1, 0.5, 1] do
 
-    for i in [1..10] do
+    for i in [1..0] do
       graph := GenerateSimpleDirectGraph(vertexCount, density);
 
       # Strong components.
