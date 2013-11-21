@@ -1,14 +1,15 @@
+LoadPackage("Graphs");
+
 #
 # Possibly undirected, unconnected graph.
 #
-DeclareGlobalFunction("GenerateSimpleDirectedGraph");
-
-#
-DeclareGlobalFunction("GenerateConnectedGraph");
+DeclareGlobalFunction("GenerateSimpleDirectGraph");
 
 DeclareGlobalFunction("GenerateSimpleGraph");
 
-InstallGlobalFunction(GenerateSimpleDirectedGraph, function(vertexCount, density)
+DeclareGlobalFunction("GenerateConnectedSimpleWeigtedGraph");
+
+InstallGlobalFunction(GenerateSimpleDirectGraph, function(vertexCount, density)
   local i, graph, start, endVertex, randomUnitSize, vertices, randomList;
 
   # Adjust density to randomUnitSize.
@@ -33,4 +34,35 @@ InstallGlobalFunction(GenerateSimpleDirectedGraph, function(vertexCount, density
   od;
 
   return graph;
+end);
+
+InstallGlobalFunction(GenerateSimpleGraph, function(vertexCount, density)
+  local i, graph, start, endVertex, randomUnitSize, vertices, randomList;
+
+  # Adjust density to randomUnitSize.
+  randomUnitSize := 100000000;
+  density := Int(density * randomUnitSize);
+
+  graph := EmptyGraph();
+  for i in [1..vertexCount] do
+    AddVertex(graph);
+  od;
+
+  randomList := [1..randomUnitSize];
+
+  # Each edge has probability equal to density.
+  for start in [1..vertexCount - 1] do
+    for endVertex in [start + 1..vertexCount] do
+      if (RandomList(randomList) <= density) then
+        AddEdge(graph, start, endVertex);
+        AddEdge(graph, endVertex, start);
+      fi;
+    od;
+  od;
+
+  return graph;
+end);
+
+InstallGlobalFunction(GenerateConnectedSimpleWeigtedGraph, function(vertexCount, density, maxWeight)
+ 
 end);
