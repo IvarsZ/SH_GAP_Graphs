@@ -292,10 +292,10 @@ InstallGlobalFunction(GetStrongComponents, function(graph)
     B[topOfB] := vertex;
 
     # Temporarely mark the vertex as in its own componentt
-    I[vertex] := vertex;
+    I[vertex] := topOfS;
 
     for successor in VertexSuccessors(graph, vertex) do
-      
+     
       # Run dfs on all unvisited successor vertices recursively.
       if (I[successor] = 0) then
         SCC_DFS(graph, successor);
@@ -320,6 +320,7 @@ InstallGlobalFunction(GetStrongComponents, function(graph)
         I[S[topOfS]] := c;
         topOfS := topOfS - 1;
       od;
+
     fi;
   end; # End of recursive dfs.
 
