@@ -135,13 +135,11 @@ end);
 GRAPH.orderVerticesForColouring := function(graph, numberOfColours)
  local order, position, isOrderChanged, degrees, verticesToOrderEnd, i, vertex, successor; 
  
-  # Have a list vertex degrees, their order and their position in the order.
+  # Have a list of vertex degrees and their order.
   order := EmptyPlist(VertexCount(graph));
-  position := EmptyPlist(VertexCount(graph));
   degrees := EmptyPlist(VertexCount(graph));
   for vertex in [1..VertexCount(graph)] do
     order[vertex] := vertex;
-    position[vertex] := vertex;
     degrees[vertex] := Length(VertexSuccessors(graph, vertex));
   od;
 
@@ -161,10 +159,8 @@ GRAPH.orderVerticesForColouring := function(graph, numberOfColours)
       if (degrees[vertex] < numberOfColours) then
 
         # colour it last - order it at the end.
-        position[verticesToOrderEnd] := position[vertex];
-        position[vertex] := verticesToOrderEnd;
-        order[position[verticesToOrderEnd]] := order[verticesToOrderEnd];
-        order[position[vertex]] := vertex;
+        order[i] := order[verticesToOrderEnd];
+        order[verticesToOrderEnd] := vertex;
 
         # Now each adjacent vertex has one less unordered adjacent vertex.
         for successor in VertexSuccessors(graph, vertex) do
@@ -173,6 +169,7 @@ GRAPH.orderVerticesForColouring := function(graph, numberOfColours)
 
         verticesToOrderEnd := verticesToOrderEnd - 1;
         isOrderChanged := true;
+
       else
         i := i + 1;
       fi;
@@ -187,7 +184,7 @@ end;
 # to use, or false otherwise.
 #
 InstallGlobalFunction(GetColouring, function(graph, numberOfColours)
-  local vertex, vertexIndex, colouring, colourCounts, colour, successor, order, isClash;
+  local vertex, vertexIndex, colouring, colourCounts, colour, successor, isClash, order;
 
   order := GRAPH.orderVerticesForColouring(graph, numberOfColours);
 
