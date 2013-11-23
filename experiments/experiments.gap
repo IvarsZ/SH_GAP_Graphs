@@ -6,6 +6,53 @@ Reset(GlobalMersenneTwister, 495817502);
 TIMERS_MIN_RUN_LENGTH := 200;
 SetRecursionTrapInterval(0);
 
+FLOAT.DECIMAL_DIG := 2;
+
+WRITE_GRAPHS := true;
+if (WRITE_GRAPHS = true) then
+  
+  for vertexCount in [100, 500, 1000, 5000, 10000] do
+    for density in [0.01, 0.05, 0.1, 0.5, 1] do
+      for i in [1..20] do
+
+        graph := GenerateSimpleDirectGraph(vertexCount, density);
+        filename := JoinStringsWithSeparator(["graphs/sdg", vertexCount, density, i], "_");
+        PrintTo(filename, "vertexCount := ", vertexCount, ";\n");
+        AppendTo(filename, "density := ", density, ";\n");
+        AppendTo(filename, "graph := Graph(", graph!.successors, ");\n");
+      od;
+    od;
+  od;
+
+  for vertexCount in [5..30] do
+    for density in [0.1, 0.25, 0.5, 0.75, 1] do
+      for i in [1..100] do
+
+        graph := GenerateSimpleGraph(vertexCount, density);
+        filename := JoinStringsWithSeparator(["graphs/sg", vertexCount, density, i], "_");
+        PrintTo(filename, "vertexCount := ", vertexCount, ";\n");
+        AppendTo(filename, "density := ", density, ";\n");
+        AppendTo(filename, "graph := Graph(", graph!.successors, ");\n");
+      od;
+    od;
+  od;
+
+  for vertexCount in [100, 250, 500, 750, 1000] do
+    for density in [0.01, 0.05, 0.1, 0.5, 1] do
+      for i in [1..20] do
+
+        graph := GenerateConnectedSimpleWeightedGraph(vertexCount, density, vertexCount);
+        filename := JoinStringsWithSeparator(["graphs/cswg", vertexCount, density, i], "_");
+        PrintTo(filename, "vertexCount := ", vertexCount, ";\n");
+        AppendTo(filename, "density := ", density, ";\n");
+        AppendTo(filename, "graph := Graph(", graph!.successors, ");\n");
+      od;
+    od;
+  od;
+fi;
+
+QUIT;
+
 for vertexCount in [100, 500, 1000, 5000, 10000] do
   vertices := [1..vertexCount];
 
@@ -79,7 +126,7 @@ for vertexCount in [100, 500, 1000, 5000, 10000] do
 od;
 
 # Colouring
-for vertexCount in [5..20] do
+for vertexCount in [5..30] do
   vertices := [1..vertexCount];
 
   for density in [0.1, 0.25, 0.5, 0.75, 1] do
@@ -117,7 +164,7 @@ for vertexCount in [100, 250, 500, 750, 1000] do
 
   for density in [0.01, 0.05, 0.1, 0.5, 1] do
 
-    for i in [1..10] do
+    for i in [1..20] do
       graph := GenerateConnectedSimpleWeightedGraph(vertexCount, density, vertexCount);
 
       # Minimum spanning tree.
