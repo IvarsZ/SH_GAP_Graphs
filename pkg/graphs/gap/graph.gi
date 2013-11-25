@@ -72,7 +72,7 @@ InstallGlobalFunction(DFS, function(graph, start)
   stackTop := 1;
   isVisited[start] := true;
 
-  # While there vertices in the stack,
+  # While there are vertices in the stack,
   while (stackTop > 0) do
     
     # pop a vertex and add it to the order,
@@ -99,36 +99,47 @@ end);
 # starting at the given start vertex.
 #
 InstallGlobalFunction(BFS, function(graph, start)
-  local queue, queueStart, isVisited, order, current, successor;
+  local queue, queueStart, isVisited, order, current, successor, depth;
 
   # Both isVisited and order lists will have as many elements as vertices.
   isVisited := BlistList([1..VertexCount(graph)], []);
   order := EmptyPlist(VertexCount(graph));
   
   # Start is the first vertex traversed.
-  queue := [start];
+  queue := [start, -1];
   queueStart := 1;
   isVisited[start] := true;
-  
+  depth := -1;
+
   # While there are vertices in the queue,
   while (Length(queue) >= queueStart) do
-    
-    # dequeue a vertex and it to the order.
+  
+    # Dequeue a vertex.
     current := queue[queueStart];
     queueStart := queueStart + 1;
-    Add(order, current);
+    if (current > 0) then
 
-    # Enqueue its successors.
-    for successor in VertexSuccessors(graph, current) do
-      if isVisited[successor] = false then
-        Add(queue, successor);
+      # Add it to the order.
+      Add(order, current);
 
-        isVisited[successor] := true;
+      # Enqueue its successors.
+      for successor in VertexSuccessors(graph, current) do
+        if isVisited[successor] = false then
+          
+          Add(queue, successor);
+          isVisited[successor] := true;
+        fi;
+      od;
+    else
+
+      depth := depth + 1;
+      if (queueStart <= Length(queue)) then
+        Add(queue, -1);
       fi;
-    od;
+    fi;
   od; 
 
-  return order;
+  return [order, depth];
 end);
 
 # Preordes vertices for coluring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
@@ -289,7 +300,7 @@ InstallGlobalFunction(GetStrongComponents, function(graph)
     topOfS := topOfS + 1;
     S[topOfS] := vertex;
     topOfB := topOfB + 1;
-    B[topOfB] := vertex;
+    B[topOfB] := topOfS;
 
     # Temporarely mark the vertex as in its own componentt
     I[vertex] := topOfS;

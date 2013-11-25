@@ -67,7 +67,7 @@ DeclareGlobalFunction("DFS");
 #! @Description
 #! @Arguments graph, startVertex
 #!
-#! @Returns a list ordering the vertices of the given graph in the order of a breadth first search starting from the given start vertex.
+#! @Returns a list whose first element is a list ordering the vertices of the given graph in the order of a breadth first search starting from the given start vertex. The depth of the search is returned as the second element of the list.
 #!
 #! In breadth first search all successor vertices of a vertex are visited before visiting their successor vertices. Thus it traverses the graph level by level from the start vertex (root). The implementaion uses a first-in-first-out (FIFO) queue to achieve the order.
 #!
