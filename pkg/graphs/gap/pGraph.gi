@@ -8,43 +8,59 @@ PGRAPH := rec();
 InstallGlobalFunction(PBFS, function(graph, start)
   local inbag, outbag, isVisited, order, vertex, task, tasks;
 
-  # Both isVisited and order lists will have as many elements as vertices.
-  isVisited := BlistList([1..VertexCount(graph)], []);
-  order := EmptyPlist(VertexCount(graph));
-  
-  # Start is the first vertex traversed.
-  inbag := [start];
-  isVisited[start] := true;
-  
-  # While there are vertices in the bag,
-  while (Length(inbag) > 0) do
+  # Locks.
+  order := [];
+  ShareObj(graph!.successors, order);
+  atomic readonly graph!.successors do
 
-    # visit all vertices in the current layer.
-    outbag := [];
-    tasks := [];
-    for vertex in inbag do
-      task := RunTask(PGRAPH.visitVertex, graph, vertex, outbag, order, isVisited);
-      Add(tasks, task);
+    # Both isVisited and order lists will have as many elements as vertices.
+    isVisited := BlistList([1..VertexCount(graph)], []);
+    #order := EmptyPlist(VertexCount(graph));
+    
+    # Start is the first vertex traversed.
+    inbag := [start];
+    isVisited[start] := true;
+    
+    # While there are vertices in the bag,
+    while (Length(inbag) > 0) do
+
+      # visit all vertices in the current layer.
+      outbag := [];
+      tasks := [];
+      for vertex in inbag do
+        task := RunTask(PGRAPH.visitVertex, graph, vertex, outbag, order, isVisited);
+        Add(tasks, task);
+        WaitTask(task);
+        Print(outbag, "\n");
+      od;
+      for task in tasks do
+        Append(outbag, TaskResult(task));
+      od;
+      inbag := outbag;
     od;
-    WaitTask(tasks);
-    inbag := outbag;
-  od; 
+  od;
 
   return order;
 end);
 
-PGRAPH.visitVertex := atomic function(readonly graph, readonly vertex, outbag, order, isVisited)
+PGRAPH.visitVertex := function(graph, vertex, outbag, order, isVisited)
   local successor;
+  atomic readonly graph!.successors do
 
-  # Add vertex to the order.
-  Add(order, vertex);
+    # Add vertex to the order.
+    Add(order, vertex);
+    Print(vertex, "\n");
+    Print(isVisited, "\n");
 
-  # Enqueue its successors.
-  for successor in VertexSuccessors(graph, vertex) do
-    if isVisited[successor] = false then
-      Add(outbag, successor);
+    # Enqueue its successors.
+    for successor in VertexSuccessors(graph, vertex) do
+      if isVisited[successor] = false then
+        Add(outbag, successor);
 
-      isVisited[successor] := true;
-    fi;
+        isVisited[successor] := true;
+      fi;
+    od;
   od;
+
+  return outbag;
 end;
