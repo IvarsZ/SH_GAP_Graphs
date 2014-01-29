@@ -16,7 +16,7 @@ if (WRITE_GRAPHS = true) then
       for i in [1..20] do
 
         graph := GenerateSimpleDirectGraph(vertexCount, density);
-        filename := JoinStringsWithSeparator(["graphs/sdg", vertexCount, density, i], "_");
+        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sdg", vertexCount, density, i], "_");
         PrintTo(filename, "vertexCount := ", vertexCount, ";\n");
         AppendTo(filename, "density := ", density, ";\n");
         AppendTo(filename, "graph := Graph(", graph!.successors, ");\n");
@@ -29,7 +29,7 @@ if (WRITE_GRAPHS = true) then
       for i in [1..100] do
 
         graph := GenerateSimpleGraph(vertexCount, density);
-        filename := JoinStringsWithSeparator(["graphs/sg", vertexCount, density, i], "_");
+        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sg", vertexCount, density, i], "_");
         PrintTo(filename, "vertexCount := ", vertexCount, ";\n");
         AppendTo(filename, "density := ", density, ";\n");
         AppendTo(filename, "graph := Graph(", graph!.successors, ");\n");
@@ -42,10 +42,10 @@ if (WRITE_GRAPHS = true) then
       for i in [1..20] do
 
         graph := GenerateConnectedSimpleWeightedGraph(vertexCount, density, vertexCount);
-        filename := JoinStringsWithSeparator(["graphs/cswg", vertexCount, density, i], "_");
+        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/cswg", vertexCount, density, i], "_");
         PrintTo(filename, "vertexCount := ", vertexCount, ";\n");
         AppendTo(filename, "density := ", density, ";\n");
-        AppendTo(filename, "graph := Graph(", graph!.successors, ");\n");
+        AppendTo(filename, "graph := WeightedGraph(", graph!.successors, ", ", graph!.weights, ");\n");
       od;
     od;
   od;
@@ -56,8 +56,10 @@ for vertexCount in [100, 500, 1000, 5000, 10000] do
 
   for density in [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1] do
 
-    for i in [1..1] do
-      graph := GenerateSimpleDirectGraph(vertexCount, density);
+    for i in [1..20] do
+      
+      filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sdg", vertexCount, density, i], "_");
+      Read(filename);
 
       # Strong components.
       n := 1;
@@ -78,13 +80,13 @@ for vertexCount in [100, 500, 1000, 5000, 10000] do
       # BFS
       n := 1;
       t := 0;
-      totalDepth := 0;
       while t < TIMERS_MIN_RUN_LENGTH do
           GASMAN("collect");
 
           t := -Runtime();
           for j in [1..n] do
             
+            totalDepth := 0;
             numberOfComponents := 0;
             isVisited := BlistList([1..vertexCount], []);
             
@@ -145,8 +147,10 @@ for vertexCount in [5..30] do
 
   for density in [0.1, 0.25, 0.5, 0.75, 1] do
 
-    for i in [1..1] do
-      graph := GenerateSimpleGraph(vertexCount, density);
+    for i in [1..0] do
+      
+      filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sg", vertexCount, density, i], "_");
+      Read(filename);
 
       n := 1;
       t := 0;
@@ -167,7 +171,7 @@ for vertexCount in [5..30] do
 
           n := n * 5;
       od;
-      Print("col ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colourCount, "\n");
+      Print("col ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colourCount - 1, "\n");
     od;
   od;
 od;
@@ -178,8 +182,10 @@ for vertexCount in [100, 250, 500, 750, 1000] do
 
   for density in [0.01, 0.05, 0.1, 0.5, 1] do
 
-    for i in [1..1] do
-      graph := GenerateConnectedSimpleWeightedGraph(vertexCount, density, vertexCount);
+    for i in [1..0] do
+
+      filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/cswg", vertexCount, density, i], "_");
+      Read(filename);
 
       # Minimum spanning tree.
       n := 1;
@@ -188,12 +194,20 @@ for vertexCount in [100, 250, 500, 750, 1000] do
           GASMAN("collect");
           t := -Runtime();
           for j in [1..n] do
-            MinimumSpanningTree(graph);
+            mst := MinimumSpanningTree(graph);
           od;
           t := t + Runtime();
           n := n * 5;
       od;
-      Print("mst ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), "\n");
+
+      # Traverse mst and get weight.
+      weight := 0;
+      for vertex in [2..vertexCount] do
+        parentVertex := mst[vertex];
+        weight := weight + GetWeightedEdge(graph, parentVertex, vertex);
+      od;
+
+      Print("mst ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", weight, "\n");
 
       # Shortest paths.
       n := 1;

@@ -32,6 +32,19 @@ InstallGlobalFunction(AddWeightedEdge, function(graph, startVertex, endVertex, w
   Add(graph!.weights[startVertex], weight);
 end);
 
+InstallGlobalFunction(GetWeightedEdge, function(graph, startVertex, endVertex)
+ local successors, i;
+
+  successors := VertexSuccessors(graph, startVertex);
+  for i in [1..Length(successors)] do
+    if (successors[i] = endVertex) then
+      return graph!.weights[startVertex][i];
+    fi;
+  od;
+
+  return -1;
+end);
+
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
   local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors;
 

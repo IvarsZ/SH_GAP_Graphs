@@ -39,6 +39,8 @@ DeclareGlobalFunction("AddWeightedGraphVertex");
 #!
 DeclareGlobalFunction("AddWeightedEdge");
 
+# TODO comment.
+DeclareGlobalFunction("GetWeightedEdge");
 
 #! @Description
 #! @Arguments graph
