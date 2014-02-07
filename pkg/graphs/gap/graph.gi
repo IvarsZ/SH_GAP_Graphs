@@ -113,13 +113,8 @@ InstallGlobalFunction(BFS, function(graph, start)
 
   # While there are vertices in the queue,
   while (Length(queue) >= queueStart) do
-<<<<<<< local
   
     # Dequeue a vertex.
-=======
-    
-    # dequeue a vertex and add it to the order.
->>>>>>> other
     current := queue[queueStart];
     queueStart := queueStart + 1;
     if (current > 0) then
