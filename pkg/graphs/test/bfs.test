@@ -2,10 +2,10 @@ gap> START_TEST("bfsTest");
 gap> g := Graph([[2, 4], [3, 5], [], [6], [3, 4], [1]]);
 <object>
 gap> BFS(g, 1);
-[ 1, 2, 4, 3, 5, 6 ]
+[ [ 1, 2, 4, 3, 5, 6 ], 2 ]
 
 gap> g := Graph([[2, 4], [3, 5], [], [6], [3, 2], [1]]);
 <object>
 gap> BFS(g, 2);
-[ 2, 3, 5 ]
+[ [ 2, 3, 5 ], 1 ]
 gap> STOP_TEST("bfs.test", 1000);
