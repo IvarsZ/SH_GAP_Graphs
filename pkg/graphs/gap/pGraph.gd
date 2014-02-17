@@ -1,1 +1,3 @@
 DeclareGlobalFunction("PBFS");
+
+DeclareGlobalFunction("PColouring");
