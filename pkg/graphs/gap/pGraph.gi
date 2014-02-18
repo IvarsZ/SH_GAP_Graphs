@@ -147,15 +147,11 @@ PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colour
       fi;
     od;
   
-    while Length(tasks) > 0 do
-      taskIndex := WaitAnyTask(tasks);
-      result := TaskResult(tasks[taskIndex]);
+    WaitTasks(tasks);
+    for task in tasks do
+      result := TaskResult(task);
       if result <> false then
         return result;
-      else
-        atomic tasks do
-          Remove(tasks, taskIndex);
-        od;
       fi;
     od;
  
@@ -163,48 +159,53 @@ PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colour
   od;
 end;
 
+# TODO parallel ordering, actually use it, bunch few last vertices together.
+
 # Preordes vertices for coluring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
 PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
  local order, position, isOrderChanged, degrees, verticesToOrderEnd, i, vertex, successor; 
  
-  # Have a list of vertex degrees and their order.
-  order := EmptyPlist(VertexCount(graph));
-  degrees := EmptyPlist(VertexCount(graph));
-  for vertex in [1..VertexCount(graph)] do
-    order[vertex] := vertex;
-    degrees[vertex] := Length(VertexSuccessors(graph, vertex));
-  od;
+  atomic readonly graph!.successors do
+    
+    # Have a list of vertex degrees and their order.
+    order := EmptyPlist(VertexCount(graph));
+    degrees := EmptyPlist(VertexCount(graph));
+    for vertex in [1..VertexCount(graph)] do
+      order[vertex] := vertex;
+      degrees[vertex] := Length(VertexSuccessors(graph, vertex));
+    od;
 
-  verticesToOrderEnd := VertexCount(graph);
+    verticesToOrderEnd := VertexCount(graph);
   
-  # Try to reorder vertices untill no more reordering was done.
-  isOrderChanged := true;
-  while (isOrderChanged) do
-    isOrderChanged := false;
+    # Try to reorder vertices untill no more reordering was done.
+    isOrderChanged := true;
+    while (isOrderChanged) do
+      isOrderChanged := false;
 
-    # For each vertex that has not been ordered, yet.
-    i := 1;
-    while (i <= verticesToOrderEnd) do
-      vertex := order[i];
+      # For each vertex that has not been ordered, yet.
+      i := 1;
+      while (i <= verticesToOrderEnd) do
+        vertex := order[i];
 
-      # If it has few enough unordered adjacent vertices,
-      if (degrees[vertex] < numberOfColours) then
+        # If it has few enough unordered adjacent vertices,
+        if (degrees[vertex] < numberOfColours) then
 
-        # colour it last - order it at the end.
-        order[i] := order[verticesToOrderEnd];
-        order[verticesToOrderEnd] := vertex;
+          # colour it last - order it at the end.
+          order[i] := order[verticesToOrderEnd];
+          order[verticesToOrderEnd] := vertex;
 
-        # Now each adjacent vertex has one less unordered adjacent vertex.
-        for successor in VertexSuccessors(graph, vertex) do
-          degrees[successor] := degrees[successor] - 1;
-        od;
+          # Now each adjacent vertex has one less unordered adjacent vertex.
+          for successor in VertexSuccessors(graph, vertex) do
+            degrees[successor] := degrees[successor] - 1;
+          od;
 
-        verticesToOrderEnd := verticesToOrderEnd - 1;
-        isOrderChanged := true;
+          verticesToOrderEnd := verticesToOrderEnd - 1;
+          isOrderChanged := true;
 
-      else
-        i := i + 1;
-      fi;
+        else
+          i := i + 1;
+        fi;
+      od;
     od;
   od;
 
