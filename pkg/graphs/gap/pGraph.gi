@@ -101,7 +101,7 @@ PGRAPH.PBFS.isEmpty2DList := function(list)
 end;
 
 InstallGlobalFunction(PColouring, function(graph, numberOfColours)
-  local order, colouring;
+  local order, colouring, orderIndex, vertex, isColourUsed, successor;
 
   # Locks
   ShareObj(graph!.successors);
@@ -113,7 +113,27 @@ InstallGlobalFunction(PColouring, function(graph, numberOfColours)
     colouring := EmptyPlist(VertexCount(graph));
     MakeImmutable(colouring);
 
-    return PGRAPH.PColouring.colourVertex(graph, numberOfColours, order, colouring, 1);
+    colouring := PGRAPH.PColouring.colourVertex(graph, numberOfColours, order, colouring, 1);
+    colouring := ShallowCopy(colouring);
+
+    if colouring <> false then
+      # Greedy colour the rest low degree vertices.
+      # Loop over part of a list.
+      for orderIndex in [(order[2]+1)..Length(order[1])] do
+
+        vertex := order[1][orderIndex];
+        isColourUsed := BlistList([1..numberOfColours], []);
+        for successor in VertexSuccessors(graph, vertex) do
+          if IsBound(colouring[successor]) then
+            isColourUsed[colouring[successor]] := true;
+          fi;
+        od;
+        
+        colouring[vertex] := Position(isColourUsed, false);
+      od;
+    fi;
+
+    return colouring;
   od;
 end);
 
@@ -122,12 +142,12 @@ PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colour
   
   atomic readonly graph!.successors do
 
-    if vertexIndex > VertexCount(graph) then
+    if vertexIndex > order[2] then
       return colouring;
     fi;
 
     tasks := [];
-    vertex := order[vertexIndex];
+    vertex := order[1][vertexIndex];
 
     for colour in [1..numberOfColours] do
       isValid := true;
@@ -159,57 +179,55 @@ PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colour
   od;
 end;
 
+# TODO if keeping wait for all, then don't create new task for last colour.
 # TODO parallel ordering, actually use it, bunch few last vertices together.
 
 # Preordes vertices for coluring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
 PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
  local order, position, isOrderChanged, degrees, verticesToOrderEnd, i, vertex, successor; 
  
-  atomic readonly graph!.successors do
-    
-    # Have a list of vertex degrees and their order.
-    order := EmptyPlist(VertexCount(graph));
-    degrees := EmptyPlist(VertexCount(graph));
-    for vertex in [1..VertexCount(graph)] do
-      order[vertex] := vertex;
-      degrees[vertex] := Length(VertexSuccessors(graph, vertex));
-    od;
+  # Have a list of vertex degrees and their order.
+  order := EmptyPlist(VertexCount(graph));
+  degrees := EmptyPlist(VertexCount(graph));
+  for vertex in [1..VertexCount(graph)] do
+    order[vertex] := vertex;
+    degrees[vertex] := Length(VertexSuccessors(graph, vertex));
+  od;
 
-    verticesToOrderEnd := VertexCount(graph);
-  
-    # Try to reorder vertices untill no more reordering was done.
-    isOrderChanged := true;
-    while (isOrderChanged) do
-      isOrderChanged := false;
+  verticesToOrderEnd := VertexCount(graph);
 
-      # For each vertex that has not been ordered, yet.
-      i := 1;
-      while (i <= verticesToOrderEnd) do
-        vertex := order[i];
+  # Try to reorder vertices untill no more reordering was done.
+  isOrderChanged := true;
+  while (isOrderChanged) do
+    isOrderChanged := false;
 
-        # If it has few enough unordered adjacent vertices,
-        if (degrees[vertex] < numberOfColours) then
+    # For each vertex that has not been ordered, yet.
+    i := 1;
+    while (i <= verticesToOrderEnd) do
+      vertex := order[i];
 
-          # colour it last - order it at the end.
-          order[i] := order[verticesToOrderEnd];
-          order[verticesToOrderEnd] := vertex;
+      # If it has few enough unordered adjacent vertices,
+      if (degrees[vertex] < numberOfColours) then
 
-          # Now each adjacent vertex has one less unordered adjacent vertex.
-          for successor in VertexSuccessors(graph, vertex) do
-            degrees[successor] := degrees[successor] - 1;
-          od;
+        # colour it last - order it at the end.
+        order[i] := order[verticesToOrderEnd];
+        order[verticesToOrderEnd] := vertex;
 
-          verticesToOrderEnd := verticesToOrderEnd - 1;
-          isOrderChanged := true;
+        # Now each adjacent vertex has one less unordered adjacent vertex.
+        for successor in VertexSuccessors(graph, vertex) do
+          degrees[successor] := degrees[successor] - 1;
+        od;
 
-        else
-          i := i + 1;
-        fi;
-      od;
+        verticesToOrderEnd := verticesToOrderEnd - 1;
+        isOrderChanged := true;
+
+      else
+        i := i + 1;
+      fi;
     od;
   od;
 
-  return order;
+  return [order, verticesToOrderEnd];
 end;
 
 MakeImmutable(PGRAPH);
