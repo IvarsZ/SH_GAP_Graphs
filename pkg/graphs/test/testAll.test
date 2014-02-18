@@ -1,0 +1,7 @@
+LoadPackage("graphs");
+ReadTest("pkg/graphs/test/bfs.test");
+ReadTest("pkg/graphs/test/dfs.test");
+ReadTest("pkg/graphs/test/colouring.test");
+ReadTest("pkg/graphs/test/minimumSpanningTree.test");
+ReadTest("pkg/graphs/test/shortestPaths.test");
+ReadTest("pkg/graphs/test/strongComponents.test");
