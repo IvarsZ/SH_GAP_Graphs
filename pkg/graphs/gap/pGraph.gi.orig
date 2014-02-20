@@ -101,7 +101,7 @@ PGRAPH.PBFS.isEmpty2DList := function(list)
 end;
 
 InstallGlobalFunction(PColouring, function(graph, numberOfColours)
-  local order, colouring, orderIndex, vertex, isColourUsed, successor;
+  local order, colouring, completeColouring;
 
   # Locks
   ShareObj(graph!.successors);
@@ -113,41 +113,24 @@ InstallGlobalFunction(PColouring, function(graph, numberOfColours)
     colouring := EmptyPlist(VertexCount(graph));
     MakeImmutable(colouring);
 
-    colouring := PGRAPH.PColouring.colourVertex(graph, numberOfColours, order, colouring, 1);
-    colouring := ShallowCopy(colouring);
-
-    if colouring <> false then
-      # Greedy colour the rest low degree vertices.
-      # Loop over part of a list.
-      for orderIndex in [(order[2]+1)..Length(order[1])] do
-
-        vertex := order[1][orderIndex];
-        isColourUsed := BlistList([1..numberOfColours], []);
-        for successor in VertexSuccessors(graph, vertex) do
-          if IsBound(colouring[successor]) then
-            isColourUsed[colouring[successor]] := true;
-          fi;
-        od;
-        
-        colouring[vertex] := Position(isColourUsed, false);
-      od;
-    fi;
-
-    return colouring;
+    completeColouring := CreateSyncVar();
+    PGRAPH.PColouring.colourVertex(graph, numberOfColours, order, colouring, 1, completeColouring);
+    return SyncRead(completeColouring);
   od;
 end);
 
-PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colouring, vertexIndex)
+PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colouring, vertexIndex, completeColouring)
   local colour, isValid, successor, vertex, task, tasks, colouringCopy, taskIndex, result;
   
   atomic readonly graph!.successors do
 
-    if vertexIndex > order[2] then
-      return colouring;
+    if vertexIndex > VertexCount(graph) then
+      SyncWrite(completeColouring, colouring);
+      return;
     fi;
 
     tasks := [];
-    vertex := order[1][vertexIndex];
+    vertex := order[vertexIndex];
 
     for colour in [1..numberOfColours] do
       isValid := true;
@@ -162,25 +145,14 @@ PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colour
         colouringCopy := ShallowCopy(colouring);
         colouringCopy[vertex] := colour;
         MakeImmutable(colouringCopy);
-        task := RunTask(PGRAPH.PColouring.colourVertex, graph, numberOfColours, order, colouringCopy, vertexIndex + 1);
+        task := RunTask(PGRAPH.PColouring.colourVertex, graph, numberOfColours, order, colouringCopy, vertexIndex + 1, completeColouring);
         Add(tasks, task);
       fi;
     od;
   
-    WaitTasks(tasks);
-    for task in tasks do
-      result := TaskResult(task);
-      if result <> false then
-        return result;
-      fi;
-    od;
- 
     return false;
   od;
 end;
-
-# TODO if keeping wait for all, then don't create new task for last colour.
-# TODO bunch few last vertices together.
 
 # Preordes vertices for coluring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
 PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
@@ -195,7 +167,7 @@ PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
   od;
 
   verticesToOrderEnd := VertexCount(graph);
-
+  
   # Try to reorder vertices untill no more reordering was done.
   isOrderChanged := true;
   while (isOrderChanged) do
@@ -227,7 +199,7 @@ PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
     od;
   od;
 
-  return [order, verticesToOrderEnd];
+  return order;
 end;
 
 MakeImmutable(PGRAPH);

@@ -42,6 +42,9 @@ DeclareGlobalFunction("AddWeightedEdge");
 # TODO comment.
 DeclareGlobalFunction("GetWeightedEdge");
 
+# TODO comment.
+DeclareGlobalFunction("GetWeight");
+
 #! @Description
 #! @Arguments graph
 #!
