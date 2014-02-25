@@ -5,27 +5,28 @@ PWGRAPH.PMST := rec();
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   local tree, bags, bag, bagIndex, vertexBags, vertex, task, tasks, edge, isStartSet, isEndSet;
 
-  tree := EmptyPList(VertexCount(graph));
+  treeParent := EmptyPList(VertexCount(graph));
 
-  vertexBags := EmptyPList(VertexCount(graph));
-  bags := EmptyPList(VertexCount(graph)); 
+  bags := []; # Each element has head and tail of the list.
+  vertexHead := EmptyPList(VertexCount(graph)); 
+  vertexNext := EmptyPList(VertexCount(graph));
+
   for vertex in VertexCount(graph) do
-    bags[vertex] := [vertex];
-    vertexBags[vertex] := vertex;
+    vertexHead[vertex] := vertex;
+    Add(bags, [vertex, vertex]);
   od;
 
   ShareObj(graph!.successors);
   ShareObj(graph!.weights);
 
-  # TODO doesn't work for forests.
-  while Length(bags) > 1 do
-  
-    # TODO atomic vs immutable for bags and vertexBags.
-    MakeImmutable(vertexBags);
-    MakeImmutable(bags);
+  # TODO make atomic or shared tree, treeParent...
+  # TODO change serial mst to make the tree traversable???
 
+  # TODO doesn't work for forests.
+  while Length(tree) > 1 do
+  
     tasks := [];
-    for bag in bags do
+    for parent in bags do
       task := RunTask(findMinEdge, graph, bag, vertexBags);
     od;
 
@@ -35,22 +36,14 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     WaitTasks(tasks);
     for task in tasks do
       edge := TaskResult(task);
-      isStartSet := IsBound(newVertexBags[edge[1]]);
-      isEndSet := IsBound(newVertexBags[edge[2]]);
-      if isStartSet and not isEndSet then
-        bagIndex := newVertexBags[edge[1]];
-        newVertexBags[edge[2]] := bagIndex;
-        Add(newBags[bagIndex], edge[2]); 
-      elif isEndSet and not isStartSet then
-        bagIndex := newVertexBags[edge[2]];
-        newVertexBags[edge[1]] := bagIndex;
-        Add(newBags[bagIndex], edge[1]);
-      elif not isStartSet and not isEndSet then
-        Add(newBags, [edge[1], edge[2]]);
-        newVertexBags[edge[1]] := Length(newBags);
-        newVertexBags[edge[2]] := Length(newBags);
+      if edge[2] < edge[1] then
+        tmp := edge[1];
+        edge[1] := edge[2];
+        edge[2] := tmp;
       fi;
-      tree[edge[2]] := edge[1];
+
+      head1 := vertexHead[edge[1]];
+      head2 := vertexHead[edge[2]];   
     od;
 
     vertexBags := newVertexBags;
