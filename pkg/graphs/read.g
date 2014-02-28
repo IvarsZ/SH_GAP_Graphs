@@ -5,3 +5,4 @@ ReadPackage("Graphs", "gap/dHeap.gi");
 ReadPackage("Graphs", "gap/graph.gi");
 ReadPackage("Graphs", "gap/weightedGraph.gi");
 ReadPackage("Graphs", "gap/pGraph.gi");
+ReadPackage("Graphs", "gap/pWeightedGraph.gi");

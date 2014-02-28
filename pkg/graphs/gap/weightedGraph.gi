@@ -46,7 +46,7 @@ InstallGlobalFunction(GetWeightedEdge, function(graph, startVertex, endVertex)
 end);
 
 InstallGlobalFunction(GetWeight, function(graph, startVertex, edgeIndex)
-  return grahp!.weights[startVertex][edgeIndex];
+  return graph!.weights[startVertex][edgeIndex];
 end);
 
 InstallGlobalFunction(MinimumSpanningTree, function(graph)

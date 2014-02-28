@@ -3,78 +3,95 @@ PWGRAPH := rec();
 PWGRAPH.PMST := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local tree, bags, bag, bagIndex, vertexBags, vertex, task, tasks, edge, isStartSet, isEndSet;
+  local vertexCount, treeParents, vertexHead, vertexNext, vertexTail, head, heads, newHeads, vertex, task, tasks;
 
-  treeParent := EmptyPList(VertexCount(graph));
+  vertexCount := VertexCount(graph);
+  treeParents := EmptyPlist(vertexCount);
 
-  bags := []; # Each element has head and tail of the list.
-  vertexHead := EmptyPList(VertexCount(graph)); 
-  vertexNext := EmptyPList(VertexCount(graph));
+  vertexHead := EmptyPlist(vertexCount); 
+  vertexNext := EmptyPlist(vertexCount);
+  vertexTail := EmptyPlist(vertexCount);
 
-  for vertex in VertexCount(graph) do
+  heads := EmptyPlist(vertexCount);
+  for vertex in [1..vertexCount] do
+    heads[vertex] := vertex;
     vertexHead[vertex] := vertex;
-    Add(bags, [vertex, vertex]);
+    vertexTail[vertex] := vertex;
+    vertexNext[vertex] := 0;
   od;
 
   ShareObj(graph!.successors);
   ShareObj(graph!.weights);
 
-  # TODO make atomic or shared tree, treeParent...
+  # TODO make atomic or shared tree, treeParents...
   # TODO change serial mst to make the tree traversable???
 
   # TODO doesn't work for forests.
-  while Length(tree) > 1 do
+  while Length(heads) > 1 do
+    Print(vertexHead, "\n");
   
     tasks := [];
-    for parent in bags do
-      task := RunTask(findMinEdge, graph, bag, vertexBags);
+    for head in heads do
+      task := RunTask(PWGRAPH.PMST.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail, treeParents);
     od;
-
-    newVertexBags := EmptyPList(VertexCount(graph));
-    newBags := [];
 
     WaitTasks(tasks);
-    for task in tasks do
-      edge := TaskResult(task);
-      if edge[2] < edge[1] then
-        tmp := edge[1];
-        edge[1] := edge[2];
-        edge[2] := tmp;
+    
+    # Traverse the partition lists and update heads for it. TODO in parallel.
+    newHeads := [];
+    for head in heads do 
+      if vertexHead[head] = head then
+        
+        Add(newHeads, head);
+        
+        vertex := head;
+        while vertex > 0 do
+          vertexHead[vertex] := head; # TODO might be able to stop early.
+          vertex := vertexNext[vertex];
+        od;
       fi;
-
-      head1 := vertexHead[edge[1]];
-      head2 := vertexHead[edge[2]];   
     od;
 
-    vertexBags := newVertexBags;
-    bags := newBags;
+    heads := newHeads;
   od;
 
-  # find min. #TODO remember next eligible vertex.
-  # connect-components, make 
-  # compact graph.
-
-  return tree;
+  return treeParents;
 end);
 
-PWGRAPH.PMST.findMinEdge := function(graph, bag, vertexBags)
-  local vertex, minWeight, minStart, minEnd, weight;
+PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, treeParents)
+  local vertex, minWeight, minStart, minEnd, weight, tmp, successor;
 
   atomic readonly graph!.successors, graph!.weights do
-    minWeigth := true;
-    for vertex in bag do
+
+    vertex := head;
+    while vertex > 0 do
       for successor in VertexSuccessors(graph, vertex) do
-        if vertexBags[vertex] <> vertexBags[successor] then
-          weight := GetWeightedEdge(graph, vertex, successor);
-          if minWeight or weight < minWeight then
+        if vertexHead[vertex] <> vertexHead[successor] then
+          weight := GetWeightedEdge(graph, vertex, successor); # TODO inefficient, store old.
+          if IsBound(minWeight) = false or weight < minWeight then
             minWeight := weight;
             minStart := vertex;
             minEnd := successor;
           fi;
         fi;
       od;
+
+      vertex := vertexNext[vertex];
     od;
   od;
 
-  return [minStart, minEnd];
+  #if minStart > minEnd then
+  #  tmp := minStart;
+  #  minStart := minEnd;
+  #  minEnd := tmp;
+  #fi;
+
+  # Change heads and join the lists.
+  vertexHead[minEnd] := vertexHead[minStart];
+  tmp := vertexNext[minStart];
+  vertexNext[minStart] := minEnd;
+  vertexNext[vertexTail[minEnd]] := tmp;
+  vertexTail[minEnd] := vertexTail[minStart];
+
+  treeParents[minEnd] := minStart;
 end; 
