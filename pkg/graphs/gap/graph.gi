@@ -48,6 +48,10 @@ InstallGlobalFunction(VertexSuccessors, function(graph, vertex)
   return graph!.successors[vertex];
 end);
 
+InstallGlobalFunction(VertexSuccessor, function(graph, vertex, edgeIndex)
+  return graph!.successors[vertex][edgeIndex];
+end);
+
 #
 # Returns the number of vertices in the given graph.
 #

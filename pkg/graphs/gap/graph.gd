@@ -55,6 +55,9 @@ DeclareGlobalFunction("VertexCount");
 #!
 DeclareGlobalFunction("VertexSuccessors");
 
+# TODO comment
+DeclareGlobalFunction("VertexSuccessor");
+
 #! @Description
 #! @Arguments graph, startVertex
 #!

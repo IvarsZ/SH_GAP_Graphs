@@ -3,7 +3,7 @@ PWGRAPH := rec();
 PWGRAPH.PMST := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexNext, vertexTail, head, heads, newHeads, vertex, task, tasks, head1, head2, tmp, edge, edges;
+  local vertexCount, vertexHead, vertexNext, vertexTail, head, heads, newHeads, vertex, task, tasks, head1, head2, tmp, edge, edges, vertexEdge;
 
   edges := [];
 
@@ -12,12 +12,18 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   vertexNext := EmptyPlist(vertexCount);
   vertexTail := EmptyPlist(vertexCount);
 
+  vertexEdge := FixedAtomicList(vertexCount);
+
   heads := EmptyPlist(vertexCount);
   for vertex in [1..vertexCount] do
     heads[vertex] := vertex;
     vertexHead[vertex] := vertex;
     vertexTail[vertex] := vertex;
     vertexNext[vertex] := 0;
+    vertexEdge[vertex] := 1;
+
+    # Sort edges. TODO parallel.
+    SortParallel(graph!.weights[vertex], graph!.successors[vertex]); 
   od;
 
   ShareObj(graph!.successors);
@@ -27,14 +33,13 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   ShareObj(vertexNext);
   ShareObj(vertexTail);
 
-  # TODO make atomic or shared tree, treeParents...
-  # TODO change serial mst to make the tree traversable???
+  # TODO make atomic vs shared.
+  # TODO change serial mst to edges.
 
-  # TODO doesn't work for forests.
   while Length(heads) > 1 do
     tasks := [];
     for head in heads do
-      task := RunTask(PWGRAPH.PMST.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail);
+      task := RunTask(PWGRAPH.PMST.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
       Add(tasks, task);
     od;
 
@@ -45,7 +50,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       for task in tasks do
         
         edge := TaskResult(task);
-        Print("e ", edge, "\n");
         if edge = false then
           continue;
         fi;
@@ -66,11 +70,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
           if tmp <= 0 then
             vertexTail[head1] := vertexTail[head2];
           fi;
-        
-          Print("After merging\n");
-          Print("h ", vertexHead, "\n");
-          Print("t ", vertexTail, "\n");
-          Print("n ", vertexNext, "\n");
         fi;
       od;
     od;
@@ -90,12 +89,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
           od;
         fi;
       od;
-      
-      Print("After traverse\n");
-      Print("h ", vertexHead, "\n");
-      Print("t ", vertexTail, "\n");
-      Print("n ", vertexNext, "\n");
-      Print("heads ", newHeads, "\n");
     od;
 
     if Length(heads) = Length(newHeads) then
@@ -108,29 +101,45 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   return edges;
 end);
 
-PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail)
-  local vertex, minWeight, minStart, minEnd, weight, successor, tmp;
+PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge)
+  local vertex, minWeight, minStart, minEnd, weight, successor, successors, tmp;
 
   atomic readonly graph!.successors, graph!.weights, vertexHead, vertexNext do
 
+    # Check all vertices in the partition to find the min edge.
     vertex := head;
     while vertex > 0 do
-      for successor in VertexSuccessors(graph, vertex) do
+      
+      successors := VertexSuccessors(graph, vertex);
+      if vertexEdge[vertex] <= Length(successors) then
+      
+        successor := successors[vertexEdge[vertex]];
         if vertexHead[vertex] <> vertexHead[successor] then
-          weight := GetWeightedEdge(graph, vertex, successor); # TODO inefficient, store old.
+
+          # Pick the next sorted edge for this vertex.
+          weight := GetWeight(graph, vertex, vertexEdge[vertex]);
+
+          # Update min if needed.
           if IsBound(minWeight) = false or weight < minWeight then
             minWeight := weight;
             minStart := vertex;
             minEnd := successor;
           fi;
+        else
+
+          # "Remove" the edge creating a loop.
+          vertexEdge[vertex] := vertexEdge[vertex] + 1;
         fi;
-      od;
+      fi;
 
       vertex := vertexNext[vertex];
     od;
   od;
 
   if IsBound(minStart) then
+
+    # "Remove" the pikced edge.
+    vertexEdge[minStart] := vertexEdge[minStart] + 1;
 
     # To avoid loops when adding same edge twice.
     if minStart > minEnd then
