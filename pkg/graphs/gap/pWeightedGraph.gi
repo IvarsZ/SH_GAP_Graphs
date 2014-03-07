@@ -15,6 +15,11 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   vertexEdge := FixedAtomicList(vertexCount);
 
   heads := EmptyPlist(vertexCount);
+  
+  tasks := [];
+  ShareObj(graph!.successors);
+  ShareObj(graph!.weights);
+
   for vertex in [1..vertexCount] do
     heads[vertex] := vertex;
     vertexHead[vertex] := vertex;
@@ -22,12 +27,11 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     vertexNext[vertex] := 0;
     vertexEdge[vertex] := 1;
 
-    # Sort edges. TODO parallel.
-    SortParallel(graph!.weights[vertex], graph!.successors[vertex]); 
+    # Sort edges. TODO parallel, extract.
+    task := RunTask(PWGRAPH.PMST.sortEdges, graph, vertex);
+    Add(tasks, task);
   od;
-
-  ShareObj(graph!.successors);
-  ShareObj(graph!.weights);
+  WaitTasks(tasks);
 
   ShareObj(vertexHead);
   ShareObj(vertexNext);
@@ -100,6 +104,12 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
 
   return edges;
 end);
+
+PWGRAPH.PMST.sortEdges := function(graph, vertex)
+  atomic graph!.successors, graph!.weights do # TODO proper lock?
+    SortParallel(graph!.weights[vertex], graph!.successors[vertex]);
+  od;
+end;
 
 PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge)
   local vertex, minWeight, minStart, minEnd, weight, successor, successors, tmp;
