@@ -78,19 +78,15 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       od;
     od;
     
-    # Traverse the partition lists and update heads for it. TODO in parallel.
-    atomic vertexHead, vertexTail, readonly vertexNext do
-      newHeads := [];
+    # Update heads list and get the new heads.
+    tasks := [];
+    newHeads := [];
+    atomic readonly vertexHead do
       for head in heads do 
         if vertexHead[head] = head then
         
           Add(newHeads, head);
-        
-          vertex := head;
-          while vertex > 0 do
-            vertexHead[vertex] := head; # TODO might be able to stop early.
-            vertex := vertexNext[vertex];
-          od;
+          task := RunTask(PWGRAPH.PMST.updateHeads, head, vertexHead, vertexNext);
         fi;
       od;
     od;
@@ -98,8 +94,9 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     if Length(heads) = Length(newHeads) then
       break;
     fi;
-
     heads := newHeads;
+
+    WaitTasks(tasks);
   od;
 
   return edges;
@@ -109,6 +106,19 @@ PWGRAPH.PMST.sortEdges := function(graph, vertex)
   atomic graph!.successors, graph!.weights do # TODO proper lock?
     SortParallel(graph!.weights[vertex], graph!.successors[vertex]);
   od;
+end;
+
+PWGRAPH.PMST.updateHeads := function(head, vertexHead, vertexNext)
+  local vertex;
+
+    # Traverse the partition and update the head for its vertices.
+    atomic vertexHead, readonly vertexNext do
+      vertex := head;
+      while vertex > 0 do
+        vertexHead[vertex] := head; # TODO might be able to stop early.
+        vertex := vertexNext[vertex];
+      od;
+    od;
 end;
 
 PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge)
