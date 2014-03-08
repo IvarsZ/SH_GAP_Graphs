@@ -1,6 +1,5 @@
 # Record for private members.
-PWGRAPH := rec();
-PWGRAPH.PMST := rec();
+PMST := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   local vertexCount, vertexHead, vertexNext, vertexTail, head, heads, newHeads, vertex, task, tasks, head1, head2, tmp, edge, edges, vertexEdge, task2, tasks2;
@@ -27,7 +26,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     vertexEdge[vertex] := 1;
 
     # Sort edges to find minimum edge quickly.
-    task := RunTask(PWGRAPH.PMST.sortEdges, graph, vertex);
+    task := RunTask(PMST.sortEdges, graph, vertex);
     Add(tasks, task);
   od;
   WaitTasks(tasks);
@@ -40,7 +39,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     # Find min edges.
     tasks := [];
     for head in heads do
-      task := RunTask(PWGRAPH.PMST.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
+      task := RunTask(PMST.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
       Add(tasks, task);
     od;
     WaitTasks(tasks);
@@ -50,7 +49,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     for task in tasks do  
       edge := TaskResult(task);
       if edge <> false then
-        task2 := RunTask(PWGRAPH.PMST.mergeHeads, edge, vertexHead, vertexNext, vertexTail, edges); 
+        task2 := RunTask(PMST.mergeHeads, edge, vertexHead, vertexNext, vertexTail, edges); 
         Add(tasks2, task2);
       fi;
     od;
@@ -63,7 +62,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       if vertexHead[head] = head then
         
       Add(newHeads, head);
-        task := RunTask(PWGRAPH.PMST.updateHeads, head, vertexHead, vertexNext);
+        task := RunTask(PMST.updateHeads, head, vertexHead, vertexNext);
       fi;
     od;
 
@@ -78,13 +77,13 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   return FromAtomicList(edges);
 end);
 
-PWGRAPH.PMST.sortEdges := function(graph, vertex)
+PMST.sortEdges := function(graph, vertex)
   atomic graph!.successors, graph!.weights do # TODO proper lock?
     SortParallel(graph!.weights[vertex], graph!.successors[vertex]);
   od;
 end;
 
-PWGRAPH.PMST.mergeHeads := function(edge, vertexHead, vertexNext, vertexTail, edges)
+PMST.mergeHeads := function(edge, vertexHead, vertexNext, vertexTail, edges)
   local head1, head2, tmp;
 
   # TODO what needs locks?
@@ -107,7 +106,7 @@ PWGRAPH.PMST.mergeHeads := function(edge, vertexHead, vertexNext, vertexTail, ed
   fi;
 end;
 
-PWGRAPH.PMST.updateHeads := function(head, vertexHead, vertexNext)
+PMST.updateHeads := function(head, vertexHead, vertexNext)
   local vertex;
 
   # Traverse the partition and update the head for its vertices.
@@ -118,7 +117,7 @@ PWGRAPH.PMST.updateHeads := function(head, vertexHead, vertexNext)
   od;
 end;
 
-PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge)
+PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge)
   local vertex, minWeight, minStart, minEnd, weight, successor, successors, tmp, minEdge;
 
   atomic readonly graph!.successors, graph!.weights do

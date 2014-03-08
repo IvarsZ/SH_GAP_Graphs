@@ -1,8 +1,7 @@
 # Record for private members.
-PGRAPH := rec();
-PGRAPH.PBFS := rec();
-PGRAPH.PColouring := rec();
-PGRAPH.PBFS.TASKS_COUNT := 7;
+PBFS_REC := rec();
+PColouring_REC := rec();
+PBFS_REC.TASKS_COUNT := 7;
 
 # TODO adjustable tasks count? What if graph doesn't have enough vertices?
 # TODO some kind of iterator for the returned results.
@@ -32,19 +31,19 @@ InstallGlobalFunction(PBFS, function(graph, start)
     isVisited[start] := true;
 
     # While there are vertices in the current level,
-    while (PGRAPH.PBFS.isEmpty2DList(currentVertices) = false) do
+    while (PBFS_REC.isEmpty2DList(currentVertices) = false) do
 
       # prepare lists for children vertices.
-      nextVertices := FixedAtomicList(PGRAPH.PBFS.TASKS_COUNT);
+      nextVertices := FixedAtomicList(PBFS_REC.TASKS_COUNT);
       MakeWriteOnceAtomic(nextVertices);
-      for i in [1..PGRAPH.PBFS.TASKS_COUNT] do
+      for i in [1..PBFS_REC.TASKS_COUNT] do
         nextVertices[i] := AtomicList(1);
       od;
 
       # visit all vertices in the current layer partition by partition.
       tasks := [];
       for partition in currentVertices do
-        task := RunTask(PGRAPH.PBFS.visitPartition, graph, partition, isVisited, nextVertices);
+        task := RunTask(PBFS_REC.visitPartition, graph, partition, isVisited, nextVertices);
         Add(tasks, task);
       od;
 
@@ -58,7 +57,7 @@ InstallGlobalFunction(PBFS, function(graph, start)
   return order;
 end);
 
-PGRAPH.PBFS.visitPartition := function(graph, partition, isVisited, nextVertices)
+PBFS_REC.visitPartition := function(graph, partition, isVisited, nextVertices)
   local vertex, successor, partitionIndex, offset;
 
   # TODO The id seems to often stay the same.
@@ -66,15 +65,15 @@ PGRAPH.PBFS.visitPartition := function(graph, partition, isVisited, nextVertices
 
   atomic readonly graph!.successors do
     for vertex in partition do
-      PGRAPH.PBFS.visitVertex(graph, vertex, isVisited, nextVertices);
+      PBFS_REC.visitVertex(graph, vertex, isVisited, nextVertices);
     od;
   od;
 end;
 
-PGRAPH.PBFS.visitVertex := function(graph, vertex, isVisited, nextVertices)
+PBFS_REC.visitVertex := function(graph, vertex, isVisited, nextVertices)
   local successor, partitionIndex, offset;
 
-  offset := ThreadID(CurrentThread()) mod PGRAPH.PBFS.TASKS_COUNT + 1;
+  offset := ThreadID(CurrentThread()) mod PBFS_REC.TASKS_COUNT + 1;
   partitionIndex := offset;
 
   for successor in VertexSuccessors(graph, vertex) do
@@ -84,13 +83,13 @@ PGRAPH.PBFS.visitVertex := function(graph, vertex, isVisited, nextVertices)
       Add(nextVertices[partitionIndex], successor);
       isVisited[successor] := true;
 
-      partitionIndex := (partitionIndex + offset) mod PGRAPH.PBFS.TASKS_COUNT + 1;
+      partitionIndex := (partitionIndex + offset) mod PBFS_REC.TASKS_COUNT + 1;
     fi;
   od;
 end;
 
 # TODO remove.
-PGRAPH.PBFS.isEmpty2DList := function(list)
+PBFS_REC.isEmpty2DList := function(list)
   local sublist, element;
   for sublist in list do
     for element in sublist do
@@ -108,13 +107,13 @@ InstallGlobalFunction(PColouring, function(graph, numberOfColours)
   ShareObj(graph!.successors);
   atomic readonly graph!.successors do
 
-    order := PGRAPH.orderVerticesForColouring(graph, numberOfColours);
+    order := orderVerticesForColouring(graph, numberOfColours);
     MakeImmutable(order);
 
     colouring := EmptyPlist(VertexCount(graph));
     MakeImmutable(colouring);
 
-    colouring := PGRAPH.PColouring.colourVertex(graph, numberOfColours, order, colouring, 1);
+    colouring := PColouring_REC.colourVertex(graph, numberOfColours, order, colouring, 1);
     colouring := ShallowCopy(colouring);
 
     if colouring <> false then
@@ -138,7 +137,7 @@ InstallGlobalFunction(PColouring, function(graph, numberOfColours)
   od;
 end);
 
-PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colouring, vertexIndex)
+PColouring_REC.colourVertex := function(graph, numberOfColours, order, colouring, vertexIndex)
   local colour, isValid, successor, vertex, task, tasks, colouringCopy, taskIndex, result;
   
   atomic readonly graph!.successors do
@@ -163,7 +162,7 @@ PGRAPH.PColouring.colourVertex := function(graph, numberOfColours, order, colour
         colouringCopy := ShallowCopy(colouring);
         colouringCopy[vertex] := colour;
         MakeImmutable(colouringCopy);
-        task := RunTask(PGRAPH.PColouring.colourVertex, graph, numberOfColours, order, colouringCopy, vertexIndex + 1);
+        task := RunTask(PColouring.colourVertex, graph, numberOfColours, order, colouringCopy, vertexIndex + 1);
         Add(tasks, task);
       fi;
     od;
@@ -184,7 +183,7 @@ end;
 # TODO bunch few last vertices together.
 
 # Preordes vertices for coluring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
-PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
+orderVerticesForColouring := function(graph, numberOfColours)
  local order, position, isOrderChanged, degrees, verticesToOrderEnd, i, vertex, successor; 
  
   # Have a list of vertex degrees and their order.
@@ -231,4 +230,4 @@ PGRAPH.orderVerticesForColouring := function(graph, numberOfColours)
   return [order, verticesToOrderEnd];
 end;
 
-MakeImmutable(PGRAPH);
+MakeImmutable(PBFS_REC); # To have access to task count in threads.

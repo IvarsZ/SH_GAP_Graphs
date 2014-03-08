@@ -83,7 +83,7 @@ DeclareGlobalFunction("BFS");
 #!
 #! The implementation is a backtracking solution where the vertices are coloured with the first available colour and if there is a clash of colours the next colours is tried for the first possible vertex untill a solution is found. To improve the performance the vertices are preordered by colouring the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
 #!
-DeclareGlobalFunction("GetColouring");
+DeclareGlobalFunction("ColorVertices");
 
 #! @Description
 #! @Arguments graph
@@ -92,4 +92,4 @@ DeclareGlobalFunction("GetColouring");
 #!
 #! It is an implementation of Gabov's algorithm. It traverses the graph with DFS and uses two stacks. One to keep track of visited vertices and another one to keep track of vertices which vertices are backwards reachable and are in the same strong component. 
 #!
-DeclareGlobalFunction("GetStrongComponents");
+DeclareGlobalFunction("StrongComponents");
