@@ -89,6 +89,7 @@ PGRAPH.PBFS.visitVertex := function(graph, vertex, isVisited, nextVertices)
   od;
 end;
 
+# TODO remove.
 PGRAPH.PBFS.isEmpty2DList := function(list)
   local sublist, element;
   for sublist in list do

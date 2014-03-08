@@ -3,15 +3,14 @@ PWGRAPH := rec();
 PWGRAPH.PMST := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexNext, vertexTail, head, heads, newHeads, vertex, task, tasks, head1, head2, tmp, edge, edges, vertexEdge;
+  local vertexCount, vertexHead, vertexNext, vertexTail, head, heads, newHeads, vertex, task, tasks, head1, head2, tmp, edge, edges, vertexEdge, task2, tasks2;
 
-  edges := [];
+  edges := AtomicList([]);
 
   vertexCount := VertexCount(graph);
-  vertexHead := EmptyPlist(vertexCount); 
-  vertexNext := EmptyPlist(vertexCount);
-  vertexTail := EmptyPlist(vertexCount);
-
+  vertexHead := FixedAtomicList(vertexCount); 
+  vertexNext := FixedAtomicList(vertexCount);
+  vertexTail := FixedAtomicList(vertexCount);
   vertexEdge := FixedAtomicList(vertexCount);
 
   heads := EmptyPlist(vertexCount);
@@ -27,68 +26,45 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     vertexNext[vertex] := 0;
     vertexEdge[vertex] := 1;
 
-    # Sort edges. TODO parallel, extract.
+    # Sort edges to find minimum edge quickly.
     task := RunTask(PWGRAPH.PMST.sortEdges, graph, vertex);
     Add(tasks, task);
   od;
   WaitTasks(tasks);
 
-  ShareObj(vertexHead);
-  ShareObj(vertexNext);
-  ShareObj(vertexTail);
-
   # TODO make atomic vs shared.
   # TODO change serial mst to edges.
 
   while Length(heads) > 1 do
+    
+    # Find min edges.
     tasks := [];
     for head in heads do
       task := RunTask(PWGRAPH.PMST.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
       Add(tasks, task);
     od;
-
     WaitTasks(tasks);
 
-    # Change heads and join the lists. # TODO maybe in parallel?
-    atomic vertexHead, vertexNext, vertexTail do
-      for task in tasks do
-        
-        edge := TaskResult(task);
-        if edge = false then
-          continue;
-        fi;
-
-        head1 := vertexHead[edge[1]];
-        head2 := vertexHead[edge[2]];
-
-        if head1 <> head2 then
-        
-          Add(edges, edge);
-          vertexHead[edge[2]] := head1;
-          vertexHead[head2] := head1;
-
-          tmp := vertexNext[head1];
-          vertexNext[head1] := head2;
-          vertexNext[vertexTail[head2]] := tmp;
-
-          if tmp <= 0 then
-            vertexTail[head1] := vertexTail[head2];
-          fi;
-        fi;
-      od;
+    # Join the edges by changing heads and merging the lists.
+    tasks2 := [];
+    for task in tasks do  
+      edge := TaskResult(task);
+      if edge <> false then
+        task2 := RunTask(PWGRAPH.PMST.mergeHeads, edge, vertexHead, vertexNext, vertexTail, edges); 
+        Add(tasks2, task2);
+      fi;
     od;
+    WaitTasks(tasks2);
     
     # Update heads list and get the new heads.
     tasks := [];
     newHeads := [];
-    atomic readonly vertexHead do
-      for head in heads do 
-        if vertexHead[head] = head then
+    for head in heads do 
+      if vertexHead[head] = head then
         
-          Add(newHeads, head);
-          task := RunTask(PWGRAPH.PMST.updateHeads, head, vertexHead, vertexNext);
-        fi;
-      od;
+      Add(newHeads, head);
+        task := RunTask(PWGRAPH.PMST.updateHeads, head, vertexHead, vertexNext);
+      fi;
     od;
 
     if Length(heads) = Length(newHeads) then
@@ -99,7 +75,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     WaitTasks(tasks);
   od;
 
-  return edges;
+  return FromAtomicList(edges);
 end);
 
 PWGRAPH.PMST.sortEdges := function(graph, vertex)
@@ -108,23 +84,44 @@ PWGRAPH.PMST.sortEdges := function(graph, vertex)
   od;
 end;
 
+PWGRAPH.PMST.mergeHeads := function(edge, vertexHead, vertexNext, vertexTail, edges)
+  local head1, head2, tmp;
+
+  # TODO what needs locks?
+  head1 := vertexHead[edge[1]];
+  head2 := vertexHead[edge[2]];
+
+  if head1 <> head2 then
+        
+    Add(edges, edge);
+    vertexHead[edge[2]] := head1;
+    vertexHead[head2] := head1;
+
+    tmp := vertexNext[head1];
+    vertexNext[head1] := head2;
+    vertexNext[vertexTail[head2]] := tmp;
+
+    if tmp <= 0 then
+      vertexTail[head1] := vertexTail[head2];
+    fi;
+  fi;
+end;
+
 PWGRAPH.PMST.updateHeads := function(head, vertexHead, vertexNext)
   local vertex;
 
-    # Traverse the partition and update the head for its vertices.
-    atomic vertexHead, readonly vertexNext do
-      vertex := head;
-      while vertex > 0 do
-        vertexHead[vertex] := head; # TODO might be able to stop early.
-        vertex := vertexNext[vertex];
-      od;
-    od;
+  # Traverse the partition and update the head for its vertices.
+  vertex := head;
+  while vertex > 0 do
+    vertexHead[vertex] := head; # TODO might be able to stop early.
+    vertex := vertexNext[vertex];
+  od;
 end;
 
 PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge)
-  local vertex, minWeight, minStart, minEnd, weight, successor, successors, tmp;
+  local vertex, minWeight, minStart, minEnd, weight, successor, successors, tmp, minEdge;
 
-  atomic readonly graph!.successors, graph!.weights, vertexHead, vertexNext do
+  atomic readonly graph!.successors, graph!.weights do
 
     # Check all vertices in the partition to find the min edge.
     vertex := head;
@@ -168,7 +165,9 @@ PWGRAPH.PMST.findMinEdge := function(graph, head, vertexHead, vertexNext, vertex
       minEnd := tmp;
     fi;
     
-    return [minStart, minEnd];
+    minEdge := [minStart, minEnd];
+    MakeImmutable(minEdge);
+    return minEdge;
   else
     return false;
   fi;
