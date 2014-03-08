@@ -1,0 +1,61 @@
+LoadPackage("PGraphs");
+
+bfsPToSets := function(order)
+  local i, level, sublist, sets, set;
+
+  i := 1;
+  sets := [];
+
+  for level in order do
+
+    set := Set([]);
+    for sublist in level do
+      UniteSet(set, FromAtomicList(sublist));
+    od;
+
+    i := i + 1;
+    Add(sets, set);
+  od;
+
+  return sets;
+end;
+
+graphPToSuccessors := function(graph)
+  local successors, vertex;
+  
+  successors := [];
+  for vertex in [1..VertexCountP(graph)] do
+    successors[vertex] := FromAtomicList(VertexSuccessorsP(graph, vertex));
+  od;
+
+  return successors;
+end;
+
+testBfsP := function(graph, vertex, expectedSets)
+  local order, actualSets, success;
+
+  order := BFSP(graph, vertex);
+  actualSets := bfsPToSets(order);
+
+  if actualSets = expectedSets then
+    Print("bfsp test successful\n");
+  else
+    Print("Error in bfsp test\n");
+    Print("expected: ", expectedSets, "\n");
+    Print("actual: ", actualSets, "\n");
+    Print("graph: ", graphPToSuccessors(graph), "\n");
+    Print("vertex: ", vertex, "\n");
+  fi;
+end;
+
+g := GraphP([[2, 4], [3, 5], [], [6], [3, 4], [1]]);
+expectedSets := [Set([1]), Set([2, 4]), Set([3, 5, 6])];
+testBfsP(g, 1, expectedSets);
+
+g := GraphP([[2, 4], [3, 5], [], [6], [3, 2], [1]]);
+expectedSets := [Set([2]), Set([3, 5])];
+testBfsP(g, 2, expectedSets);
+
+g := GraphP([[2, 3, 4, 5, 6], [7, 8, 9, 10, 11], [7, 8, 9, 10, 11], [7, 8, 9, 10, 11], [7, 8, 9, 10, 11], [7, 8, 9, 10, 11], [12, 13, 14, 15, 16], [12, 13, 14, 15, 16], [12, 13, 14, 15, 16], [12, 13, 14, 15, 16], [12, 13, 14, 15, 16], [], [], [], [], []]);
+expectedSets := [Set([1]), Set([2, 3, 4, 5, 6]), Set([7, 8, 9, 10, 11]), Set([12, 13, 14, 15, 16])];
+testBfsP(g, 1, expectedSets);

@@ -50,6 +50,18 @@ InstallGlobalFunction(BFSP, function(graph, start)
   return order;
 end);
 
+BFSP_REC.isEmpty2DList := function(list)
+  local sublist, element;
+
+  for sublist in list do
+    for element in sublist do
+      return false;
+    od;
+  od;
+
+  return true;
+end;
+
 BFSP_REC.visitPartition := function(graph, partition, isVisited, nextVertices)
   local vertex, successor, partitionIndex, offset;
 
