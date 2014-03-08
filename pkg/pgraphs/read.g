@@ -1,5 +1,9 @@
 #
 # Read the install files of the graph package.
 #
-ReadPackage("PGraphs", "gap/pGraph.gi");
-ReadPackage("PGraphs", "gap/pWeightedGraph.gi");
+ReadPackage("PGraphs", "gap/graphP.gi");
+ReadPackage("PGraphs", "gap/weightedGraphP.gi");
+
+ReadPackage("PGraphs", "gap/bfsP.gi");
+ReadPackage("PGraphs", "gap/mstP.gi");
+ReadPackage("PGraphs", "gap/vertexColoringP.gi");

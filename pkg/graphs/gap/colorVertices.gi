@@ -1,8 +1,8 @@
 # Record for private functions.
-Color_REC := rec();
+ColorVertices_REC := rec();
 
 # Preordes vertices for coloring a graph by taking the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices anymore.
-Color_REC.orderVerticesForColoring := function(graph, numberOfColours)
+ColorVertices_REC.orderVertices := function(graph, numberOfColours)
  local order, position, isOrderChanged, degrees, verticesToOrderEnd, i, vertex, successor; 
  
   # Have a list of vertex degrees and their order.
@@ -56,7 +56,7 @@ end;
 InstallGlobalFunction(ColorVertices, function(graph, numberOfColours)
   local vertex, vertexIndex, colouring, colourCounts, colour, successor, isClash, order;
 
-  order := Color_REC.orderVerticesForColoring(graph, numberOfColours);
+  order := ColorVertices_REC.orderVertices(graph, numberOfColours);
 
   # Have list for assigned colours and the number of times each colour has been used.
   colouring := EmptyPlist(VertexCount(graph));
