@@ -1,0 +1,4 @@
+LoadPackage("pgraphs");
+
+ReadTest("pkg/graphs/test/some.test");
+
