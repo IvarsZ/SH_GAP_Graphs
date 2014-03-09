@@ -1,0 +1,50 @@
+LoadPackage("PGraphs");
+
+testColoring := function(graph, colorsCount)
+  local coloring, isValid, vertexCount, maxColor, vertex, successor;
+
+  coloring := ColorVerticesP(graph, colorsCount);
+  
+  isValid := true;
+
+  for vertex in [1..VertexCountP(graph)] do
+    for successor in VertexSuccessorsP(graph, vertex) do
+      if coloring[vertex] = coloring[successor] then
+        isValid := false;
+      fi;
+    od;
+
+    if coloring[vertex] > colorsCount then
+      isValid := false;
+    fi;
+  od;
+
+  if isValid then
+    Print("ColorVerticesP test successful\n");
+  else
+    Print("Error in ColorVerticesP test\n");
+    Print("coloring: ", coloring, "\n");
+    Print("graph: ", graphPToSuccessors(graph), "\n");
+  fi;
+end;
+
+testFalseColoring := function(graph, colorsCount)
+  local coloring;
+
+  coloring := ColorVerticesP(graph, colorsCount);
+
+  if coloring = false then
+    Print("ColorVerticesP in impossible case test successful\n");
+  else
+    Print("Error in ColorVerticesP test in impossible case\n");
+    Print("coloring: ", coloring, "\n");
+    Print("graph: ", graphPToSuccessors(graph), "\n");
+  fi;
+end;
+
+g := GraphP([[3, 4, 5], [3], [1, 2, 4], [1, 3, 5, 6], [1, 4, 6], [4, 5]]);
+testColoring(g, 3);
+testFalseColoring(g, 2);
+
+g := GraphP([[2, 3, 5, 6], [1, 3, 5], [1, 2, 4, 6], [3, 5], [1, 2, 4, 6], [1, 3, 5]]);
+testColoring(g, 3);

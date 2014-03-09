@@ -20,17 +20,6 @@ bfsPToSets := function(order)
   return sets;
 end;
 
-graphPToSuccessors := function(graph)
-  local successors, vertex;
-  
-  successors := [];
-  for vertex in [1..VertexCountP(graph)] do
-    successors[vertex] := FromAtomicList(VertexSuccessorsP(graph, vertex));
-  od;
-
-  return successors;
-end;
-
 testBfsP := function(graph, vertex, expectedSets)
   local order, actualSets, success;
 

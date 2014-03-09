@@ -1,4 +1,15 @@
 LoadPackage("pgraphs");
 
-ReadTest("pkg/graphs/test/some.test");
+graphPToSuccessors := function(graph)
+  local successors, vertex;
+  
+  successors := [];
+  for vertex in [1..VertexCountP(graph)] do
+    successors[vertex] := FromAtomicList(VertexSuccessorsP(graph, vertex));
+  od;
 
+  return successors;
+end;
+
+Read("pkg/pgraphs/test/bfsP.test");
+Read("pkg/pgraphs/test/vertexColoringP.test");

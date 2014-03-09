@@ -5,13 +5,12 @@ InstallGlobalFunction(ColorVerticesP, function(graph, numberOfColours)
   local order, colouring, orderIndex, vertex, isColourUsed, successor;
 
   order := ColorVerticesP_REC.orderVertices(graph, numberOfColours);
-  MakeImmutable(order);
+  #MakeImmutable(order);
+  #MakeImmutable(order[1]);
 
   colouring := EmptyPlist(VertexCountP(graph));
-  MakeImmutable(colouring);
 
   colouring := ColorVerticesP_REC.colourVertex(graph, numberOfColours, order, colouring, 1);
-  colouring := ShallowCopy(colouring);
 
   if colouring <> false then
     # Greedy colour the rest low degree vertices.
@@ -34,7 +33,7 @@ InstallGlobalFunction(ColorVerticesP, function(graph, numberOfColours)
 end);
 
 ColorVerticesP_REC.colourVertex := function(graph, numberOfColours, order, colouring, vertexIndex)
-  local colour, isValid, successor, vertex, task, tasks, colouringCopy, taskIndex, result;
+  local colour, isValid, successor, vertex, task, tasks, taskIndex, result;
 
   if vertexIndex > order[2] then
     return colouring;
@@ -52,24 +51,22 @@ ColorVerticesP_REC.colourVertex := function(graph, numberOfColours, order, colou
       fi;
     od;
 
-    if isValid  = true then
-      colouringCopy := ShallowCopy(colouring);
-      colouringCopy[vertex] := colour;
-      MakeImmutable(colouringCopy);
-      task := RunTask(ColorVerticesP_REC.colourVertex, graph, numberOfColours, order, colouringCopy, vertexIndex + 1);
+    if isValid then
+      colouring[vertex] := colour;
+      task := RunTask(ColorVerticesP_REC.colourVertex, graph, numberOfColours, order, colouring, vertexIndex + 1);
       Add(tasks, task);
     fi;
-  
-    WaitTasks(tasks);
-    for task in tasks do
-      result := TaskResult(task);
-      if result <> false then
-        return result;
-      fi;
-    od;
- 
-    return false;
   od;
+  
+  WaitTasks(tasks);
+  for task in tasks do
+    result := TaskResult(task);
+    if result <> false then
+      return result;
+    fi;
+  od;
+
+  return false;
 end;
 
 # TODO if keeping wait for all, then don't create new task for last colour.
@@ -89,6 +86,7 @@ ColorVerticesP_REC.orderVertices := function(graph, numberOfColours)
 
   verticesToOrderEnd := VertexCountP(graph);
 
+  # TODO parallel.
   # Try to reorder vertices untill no more reordering was done.
   isOrderChanged := true;
   while (isOrderChanged) do
@@ -122,3 +120,5 @@ ColorVerticesP_REC.orderVertices := function(graph, numberOfColours)
 
   return [order, verticesToOrderEnd];
 end;
+
+MakeImmutable(ColorVerticesP_REC);
