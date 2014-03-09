@@ -1,0 +1,28 @@
+testMSTP := function(graph, expectedMSTWeight)
+  local edges, edge, actualMSTWeight;
+
+  edges := MinimumSpanningTreeP(graph);
+
+  actualMSTWeight := 0;
+  for edge in edges do
+    actualMSTWeight := actualMSTWeight + GetWeightedEdgeP(graph, edge[1], edge[2]);
+  od;
+
+  if actualMSTWeight = expectedMSTWeight then
+    Print("mstp test successful\n");
+  else  
+    Print("Error in mstp test\n");
+    Print("expected weight: ", expectedMSTWeight, "\n");
+    Print("actual weight: ", actualMSTWeight, "\n");
+    Print("mst edges: ", edges, "\n");
+    Print("graph: ", graphPToSuccessors(graph), "\n");
+    Print("weights: ", graphPToWeights(graph), "\n");
+  fi;
+end;
+
+w := WeightedGraphP([[2, 3, 4, 5], [1, 5], [1, 4, 6, 7], [1, 3, 5, 7], [1, 2, 4, 7, 8], [3, 7], [3, 4, 5, 6, 8], [5, 7]], [[2, 2, 5, 5], [2, 1], [2, 2, 10, 5], [5, 2, 10, 3], [5, 1, 10, 10, 10], [10, 9], [5, 3, 10, 3, 3], [10, 3]]);
+testMSTP(w, 22);
+
+
+w := WeightedGraphP([[2, 3, 8, 9], [1, 3, 5, 6], [1, 2, 4, 7, 9], [3, 7], [2, 6, 7], [2, 5, 7], [3, 4, 5, 6, 9], [1, 9], [1, 3, 7, 8], []], [[1, 6, 6, 6], [1, 6, 6, 4], [6, 6, 1, 2, 6], [1, 6], [6, 5, 6], [4, 5, 3], [2, 6, 6, 3, 3], [6, 1], [6, 6, 3, 1], []]);
+testMSTP(w, 20);

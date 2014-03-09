@@ -1,4 +1,4 @@
-LoadPackage("pgraphs");
+LoadPackage("PGraphs");
 
 graphPToSuccessors := function(graph)
   local successors, vertex;
@@ -11,5 +11,17 @@ graphPToSuccessors := function(graph)
   return successors;
 end;
 
+graphPToWeights := function(graph)
+  local weights, vertex;
+  
+  weights := [];
+  for vertex in [1..VertexCountP(graph)] do
+    weights[vertex] := FromAtomicList(graph!.weights[vertex]); #TODO
+  od;
+
+  return weights;
+end;
+
 Read("pkg/pgraphs/test/bfsP.test");
 Read("pkg/pgraphs/test/vertexColoringP.test");
+Read("pkg/pgraphs/test/mstP.test");

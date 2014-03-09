@@ -1,5 +1,3 @@
-LoadPackage("PGraphs");
-
 testColoring := function(graph, colorsCount)
   local coloring, isValid, vertexCount, maxColor, vertex, successor;
 
