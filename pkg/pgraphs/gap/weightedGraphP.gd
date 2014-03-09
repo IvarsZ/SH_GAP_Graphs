@@ -2,10 +2,8 @@
 #! @Chapter Graphs
 #! @Section Weighted Graphs
 
-#!
-#! A directed graph with non-negative weights for edges.
-#!
 if IsBound(IsWeightedGraph) = false then
+  #! A directed graph with non-negative weights for edges.
   DeclareCategory("IsWeightedGraph", IsGraph);
 fi;
 

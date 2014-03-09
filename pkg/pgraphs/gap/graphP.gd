@@ -1,5 +1,3 @@
-# TODO update documentation.
-
 #! @AutoDoc
 #! @Chapter Graphs
 #! @Section Graphs
@@ -8,8 +6,9 @@
 # Declaration file for directed graps and their functions.
 #
 
-#! A directed graph with vertices and edges between them.
 if IsBound(IsGraph) = false then
+
+  #! A directed graph with vertices and edges between them.
   DeclareCategory("IsGraph", IsObject);
 fi;
 
@@ -58,9 +57,15 @@ DeclareGlobalFunction("VertexCountP");
 #!
 DeclareGlobalFunction("VertexSuccessorsP");
 
-# TODO comment
+#! @Description
+#! @Arguments graph, vertex
+#!
+#! @Returns all direct successor vertices of the given graph and vertex.
+#!
 DeclareGlobalFunction("VertexSuccessorP");
 
+# TODO comment BFSP
 DeclareGlobalFunction("BFSP");
 
+# TODO comment ColorVerticesP
 DeclareGlobalFunction("ColorVerticesP");

@@ -16,7 +16,7 @@ graphPToWeights := function(graph)
   
   weights := [];
   for vertex in [1..VertexCountP(graph)] do
-    weights[vertex] := FromAtomicList(graph!.weights[vertex]); #TODO
+    weights[vertex] := FromAtomicList(graph!.weights[vertex]);
   od;
 
   return weights;
