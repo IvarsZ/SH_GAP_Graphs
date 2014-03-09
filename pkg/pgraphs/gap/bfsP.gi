@@ -2,14 +2,13 @@ BFSP_REC := rec();
 BFSP_REC.TASKS_COUNT := 7;
 
 # TODO adjustable tasks count? What if graph doesn't have enough vertices?
-# TODO some kind of iterator for the returned results.
 
 #
 # Returns the vertices of the given graph in a breadth first search order
 # starting at the given start vertex.
 #
 InstallGlobalFunction(BFSP, function(graph, start)
-  local i, currentVertices, nextVertices, isVisited, order, partition, task, tasks;
+  local i, currentVertices, nextVertices, isVisited, order, partition, task, tasks, offset;
 
   # Init search.
   order := [];
@@ -27,6 +26,8 @@ InstallGlobalFunction(BFSP, function(graph, start)
   # While there are vertices in the current level,
   while (BFSP_REC.isEmpty2DList(currentVertices) = false) do
 
+    offset := 1;
+
     # prepare lists for children vertices.
     nextVertices := FixedAtomicList(BFSP_REC.TASKS_COUNT);
     MakeWriteOnceAtomic(nextVertices);
@@ -37,8 +38,12 @@ InstallGlobalFunction(BFSP, function(graph, start)
     # visit all vertices in the current layer partition by partition.
     tasks := [];
     for partition in currentVertices do
-      task := RunTask(BFSP_REC.visitPartition, graph, partition, isVisited, nextVertices);
+
+      task := RunTask(BFSP_REC.visitPartition, graph, partition, isVisited, nextVertices, offset);
       Add(tasks, task);
+
+      # Increase offset.
+      offset := offset mod BFSP_REC.TASKS_COUNT + 1;
     od;
 
     WaitTasks(tasks);
@@ -62,27 +67,22 @@ BFSP_REC.isEmpty2DList := function(list)
   return true;
 end;
 
-BFSP_REC.visitPartition := function(graph, partition, isVisited, nextVertices)
-  local vertex, successor, partitionIndex, offset;
-
-  # TODO The id seems to often stay the same.
-  Print("Partition: ", ThreadID(CurrentThread()), "\n");
+BFSP_REC.visitPartition := function(graph, partition, isVisited, nextVertices, offset)
+  local vertex, successor, partitionIndex;
 
   for vertex in partition do
-    BFSP_REC.visitVertex(graph, vertex, isVisited, nextVertices);
+    BFSP_REC.visitVertex(graph, vertex, isVisited, nextVertices, offset);
   od;
 end;
 
-BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices)
-  local successor, partitionIndex, offset;
+BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
+  local successor, partitionIndex;
 
-  offset := ThreadID(CurrentThread()) mod BFSP_REC.TASKS_COUNT + 1;
   partitionIndex := offset;
 
   for successor in VertexSuccessorsP(graph, vertex) do
     if IsBound(isVisited[successor]) = false then
 
-      #Print(partitionIndex, "\n");
       Add(nextVertices[partitionIndex], successor);
       isVisited[successor] := true;
 
