@@ -1,7 +1,5 @@
 BFSP_REC := rec();
-BFSP_REC.TASKS_COUNT := 7;
-
-# TODO adjustable tasks count? What if graph doesn't have enough vertices?
+BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
 
 #
 # Returns the vertices of the given graph in a breadth first search order
