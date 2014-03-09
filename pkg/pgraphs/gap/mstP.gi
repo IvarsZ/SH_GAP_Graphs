@@ -31,9 +31,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   od;
   WaitTasks(tasks);
 
-  # TODO make atomic vs shared.
-  # TODO change serial mst to edges.
-
   while Length(heads) > 1 do
     
     # Find min edges.
@@ -118,7 +115,7 @@ MSTP_REC.updateHeads := function(head, vertexHead, vertexNext)
   # Traverse the partition and update the head for its vertices.
   vertex := head;
   while vertex > 0 do
-    vertexHead[vertex] := head; # TODO might be able to stop early.
+    vertexHead[vertex] := head;
     vertex := vertexNext[vertex];
   od;
 end;

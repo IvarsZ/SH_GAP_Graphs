@@ -1,16 +1,22 @@
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
-  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors;
+  local edges, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors;
 
-  tree := [];
+  edges := [];
   verticesLeft := VertexCount(graph);
   
   # Empty graph has an empty spanning tree.
   if (verticesLeft = 0) then
-    return tree;
+    return edges;
+  fi;
+
+  # Optimal d to use in the d-ary heap.
+  ratio := Int(EdgeCount(graph)/(2 * VertexCount(graph))); # Each edge direction is counted twice.
+  if ratio < 2 then
+    ratio := 2;
   fi;
 
   # Use a heap to choose the next edge with minimum weight.
-  heap := EmptyDHeap(2,
+  heap := EmptyDHeap(ratio,
                      function(first, second)
                        return first.weight > second.weight;
                      end
@@ -18,7 +24,6 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
 
   # Add the first vertex to the tree.
   isAdded := BlistList([1..VertexCount(graph)], []);
-  Add(tree, 0);
   isAdded[1] := true;
   verticesLeft := verticesLeft - 1; 
 
@@ -36,7 +41,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
       minEdge := Dequeue(heap);
       nextVertex := VertexSuccessors(graph, minEdge.startVertex)[minEdge.edgeIndex];
     od;
-    tree[nextVertex] := minEdge.startVertex;
+    Add(edges, [minEdge.startVertex, nextVertex]);
     isAdded[nextVertex] := true;
     verticesLeft := verticesLeft - 1;
     
@@ -47,5 +52,5 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     od;
   od;
 
-  return tree;
+  return edges;
 end);

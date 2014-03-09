@@ -41,10 +41,24 @@ DeclareGlobalFunction("AddWeightedGraphVertexP");
 #!
 DeclareGlobalFunction("AddWeightedEdgeP");
 
-# TODO comment.
+#! @Description
+#! @Arguments graph, startVertex, endVertex
+#!
+#! Gets the weight of the edge from the startVertex to the endVertex in the graph.
+#!
 DeclareGlobalFunction("GetWeightedEdgeP");
 
-# TODO comment.
+#! @Description
+#! @Arguments graph, startVertex, edgeIndex
+#!
+#! Gets the weight of the edgeIndex-th edge for the startVertex in the graph.
+#!
 DeclareGlobalFunction("GetWeightP");
 
+#! @Description
+#! @Arguments graph
+#!
+#! @Returns a list of edges in a minimum spanning tree. A tree that connects to all vertices and is of minimum total weight.
+#!
+#! Implements a version of parallel Boruvka's algorithm with in place union-find data structure.
 DeclareGlobalFunction("MinimumSpanningTreeP");
