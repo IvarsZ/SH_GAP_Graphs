@@ -49,13 +49,23 @@ DeclareGlobalFunction("AddEdge");
 DeclareGlobalFunction("VertexCount");
 
 #! @Description
+#! @Arguments graph
+#!
+#! @Returns the number of edges in the given graph, where both directions are counted separately.
+DeclareGlobalFunction("EdgeCount");
+
+#! @Description
 #! @Arguments graph, vertex
 #!
 #! @Returns all direct successor vertices of the given graph and vertex.
 #!
 DeclareGlobalFunction("VertexSuccessors");
 
-# TODO comment
+#! @Description
+#! @Arguments graph, vertex, edgeIndex
+#!
+#! @Returns the edgeIndex-th successor of the given vertex in the given graph.
+#!
 DeclareGlobalFunction("VertexSuccessor");
 
 #! @Description

@@ -1,5 +1,5 @@
 InstallGlobalFunction(ShortestPath, function(graph, startVertex)
-  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLength;
+  local tree, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, pathLength, ratio;
 
   verticesLeft := VertexCount(graph);
 
@@ -13,9 +13,14 @@ InstallGlobalFunction(ShortestPath, function(graph, startVertex)
     tree[i] := -1;
   od;
 
-  # TODO experiment what d-ary heap to use.
+  # Optimal d to use in the d-ary heap.
+  ratio := Int(EdgeCount(graph)/(2 * VertexCount(graph))); # Each edge direction is counted twice.
+  if ratio < 2 then
+    ratio := 2;
+  fi;
+
   # Use a heap to choose the next edge to visit.
-  heap := EmptyDHeap(2,
+  heap := EmptyDHeap(ratio,
                      function(first, second)
                        return first.pathLength > second.pathLength;
                      end

@@ -56,3 +56,17 @@ InstallGlobalFunction(VertexCount, function(graph)
 
   return Length(graph!.successors);
 end);
+
+#
+# Returns the number of edges in the given graph.
+#
+InstallGlobalFunction(EdgeCount, function(graph)
+  local vertex, edgeCount;
+
+  edgeCount := 0;
+  for vertex in [1..VertexCount(graph)] do
+    edgeCount := edgeCount + Length(VertexSuccessors(graph, vertex));
+  od;
+
+  return edgeCount;
+end);

@@ -39,10 +39,18 @@ DeclareGlobalFunction("AddWeightedGraphVertex");
 #!
 DeclareGlobalFunction("AddWeightedEdge");
 
-# TODO comment.
+#! @Description
+#! @Arguments graph, startVertex, endVertex
+#!
+#! Gets the weight of the edge from the startVertex to the endVertex in the graph.
+#!
 DeclareGlobalFunction("GetWeightedEdge");
 
-# TODO comment.
+#! @Description
+#! @Arguments graph, startVertex, edgeIndex
+#!
+#! Gets the weight of the edgeIndex-th edge for the startVertex in the graph.
+#!
 DeclareGlobalFunction("GetWeight");
 
 #! @Description
