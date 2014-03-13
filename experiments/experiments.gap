@@ -8,9 +8,9 @@ SetRecursionTrapInterval(0);
 
 FLOAT.DECIMAL_DIG := 2;
 
-WRITE_GRAPHS := false;
-if (WRITE_GRAPHS = true) then
-  
+writeGraphs := function()
+  local vertexCount, density, i, graph, filename;
+
   for vertexCount in [100, 500, 1000, 5000, 10000] do
     for density in [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1] do
       for i in [1..20] do
@@ -49,182 +49,199 @@ if (WRITE_GRAPHS = true) then
       od;
     od;
   od;
-fi;
+end;
+#writeGraphs();
 
-for vertexCount in [100, 500, 1000, 5000, 10000] do
-  vertices := [1..vertexCount];
+timeFunction := function(f, args)
+  local result, n, t, j;
 
-  for density in [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1] do
+  n := 1;
+  t := 0;
+  while t < TIMERS_MIN_RUN_LENGTH do
+    GASMAN("collect");
+    t := -Runtime();
+    for j in [1..n] do
+      result := CallFuncList(f, args);
+    od;
+    t := t + Runtime();
+    n := n * 5;
+  od;
 
-    for i in [1..20] do
-      
-      filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sdg", vertexCount, density, i], "_");
-      Read(filename);
+  return [Int(Float(1000000*t/n)), result];
+end;
 
-      # Strong components.
-      n := 1;
-      t := 0;
-      while t < TIMERS_MIN_RUN_LENGTH do
-          GASMAN("collect");
-          t := -Runtime();
-          for j in [1..n] do
-            c := GetStrongComponents(graph);
-          od;
-          t := t + Runtime();
-          n := n * 5;
-      od;
+testStrongComponents := function(graph, vertexCount, density)
+  local numberOfComponents, result;
 
-      numberOfComponents := Length(Collected(c));
-      Print("sc ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", numberOfComponents, "\n");
+  result := timeFunction(StrongComponents, [graph]);
+  numberOfComponents := Length(Collected(result[2]));
+  Print("sc ", vertexCount, " ", density, " ", result[1], " ", numberOfComponents, "\n");
+end;
 
-      # BFS
-      n := 1;
-      t := 0;
-      while t < TIMERS_MIN_RUN_LENGTH do
-          GASMAN("collect");
-
-          t := -Runtime();
-          for j in [1..n] do
-            
-            totalDepth := 0;
-            numberOfComponents := 0;
-            isVisited := BlistList([1..vertexCount], []);
-            
-            for i in vertices do
-              if (isVisited[i] = false) then
-
-                bfs := BFS(graph, i);
-                for vertex in bfs[1] do
-                  isVisited[vertex] := true;
-                od;
-
-                numberOfComponents := numberOfComponents + 1;
-                totalDepth := totalDepth + bfs[2];
-              fi;
-            od;
-          od;
-          t := t + Runtime();
-
-          n := n * 5;
-      od;
-      Print("bfs ", vertexCount, " ", density, " ", Int(Float(1000000*t/n))," ", numberOfComponents, " ", totalDepth, "\n");
-
-      # DFS
-      n := 1;
-      t := 0;
-      while t < TIMERS_MIN_RUN_LENGTH do
-          GASMAN("collect");
-
-          t := -Runtime();
-          for j in [1..n] do
-
-            numberOfComponents := 0;
-            isVisited := BlistList([1..vertexCount], []);
-            for i in vertices do
-
-              if (isVisited[i] = false) then
-
-                numberOfComponents := numberOfComponents + 1;
-                for vertex in DFS(graph, i) do
-                  isVisited[vertex] := true;
-                od;
-              fi;
-            od;
-          od;
-          t := t + Runtime();
-
-          n := n * 5;
-      od;
-      Print("dfs ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ",numberOfComponents, "\n");
+testBFS := function(graph, vertexCount, density)
+  local n, t, j, i, totalDepth, numberOfComponents, isVisited, bfs, vertices, vertex;
   
-    od;
-  od;
-od;
-
-# Colouring
-for vertexCount in [5..30] do
   vertices := [1..vertexCount];
+  
+  n := 1;
+  t := 0;
+  while t < TIMERS_MIN_RUN_LENGTH do
+      GASMAN("collect");
 
-  for density in [0.1, 0.25, 0.5, 0.75, 1] do
+      t := -Runtime();
+      for j in [1..n] do
+        
+        totalDepth := 0;
+        numberOfComponents := 0;
+        isVisited := BlistList([1..vertexCount], []);
+        
+        for i in vertices do
+          if (isVisited[i] = false) then
 
-    for i in [1..0] do
-      
-      filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sg", vertexCount, density, i], "_");
-      Read(filename);
-
-      n := 1;
-      t := 0;
-      while t < TIMERS_MIN_RUN_LENGTH do
-          GASMAN("collect");
-
-          t := -Runtime();
-          for j in [1..n] do
-           
-            isColoured := false;
-            colourCount := 1;
-            while (isColoured = false) do
-              isColoured := GetColouring(graph, colourCount);
-              colourCount := colourCount + 1;
+            bfs := BFS(graph, i);
+            for vertex in bfs[1] do
+              isVisited[vertex] := true;
             od;
-          od;
-          t := t + Runtime();
 
-          n := n * 5;
+            numberOfComponents := numberOfComponents + 1;
+            totalDepth := totalDepth + bfs[2];
+          fi;
+        od;
       od;
-      Print("col ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colourCount - 1, "\n");
-    od;
-  od;
-od;
+      t := t + Runtime();
 
-# Minimum spanning tree and shortest paths
-for vertexCount in [100, 250, 500, 750, 1000] do
+      n := n * 5;
+  od;
+
+  Print("bfs ", vertexCount, " ", density, " ", Int(Float(1000000*t/n))," ", numberOfComponents, " ", totalDepth, "\n");
+end;
+
+testDFS := function(graph, vertexCount, density)
+  local n, t, j, i, numberOfComponents, isVisited, vertices, vertex;
+  
   vertices := [1..vertexCount];
+  
+  n := 1;
+  t := 0;
+  while t < TIMERS_MIN_RUN_LENGTH do
+      GASMAN("collect");
 
-  for density in [0.01, 0.05, 0.1, 0.5, 1] do
+      t := -Runtime();
+      for j in [1..n] do
 
-    for i in [1..0] do
+        numberOfComponents := 0;
+        isVisited := BlistList([1..vertexCount], []);
+        for i in vertices do
 
-      filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/cswg", vertexCount, density, i], "_");
-      Read(filename);
+          if (isVisited[i] = false) then
 
-      # Minimum spanning tree.
-      n := 1;
-      t := 0;
-      while t < TIMERS_MIN_RUN_LENGTH do
-          GASMAN("collect");
-          t := -Runtime();
-          for j in [1..n] do
-            mst := MinimumSpanningTree(graph);
-          od;
-          t := t + Runtime();
-          n := n * 5;
+            numberOfComponents := numberOfComponents + 1;
+            for vertex in DFS(graph, i) do
+              isVisited[vertex] := true;
+            od;
+          fi;
+        od;
       od;
+      t := t + Runtime();
 
-      # Traverse mst and get weight.
-      weight := 0;
-      for vertex in [2..vertexCount] do
-        parentVertex := mst[vertex];
-        weight := weight + GetWeightedEdge(graph, parentVertex, vertex);
+      n := n * 5;
+  od;
+  
+  Print("dfs ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", numberOfComponents, "\n");
+end;
+
+testColoring := function(graph, vertexCount, density)
+  local n, t, j, numberOfComponents, isColoured, colorCount;
+
+  n := 1;
+  t := 0;
+  while t < TIMERS_MIN_RUN_LENGTH do
+      GASMAN("collect");
+
+      t := -Runtime();
+      for j in [1..n] do
+       
+        isColoured := false;
+        colorCount := 0;
+        while (isColoured = false) do
+          colorCount := colorCount + 1;
+          isColoured := ColorVertices(graph, colorCount);
+        od;
       od;
+      t := t + Runtime();
 
-      Print("mst ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", weight, "\n");
+      n := n * 5;
+  od;
+  
+  Print("col ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colorCount, "\n");
+end;
 
-      # Shortest paths.
-      n := 1;
-      t := 0;
-      while t < TIMERS_MIN_RUN_LENGTH do
-          GASMAN("collect");
+testMST := function(graph, vertexCount, density)
+  local result, weight, edge;
 
-          t := -Runtime();
-          for j in [1..n] do
-            ShortestPath(graph, 1);
-          od;
-          t := t + Runtime();
-          n := n * 5;
+  result := timeFunction(ShortestPath, [graph, 1]);
+  
+  # Traverse mst and get weight.
+  weight := 0;
+  for edge in result[2] do
+    weight := weight + GetWeightedEdge(graph, edge[1], edge[2]); # TODO in MST return startvertex and edgeindex and use GetWeight here.
+  od;
+
+  Print("mst ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
+end;
+
+testShortestPaths := function(graph, vertexCount, density)
+  local result;
+
+  result := timeFunction(ShortestPath, [graph, 1]);
+  Print("sp ", vertexCount, " ", density, " ", result[1], "\n"); 
+end;
+
+runExperiments := function()
+  local vertexCount, density, i, filename, graph;
+  
+  # SCC, BFS and DFS.
+  for vertexCount in [100, 500, 1000, 5000, 10000] do
+    for density in [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1] do
+      for i in [1..20] do
+        
+        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sdg", vertexCount, density, i], "_");
+        Read(filename);
+
+        testStrongComponents(graph, vertexCount, density);
+        testBFS(graph, vertexCount, density);
+        testDFS(graph, vertexCount, density);  
       od;
-      Print("sp ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), "\n"); 
     od;
   od;
-od;
+
+  # Colouring
+  for vertexCount in [5..30] do
+    for density in [0.1, 0.25, 0.5, 0.75, 1] do
+      for i in [1..0] do
+        
+        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sg", vertexCount, density, i], "_");
+        Read(filename);
+
+        testColoring(graph, vertexCount, density);
+      od;
+    od;
+  od;
+
+  # Minimum spanning tree and shortest paths
+  for vertexCount in [100, 250, 500, 750, 1000] do
+    for density in [0.01, 0.05, 0.1, 0.5, 1] do
+      for i in [1..0] do
+
+        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/cswg", vertexCount, density, i], "_");
+        Read(filename);
+
+        testMST(graph, vertexCount, density);
+        testShortestPaths(graph, vertexCount, density);
+      od;
+    od;
+  od;
+end;
+runExperiments();
 
 QUIT;

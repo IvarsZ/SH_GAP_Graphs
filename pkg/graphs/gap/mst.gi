@@ -1,5 +1,5 @@
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
-  local edges, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors;
+  local edges, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, ratio;
 
   edges := [];
   verticesLeft := VertexCount(graph);
