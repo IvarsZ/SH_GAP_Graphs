@@ -1,4 +1,5 @@
 LoadPackage("Graphs");
+LoadPackage("PGraphs");
 Read("graphGenerator.gap");
 
 # Set seed and minimal run length.
@@ -156,21 +157,21 @@ testColoring := function(graph, vertexCount, density)
   n := 1;
   t := 0;
   while t < TIMERS_MIN_RUN_LENGTH do
-      GASMAN("collect");
+    GASMAN("collect");
 
-      t := -Runtime();
-      for j in [1..n] do
-       
-        isColoured := false;
-        colorCount := 0;
-        while (isColoured = false) do
-          colorCount := colorCount + 1;
-          isColoured := ColorVertices(graph, colorCount);
-        od;
+    t := -Runtime();
+    for j in [1..n] do
+     
+      isColoured := false;
+      colorCount := 0;
+      while (isColoured = false) do
+        colorCount := colorCount + 1;
+        isColoured := ColorVertices(graph, colorCount);
       od;
-      t := t + Runtime();
+    od;
+    t := t + Runtime();
 
-      n := n * 5;
+    n := n * 5;
   od;
   
   Print("col ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colorCount, "\n");
@@ -179,7 +180,7 @@ end;
 testMST := function(graph, vertexCount, density)
   local result, weight, edge;
 
-  result := timeFunction(ShortestPath, [graph, 1]);
+  result := timeFunction(MinimumSpanningTree, [graph]);
   
   # Traverse mst and get weight.
   weight := 0;
@@ -188,6 +189,7 @@ testMST := function(graph, vertexCount, density)
   od;
 
   Print("mst ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
+  #Print(result[2], "\n");
 end;
 
 testShortestPaths := function(graph, vertexCount, density)
@@ -197,20 +199,76 @@ testShortestPaths := function(graph, vertexCount, density)
   Print("sp ", vertexCount, " ", density, " ", result[1], "\n"); 
 end;
 
+testMSTP := function(graph, vertexCount, density)
+  local result, weight, edge;
+
+  result := timeFunction(MinimumSpanningTreeP, [graph]);
+
+  # Traverse mst and get weight.
+  weight := 0;
+  for edge in result[2] do
+    weight := weight + GetWeightedEdge(graph, edge[1], edge[2]); # TODO in MSTP return startvertex and edgeindex and use GetWeight here.
+  od;
+
+  Print("mstp ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
+  #Print(result[2], "\n");
+end;
+
+testColoringP := function(graph, vertexCount, density)
+  local n, t, j, numberOfComponents, isColoured, colorCount;
+
+  n := 1;
+  t := 0;
+  while t < TIMERS_MIN_RUN_LENGTH do
+    GASMAN("collect");
+
+    t := -Runtime();
+    for j in [1..n] do
+     
+      isColoured := false;
+      colorCount := 0;
+      while (isColoured = false) do
+        colorCount := colorCount + 1;
+        isColoured := ColorVerticesP(graph, colorCount);
+      od;
+    od;
+    t := t + Runtime();
+
+    n := n * 5;
+  od;
+  
+  Print("colp ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colorCount, "\n");
+end;
+
 runExperiments := function()
-  local vertexCount, density, i, filename, graph;
+  local vertexCount, density, i, filename, graphP;
   
   # SCC, BFS and DFS.
   for vertexCount in [100, 500, 1000, 5000, 10000] do
     for density in [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1] do
-      for i in [1..20] do
+      for i in [1..0] do
         
         filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sdg", vertexCount, density, i], "_");
         Read(filename);
+        graphP := GraphP(graph!.successors);
 
-        testStrongComponents(graph, vertexCount, density);
-        testBFS(graph, vertexCount, density);
-        testDFS(graph, vertexCount, density);  
+        #testStrongComponents(graph, vertexCount, density);
+        #testBFS(graph, vertexCount, density);
+        #testDFS(graph, vertexCount, density);
+        
+        result := timeFunction(BFS, [graph, 1]);
+        Print("bfs ", vertexCount, " ", density, " ", result[1], "\n");
+        #Print("bfs ", result[2], "\n");
+  
+        result := timeFunction(BFSP, [graphP, 1]);
+        Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");
+        #for level in result[2] do
+        #  for sublist in level do
+        #    Print(FromAtomicList(sublist));
+        #  od;
+        #  Print("\n");
+        #  Print("\n");
+        #od;
       od;
     od;
   od;
@@ -218,12 +276,14 @@ runExperiments := function()
   # Colouring
   for vertexCount in [5..30] do
     for density in [0.1, 0.25, 0.5, 0.75, 1] do
-      for i in [1..0] do
+      for i in [1..1] do
         
         filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sg", vertexCount, density, i], "_");
         Read(filename);
+        graphP := GraphP(graph!.successors);
 
         testColoring(graph, vertexCount, density);
+        testColoringP(graphP, vertexCount, density);
       od;
     od;
   od;
@@ -235,13 +295,41 @@ runExperiments := function()
 
         filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/cswg", vertexCount, density, i], "_");
         Read(filename);
+        graphP := WeightedGraphP(graph!.successors, graph!.weights);
 
         testMST(graph, vertexCount, density);
-        testShortestPaths(graph, vertexCount, density);
+        testMSTP(graphP, vertexCount, density);
+        #testShortestPaths(graph, vertexCount, density);
       od;
     od;
   od;
 end;
-runExperiments();
+#runExperiments();
 
-QUIT;
+# Test BFS and PBFS for large vertex count.
+vertexCount := 100000;
+density := 0.001;
+
+graph := GenerateSimpleConnectedGraph(vertexCount, density);
+Print("graph generate\n");
+
+result := timeFunction(BFS, [graph, 1]);
+Print("bfs ", vertexCount, " ", density, " ", result[1], "\n");
+
+graphP := GraphP(graph!.successors);
+result := timeFunction(BFSP, [graphP, 1]);
+Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");
+
+# Test BFS and PBFS for large vertex count.
+vertexCount := 100000;
+density := 0.001;
+
+graph := GenerateSimpleConnectedGraph(vertexCount, density);
+Print("graph generate\n");
+
+result := timeFunction(BFS, [graph, 1]);
+Print("bfs ", vertexCount, " ", density, " ", result[1], "\n");
+
+graphP := GraphP(graph!.successors);
+result := timeFunction(BFSP, [graphP, 1]);
+Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");

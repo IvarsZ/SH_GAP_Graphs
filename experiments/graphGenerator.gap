@@ -7,6 +7,8 @@ DeclareGlobalFunction("GenerateSimpleDirectGraph");
 
 DeclareGlobalFunction("GenerateSimpleGraph");
 
+DeclareGlobalFunction("GenerateSimpleConnectedGraph");
+
 DeclareGlobalFunction("GenerateConnectedSimpleWeightedGraph");
 
 InstallGlobalFunction(GenerateSimpleDirectGraph, function(vertexCount, density)
@@ -51,6 +53,52 @@ InstallGlobalFunction(GenerateSimpleGraph, function(vertexCount, density)
   od;
 
   randomList := [1..randomUnitSize];
+
+  # Each edge has probability equal to density.
+  for start in [1..vertexCount - 1] do
+    for endVertex in [start + 1..vertexCount] do
+      if (RandomList(randomList) <= density) then
+        AddEdge(graph, start, endVertex);
+        AddEdge(graph, endVertex, start);
+      fi;
+    od;
+  od;
+
+  return graph;
+end);
+
+InstallGlobalFunction(GenerateSimpleConnectedGraph, function(vertexCount, density)
+  local i, graph, start, endVertex, randomUnitSize, vertices, randomList, visitedCount, previousVertex, nextVertex, isVisited;
+
+  # Adjust density to randomUnitSize.
+  randomUnitSize := 100000000;
+  density := Int(density * randomUnitSize);
+
+  graph := EmptyGraph();
+  for i in [1..vertexCount] do
+    AddVertex(graph);
+  od;
+
+  randomList := [1..randomUnitSize];
+  vertices := [1..vertexCount];
+  
+  # Create a random minimum spanning tree.
+  isVisited := BlistList([1..vertexCount], []);
+  isVisited[1] := true;
+  visitedCount := 1;
+  previousVertex := 1;
+  while (visitedCount < vertexCount) do
+    nextVertex := RandomList(vertices);
+    if (isVisited[nextVertex] = false) then
+
+      AddEdge(graph, previousVertex, nextVertex);
+      AddEdge(graph, nextVertex, previousVertex);
+      previousVertex := nextVertex;
+
+      isVisited[nextVertex] := true;
+      visitedCount := visitedCount + 1;
+    fi;
+  od;
 
   # Each edge has probability equal to density.
   for start in [1..vertexCount - 1] do

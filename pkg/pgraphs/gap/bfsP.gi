@@ -1,5 +1,5 @@
 BFSP_REC := rec();
-BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
+BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^3);
 
 #
 # Returns the vertices of the given graph in a breadth first search order
@@ -24,7 +24,7 @@ InstallGlobalFunction(BFSP, function(graph, start)
   # While there are vertices in the current level,
   while (BFSP_REC.isEmpty2DList(currentVertices) = false) do
 
-    offset := 1;
+    offset := 3;
 
     # prepare lists for children vertices.
     nextVertices := FixedAtomicList(BFSP_REC.TASKS_COUNT);
@@ -37,11 +37,13 @@ InstallGlobalFunction(BFSP, function(graph, start)
     tasks := [];
     for partition in currentVertices do
 
-      task := RunTask(BFSP_REC.visitPartition, graph, partition, isVisited, nextVertices, offset);
-      Add(tasks, task);
+      if Length(partition) > 0 then # TODO don't launch unneeded tasks, start offset from end.
+        task := RunTask(BFSP_REC.visitPartition, graph, partition, isVisited, nextVertices, offset);
+        Add(tasks, task);
 
-      # Increase offset.
-      offset := offset mod BFSP_REC.TASKS_COUNT + 1;
+        # Increase offset.
+        offset := offset mod BFSP_REC.TASKS_COUNT + 1;
+      fi;
     od;
 
     WaitTasks(tasks);
@@ -81,6 +83,7 @@ BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
   for successor in VertexSuccessorsP(graph, vertex) do
     if IsBound(isVisited[successor]) = false then
 
+      #Print("partitionIndex ", partitionIndex, "\n");
       Add(nextVertices[partitionIndex], successor);
       isVisited[successor] := true;
 

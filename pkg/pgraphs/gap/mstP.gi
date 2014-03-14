@@ -15,8 +15,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   heads := EmptyPlist(vertexCount);
   
   tasks := [];
-  ShareObj(graph!.successors);
-  ShareObj(graph!.weights);
 
   for vertex in [1..vertexCount] do
     heads[vertex] := vertex;
@@ -32,25 +30,32 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   WaitTasks(tasks);
 
   while Length(heads) > 1 do
+  
+    #Print(heads, "\n");
+    #Print(FromAtomicList(vertexNext), "\n");
     
     # Find min edges.
     tasks := [];
     for head in heads do
       task := RunTask(MSTP_REC.findMinEdge, graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
       Add(tasks, task);
+      #MSTP_REC.findMinEdge(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
     od;
     WaitTasks(tasks);
+    #Print("FOUND MIN EDGES\n");
 
     # Join the edges by changing heads and merging the lists.
     tasks2 := [];
     for task in tasks do  
       edge := TaskResult(task);
       if edge <> false then
-        task2 := RunTask(MSTP_REC.mergeHeads, edge, vertexHead, vertexNext, vertexTail, edges); 
-        Add(tasks2, task2);
+        #task2 := RunTask(MSTP_REC.mergeHeads, edge, vertexHead, vertexNext, vertexTail, edges); 
+        #Add(tasks2, task2);
+        MSTP_REC.mergeHeads(edge, vertexHead, vertexNext, vertexTail, edges);
       fi;
     od;
-    WaitTasks(tasks2);
+    #WaitTasks(tasks2);
+    #Print("JOINED MIN EDGES\n"); TODO doesn't work when not in parallel?
     
     # Update heads list and get the new heads.
     tasks := [];
@@ -58,10 +63,13 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     for head in heads do 
       if vertexHead[head] = head then
         
-      Add(newHeads, head);
+        Add(newHeads, head);
         task := RunTask(MSTP_REC.updateHeads, head, vertexHead, vertexNext);
+        #MSTP_REC.updateHeads(head, vertexHead, vertexNext);
       fi;
     od;
+    
+    #Print("GOT NEW HEADS\n");
 
     if Length(heads) = Length(newHeads) then
       break;
@@ -154,7 +162,7 @@ MSTP_REC.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail
 
   if IsBound(minStart) then
 
-    # "Remove" the pikced edge.
+    # "Remove" the picked edge.
     vertexEdge[minStart] := vertexEdge[minStart] + 1;
 
     # To avoid loops when adding same edge twice.

@@ -55,14 +55,22 @@ ColorVerticesP_REC.colourVertex := function(graph, numberOfColours, order, colou
     fi;
   od;
   
-  while Length(tasks) > 0 do
-    taskIndex := WaitAnyTask(tasks);
-    task := tasks[taskIndex];
+  #while Length(tasks) > 0 do
+  #  taskIndex := WaitAnyTask(tasks);
+  #  task := tasks[taskIndex];
+  #  result := TaskResult(task);
+  #  if result <> false then
+  #    return result;
+  #  fi;
+  #  Remove(tasks, taskIndex);
+  #od;
+  
+  WaitTasks(tasks);
+  for task in tasks do
     result := TaskResult(task);
     if result <> false then
       return result;
     fi;
-    Remove(tasks, taskIndex);
   od;
 
   return false;
