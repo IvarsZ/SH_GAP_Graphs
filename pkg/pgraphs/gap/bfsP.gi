@@ -1,5 +1,5 @@
 BFSP_REC := rec();
-BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^3);
+BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
 
 #
 # Returns the vertices of the given graph in a breadth first search order
@@ -24,7 +24,7 @@ InstallGlobalFunction(BFSP, function(graph, start)
   # While there are vertices in the current level,
   while (BFSP_REC.isEmpty2DList(currentVertices) = false) do
 
-    offset := 3;
+    offset := 1;
 
     # prepare lists for children vertices.
     nextVertices := FixedAtomicList(BFSP_REC.TASKS_COUNT);

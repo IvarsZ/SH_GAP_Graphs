@@ -308,7 +308,7 @@ end;
 
 # Test BFS and PBFS for large vertex count.
 vertexCount := 100000;
-density := 0.001;
+density := 0.0005;
 
 graph := GenerateSimpleConnectedGraph(vertexCount, density);
 Print("graph generate\n");
@@ -322,7 +322,7 @@ Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");
 
 # Test BFS and PBFS for large vertex count.
 vertexCount := 100000;
-density := 0.001;
+density := 0.0005;
 
 graph := GenerateSimpleConnectedGraph(vertexCount, density);
 Print("graph generate\n");
