@@ -37,7 +37,7 @@ InstallGlobalFunction(BFSP, function(graph, start)
     tasks := [];
     for partition in currentVertices do
 
-      if Length(partition) > 0 then # TODO don't launch unneeded tasks, start offset from end.
+      if Length(partition) > 0 then # Don't launch unneeded tasks, start offset from end.
         task := RunTask(BFSP_REC.visitPartition, graph, partition, isVisited, nextVertices, offset);
         Add(tasks, task);
 
@@ -83,7 +83,6 @@ BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
   for successor in VertexSuccessorsP(graph, vertex) do
     if IsBound(isVisited[successor]) = false then
 
-      #Print("partitionIndex ", partitionIndex, "\n");
       Add(nextVertices[partitionIndex], successor);
       isVisited[successor] := true;
 

@@ -11,37 +11,25 @@ DeclareRepresentation("IsWeightedGraphAdjacencyListRep", IsGraphAdjacencyListRep
 InstallGlobalFunction(WeightedGraph, function(successorsLists, weightsLists)
   local atomicSuccessorsList, successors, atomicWeightsList, weights;
 
-  # Make the successors lists atomic.
-  atomicSuccessorsList := AtomicList([]);
-  for successors in successorsLists do
-    Add(atomicSuccessorsList, AtomicList(successors));
-  od;
-  
-  # Make the weights lists atomic.
-  atomicWeightsList := AtomicList([]);
-  for weights in weightsLists do
-    Add(atomicWeightsList, AtomicList(weights));
-  od;
-
   return Objectify(NewType(NewFamily("WeightedGraphs"), IsWeightedGraph and IsWeightedGraphAdjacencyListRep),
-                   rec(successors := atomicSuccessorsList, weights := atomicWeightsList));
+                   rec(successors := successorsLists, weights := weightsLists));
 end); 
 
 InstallGlobalFunction(EmptyWeightedGraph, function()
 
   return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
-                   rec(successors := AtomicList([]), weights := AtomicList([])));
+                   rec(successors := [], weights := []));
 end);
 
 InstallGlobalFunction(AddWeightedGraphVertex, function(graph)
 
-  AddVertexP(graph);
-  Add(graph!.weights, AtomicList([]));
+  AddVertex(graph);
+  Add(graph!.weights, []);
 end);
 
 InstallGlobalFunction(AddWeightedEdge, function(graph, startVertex, endVertex, weight)
 
-  AddEdgeP(graph, startVertex, endVertex);
+  AddEdge(graph, startVertex, endVertex);
   Add(graph!.weights[startVertex], weight);
 end);
 

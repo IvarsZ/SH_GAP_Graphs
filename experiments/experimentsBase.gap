@@ -1,14 +1,16 @@
+# Load needed packages and files.
 LoadPackage("Graphs");
 LoadPackage("PGraphs");
 Read("graphGenerator.gap");
 
-# Set seed and minimal run length.
+# Set parameters - seed and minimal run length.
 Reset(GlobalMersenneTwister, 495817502);
 TIMERS_MIN_RUN_LENGTH := 200;
 SetRecursionTrapInterval(0);
 
 FLOAT.DECIMAL_DIG := 2;
 
+# Writes some graphs to files, not used anymore due to filesize.
 writeGraphs := function()
   local vertexCount, density, i, graph, filename;
 
@@ -51,8 +53,8 @@ writeGraphs := function()
     od;
   od;
 end;
-#writeGraphs();
 
+# Times a function f run with the given arguments.
 timeFunction := function(f, args)
   local result, n, t, j;
 
@@ -79,7 +81,7 @@ testStrongComponents := function(graph, vertexCount, density)
   Print("sc ", vertexCount, " ", density, " ", result[1], " ", numberOfComponents, "\n");
 end;
 
-testBFS := function(graph, vertexCount, density)
+testBFSForAllVertices := function(graph, vertexCount, density)
   local n, t, j, i, totalDepth, numberOfComponents, isVisited, bfs, vertices, vertex;
   
   vertices := [1..vertexCount];
@@ -117,7 +119,7 @@ testBFS := function(graph, vertexCount, density)
   Print("bfs ", vertexCount, " ", density, " ", Int(Float(1000000*t/n))," ", numberOfComponents, " ", totalDepth, "\n");
 end;
 
-testDFS := function(graph, vertexCount, density)
+testDFSForAllVertices := function(graph, vertexCount, density)
   local n, t, j, i, numberOfComponents, isVisited, vertices, vertex;
   
   vertices := [1..vertexCount];
@@ -239,97 +241,3 @@ testColoringP := function(graph, vertexCount, density)
   
   Print("colp ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colorCount, "\n");
 end;
-
-runExperiments := function()
-  local vertexCount, density, i, filename, graphP;
-  
-  # SCC, BFS and DFS.
-  for vertexCount in [100, 500, 1000, 5000, 10000] do
-    for density in [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1] do
-      for i in [1..0] do
-        
-        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sdg", vertexCount, density, i], "_");
-        Read(filename);
-        graphP := GraphP(graph!.successors);
-
-        #testStrongComponents(graph, vertexCount, density);
-        #testBFS(graph, vertexCount, density);
-        #testDFS(graph, vertexCount, density);
-        
-        result := timeFunction(BFS, [graph, 1]);
-        Print("bfs ", vertexCount, " ", density, " ", result[1], "\n");
-        #Print("bfs ", result[2], "\n");
-  
-        result := timeFunction(BFSP, [graphP, 1]);
-        Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");
-        #for level in result[2] do
-        #  for sublist in level do
-        #    Print(FromAtomicList(sublist));
-        #  od;
-        #  Print("\n");
-        #  Print("\n");
-        #od;
-      od;
-    od;
-  od;
-
-  # Colouring
-  for vertexCount in [5..30] do
-    for density in [0.1, 0.25, 0.5, 0.75, 1] do
-      for i in [1..1] do
-        
-        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/sg", vertexCount, density, i], "_");
-        Read(filename);
-        graphP := GraphP(graph!.successors);
-
-        testColoring(graph, vertexCount, density);
-        testColoringP(graphP, vertexCount, density);
-      od;
-    od;
-  od;
-
-  # Minimum spanning tree and shortest paths
-  for vertexCount in [100, 250, 500, 750, 1000] do
-    for density in [0.01, 0.05, 0.1, 0.5, 1] do
-      for i in [1..0] do
-
-        filename := JoinStringsWithSeparator(["/media/SH_USB1/graphs/cswg", vertexCount, density, i], "_");
-        Read(filename);
-        graphP := WeightedGraphP(graph!.successors, graph!.weights);
-
-        testMST(graph, vertexCount, density);
-        testMSTP(graphP, vertexCount, density);
-        #testShortestPaths(graph, vertexCount, density);
-      od;
-    od;
-  od;
-end;
-#runExperiments();
-
-# Test BFS and PBFS for large vertex count.
-vertexCount := 100000;
-density := 0.0005;
-
-graph := GenerateSimpleConnectedGraph(vertexCount, density);
-Print("graph generate\n");
-
-result := timeFunction(BFS, [graph, 1]);
-Print("bfs ", vertexCount, " ", density, " ", result[1], "\n");
-
-graphP := GraphP(graph!.successors);
-result := timeFunction(BFSP, [graphP, 1]);
-Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");
-
-# Test BFS and PBFS for large vertex count.
-vertexCount := 100000;
-density := 0.0005;
-
-graph := GenerateSimpleConnectedGraph(vertexCount, density);
-Print("graph generate\n");
-
-result := timeFunction(BFS, [graph, 1]);
-Print("bfs ", vertexCount, " ", density, " ", result[1], "\n");
-
-graphP := GraphP(graph!.successors);
-result := timeFunction(BFSP, [graphP, 1]);
-Print("bfsp ", vertexCount, " ", density, " ", result[1], "\n");
