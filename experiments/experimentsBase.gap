@@ -191,7 +191,6 @@ testMST := function(graph, vertexCount, density)
   od;
 
   Print("mst ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
-  #Print(result[2], "\n");
 end;
 
 testShortestPaths := function(graph, vertexCount, density)
@@ -213,7 +212,6 @@ testMSTP := function(graph, vertexCount, density)
   od;
 
   Print("mstp ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
-  #Print(result[2], "\n");
 end;
 
 testColoringP := function(graph, vertexCount, density)

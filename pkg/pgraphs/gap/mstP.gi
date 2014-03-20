@@ -30,9 +30,10 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   WaitTasks(tasks);
 
   while Length(heads) > 1 do
-  
-    #Print(heads, "\n");
-    #Print(FromAtomicList(vertexNext), "\n");
+
+    Print(heads, "\n");
+    Print(FromAtomicList(vertexHead), "\n");
+    Print(FromAtomicList(vertexNext), "\n");
     
     # Find min edges.
     tasks := [];
@@ -42,7 +43,8 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       #MSTP_REC.findMinEdge(graph, head, vertexHead, vertexNext, vertexTail, vertexEdge);
     od;
     WaitTasks(tasks);
-    #Print("FOUND MIN EDGES\n");
+
+    Print("FOUND MIN EDGES\n");
 
     # Join the edges by changing heads and merging the lists.
     tasks2 := [];
@@ -51,11 +53,18 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       if edge <> false then
         #task2 := RunTask(MSTP_REC.mergeHeads, edge, vertexHead, vertexNext, vertexTail, edges); 
         #Add(tasks2, task2);
+        Print(edge, "\n");
         MSTP_REC.mergeHeads(edge, vertexHead, vertexNext, vertexTail, edges);
+        Print(FromAtomicList(vertexHead), "\n");
+        Print(FromAtomicList(vertexNext), "\n");
       fi;
     od;
     #WaitTasks(tasks2);
-    #Print("JOINED MIN EDGES\n"); TODO doesn't work when not in parallel?
+    # TODO doesn't work when not in parallel?
+
+    Print("MERGED HEADS\n");
+    Print(FromAtomicList(vertexHead), "\n");
+    Print(FromAtomicList(vertexNext), "\n");
     
     # Update heads list and get the new heads.
     tasks := [];
@@ -64,19 +73,23 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       if vertexHead[head] = head then
         
         Add(newHeads, head);
-        task := RunTask(MSTP_REC.updateHeads, head, vertexHead, vertexNext);
-        #MSTP_REC.updateHeads(head, vertexHead, vertexNext);
+        #task := RunTask(MSTP_REC.updateHeads, head, vertexHead, vertexNext);
+        #Add(tasks, task);
+        MSTP_REC.updateHeads(head, vertexHead, vertexNext);
       fi;
     od;
     
-    #Print("GOT NEW HEADS\n");
+    Print("GOT NEW HEADS\n");
 
     if Length(heads) = Length(newHeads) then
       break;
     fi;
     heads := newHeads;
 
-    WaitTasks(tasks);
+    Print(heads, "\n");
+    Print(FromAtomicList(vertexHead), "\n");
+
+    #WaitTasks(tasks);
   od;
 
   return FromAtomicList(edges);
@@ -98,23 +111,34 @@ MSTP_REC.mergeHeads := function(edge, vertexHead, vertexNext, vertexTail, edges)
   local head1, head2, tmp;
 
   # TODO what needs locks?
-  head1 := vertexHead[edge[1]];
-  head2 := vertexHead[edge[2]];
+  atomic readwrite vertexHead, vertexNext, vertexTail do
+    head1 := vertexHead[vertexHead[edge[1]]];
+    head2 := vertexHead[vertexHead[edge[2]]];
 
-  if head1 <> head2 then
-        
-    Add(edges, edge);
-    vertexHead[edge[2]] := head1;
-    vertexHead[head2] := head1;
+    if head1 <> head2 then
 
-    tmp := vertexNext[head1];
-    vertexNext[head1] := head2;
-    vertexNext[vertexTail[head2]] := tmp;
+      # TODO To avoid loops when adding same edge twice???
+      if head1 > head2  then
+        tmp := head1;
+        head1 := head2;
+        head2 := tmp;
+      fi;
 
-    if tmp <= 0 then
-      vertexTail[head1] := vertexTail[head2];
+      Print("merging ", head1, " and ", head2, "\n");
+      Add(edges, edge);
+      vertexHead[edge[2]] := head1;
+      vertexHead[head2] := head1;
+      vertexHead[edge[1]] := head1;
+
+      tmp := vertexNext[head1];
+      vertexNext[head1] := head2;
+      vertexNext[vertexTail[head2]] := tmp;
+
+      if tmp <= 0 then
+        vertexTail[head1] := vertexTail[head2];
+      fi;
     fi;
-  fi;
+  od;
 end;
 
 MSTP_REC.updateHeads := function(head, vertexHead, vertexNext)
@@ -122,7 +146,7 @@ MSTP_REC.updateHeads := function(head, vertexHead, vertexNext)
 
   # Traverse the partition and update the head for its vertices.
   vertex := head;
-  while vertex > 0 do
+  while vertex > 0 do    
     vertexHead[vertex] := head;
     vertex := vertexNext[vertex];
   od;
@@ -136,7 +160,7 @@ MSTP_REC.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail
   while vertex > 0 do
     
     successors := VertexSuccessorsP(graph, vertex);
-    if vertexEdge[vertex] <= Length(successors) then
+    while vertexEdge[vertex] <= Length(successors) do
     
       successor := successors[vertexEdge[vertex]];
       if vertexHead[vertex] <> vertexHead[successor] then
@@ -150,12 +174,14 @@ MSTP_REC.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail
           minStart := vertex;
           minEnd := successor;
         fi;
+
+        break;
       else
 
         # "Remove" the edge creating a loop.
         vertexEdge[vertex] := vertexEdge[vertex] + 1;
       fi;
-    fi;
+    od;
 
     vertex := vertexNext[vertex];
   od;
@@ -164,13 +190,6 @@ MSTP_REC.findMinEdge := function(graph, head, vertexHead, vertexNext, vertexTail
 
     # "Remove" the picked edge.
     vertexEdge[minStart] := vertexEdge[minStart] + 1;
-
-    # To avoid loops when adding same edge twice.
-    if minStart > minEnd then
-      tmp := minStart;
-      minStart := minEnd;
-      minEnd := tmp;
-    fi;
     
     minEdge := [minStart, minEnd];
     MakeImmutable(minEdge);
