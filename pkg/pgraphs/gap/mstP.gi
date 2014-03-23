@@ -52,13 +52,13 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       atomic readonly headEdge[head] do
         edge := headEdge[head];
         if edge <> [] then
-          task := RunTask(MSTP_REC.mergeParents, edge[1], edge[2], vertexHead, vertexParent, heads, edges);
-          Add(tasks, task);
-          #MSTP_REC.mergeParents(edge, vertexHead, vertexParent, heads, edges);
+          #task := RunTask(MSTP_REC.mergeParents, edge[1], edge[2], vertexHead, vertexParent, heads, edges);
+          #Add(tasks, task);
+          MSTP_REC.mergeParents(edge[1], edge[2], vertexHead, vertexParent, heads, edges);
         fi;
       od;
     od;
-    WaitTasks(tasks);
+    #WaitTasks(tasks);
 
     #Print("vP ", FromAtomicList(vertexParent), "\n");
     
