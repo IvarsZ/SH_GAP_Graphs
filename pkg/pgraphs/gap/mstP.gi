@@ -2,7 +2,7 @@
 MSTP_REC := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges;
+  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2;
 
   edges := AtomicList([]);
 
@@ -20,8 +20,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   for vertex in vertices do
 
     heads[vertex] := vertex; # Initialize in parallel.
-    headEdge[vertex] := [];
-    ShareObj(headEdge[vertex]);
+    headEdge[vertex] := MakeImmutable([]);
 
     vertexHead[vertex] := vertex;
     vertexParent[vertex] := 0;
@@ -40,50 +39,43 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     for vertex in vertices do
       task := RunTask(MSTP_REC.findMinEdge, graph, vertex, vertexHead, vertexEdge, headEdge);
       Add(tasks, task);
-      #MSTP_REC.findMinEdge(graph, vertex, vertexHead, vertexEdge, headEdge);
     od;
     WaitTasks(tasks);
 
-    #Print("hE ", FromAtomicList(headEdge), "\n");
-
-    # Join the edges by changing heads and merging the lists. # TODO launch only needed ones.
+    # Join the edges by changing heads and merging the lists.
     tasks := [];
     for head in heads do
-      atomic readonly headEdge[head] do
-        edge := headEdge[head];
-        if edge <> [] then
-          #task := RunTask(MSTP_REC.mergeParents, edge[1], edge[2], vertexHead, vertexParent, heads, edges);
-          #Add(tasks, task);
-          MSTP_REC.mergeParents(edge[1], edge[2], vertexHead, vertexParent, heads, edges);
+      edge := headEdge[head];
+      if edge <> [] then
+        task := RunTask(MSTP_REC.mergeParents, edge, vertexHead, vertexParent, heads, edges);
+        Add(tasks, task);
+        
+        # if the partition of end vertex links back remove it to avoid unneeded tasks.
+        head2 := vertexHead[edge[2]];
+        edge2 := headEdge[head2];
+        if edge2 <> [] and vertexHead[edge2[2]] = head then
+          headEdge[head2] := MakeImmutable([]);
         fi;
-      od;
+      fi;
     od;
-    #WaitTasks(tasks);
-
-    #Print("vP ", FromAtomicList(vertexParent), "\n");
+    WaitTasks(tasks);
     
     # Update vertex heads list. # TODO do current heads first by linking them to parents directly. Combine with below.
     tasks := [];
     for vertex in vertices do
       task := RunTask(MSTP_REC.updateHeads, vertex, vertexHead, vertexParent);
       Add(tasks, task);
-      #MSTP_REC.updateHeads(vertex, vertexHead, vertexParent);
     od;
     WaitTasks(tasks);
-
-    #Print("vH ", FromAtomicList(vertexHead), "\n");
 
     # Get new heads. # TODO paralelise a bit, depending on P count.
     newHeads := [];
     for head in heads do
       if vertexHead[head] = head then
         Add(newHeads, head);
-        headEdge[head] := [];
-        ShareObj(headEdge[head]);
+        headEdge[head] := MakeImmutable([]);
       fi;
     od;
-  
-    #Print("nH ", newHeads, "\n");
 
     if Length(heads) = Length(newHeads) then
       break;
@@ -105,12 +97,11 @@ MSTP_REC.sortEdges := function(graph, vertex)
   graph!.successors[vertex] := AtomicList(successors);
 end;
 
-MSTP_REC.mergeParents := function(startVertex, endVertex, vertexHead, vertexParent, heads, edges)
-  local head1, head2, parent1, parent2, tmp; # TODO remove tmp.
+MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
+  local head1, head2, parent1, parent2;
   
-  # TODO improve as know one head already? Could not even launch tasks for repeats.
-  head1 := vertexHead[startVertex];
-  head2 := vertexHead[endVertex];
+  head1 := vertexHead[edge[1]];
+  head2 := vertexHead[edge[2]];
 
   parent1 := head1;
   while vertexParent[parent1] > 0 do
@@ -122,20 +113,15 @@ MSTP_REC.mergeParents := function(startVertex, endVertex, vertexHead, vertexPare
     parent2 := vertexParent[parent2];
   od;
 
-  # TODO balance using tree depth. # Note currently makes needed check that parent1 != parent2.
-  # But balancing might break it.
-  if parent1 <> parent2 then
-    vertexParent[parent1] := parent2;
-    tmp := [startVertex, endVertex];
-    MakeImmutable(tmp);
-    Add(edges, tmp);
-  fi;
+  # Links parent1 to parent2, note the direction is important when doing it in parallel.
+  vertexParent[parent1] := parent2;
+  Add(edges, edge);
 end;
 
 MSTP_REC.updateHeads := function(vertex, vertexHead, vertexParent)
   local parent;
 
-  # TODO tree compression, possibly not needed if using balancing?
+  # TODO tree compression, possibly not needed if using balancing? Will be done above i.e. heads first.
   
   parent := vertexHead[vertex];
   while vertexParent[parent] > 0 do
@@ -150,7 +136,6 @@ MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge
     
   successors := VertexSuccessorsP(graph, vertex);
   head := vertexHead[vertex];
-  minEdge := headEdge[head];
 
   edgeIndex := vertexEdge[vertex];
   while edgeIndex <= Length(successors) do
@@ -162,15 +147,14 @@ MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge
       weight := GetWeightP(graph, vertex, edgeIndex);
 
       # Update min if needed.
-      atomic minEdge do
+      atomic headEdge[head] do
+        minEdge := headEdge[head];
         if
           minEdge = [] or
           weight < minEdge[3] or
           (weight = minEdge[3] and vertexHead[successor] < vertexHead[minEdge[2]])
         then
-          minEdge[1] := vertex;
-          minEdge[2] := successor;
-          minEdge[3] := weight;
+          headEdge[head] := MakeImmutable([vertex, successor, weight]); # TODO is this safe with above lock.
         fi;
       od;
 
