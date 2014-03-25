@@ -66,29 +66,42 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       fi;
     od;
     WaitTasks(tasks);
-
-    #Print(FromAtomicList(vertexHead), "\n");
-    #Print(FromAtomicList(vertexParent), "\n");
+    
+    #Print("merged heads ", FromAtomicList(vertexHead), "\n");
+    #Print("parents ", FromAtomicList(vertexParent), "\n");
     
     # Update vertex heads list. # TODO do current heads first by linking them to parents directly. Combine with below.
     tasks := [];
-    for vertex in vertices do
-      task := RunTask(MSTP_REC.updateHeads, vertex, vertexHead, vertexParent);
+    for head in heads do
+      task := RunTask(MSTP_REC.compressHeads, head, vertexHead, vertexParent);
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-    
-    #Print("updated heads ", FromAtomicList(vertexHead), "\n");
 
-    # Get new heads. # TODO paralelise a bit, depending on P count.
+    #Print("compressed heads ", FromAtomicList(vertexHead), "\n");
+    #Print("parents ", FromAtomicList(vertexParent), "\n");
+
+    # Update heads for vertices and get new heads. # TODO paralelise a bit, depending on P count.
     newHeads := [];
-    for head in heads do
-      if vertexHead[head] = head then
-        Add(newHeads, head);
-        headEdge[head] := MakeImmutable([]);
+    for vertex in vertices do
+      head := vertexHead[vertex];
+
+      if vertex <> head then
+        if vertexParent[head] > 0 then
+          vertexHead[vertex] := vertexParent[head];
+        fi;
+      else
+        if vertexParent[head] = 0 then
+          Add(newHeads, head);
+          headEdge[head] := MakeImmutable([]);
+        else
+          vertexHead[head] := vertexParent[head];
+        fi;
       fi;
     od;
 
+    #Print("updated heads ", FromAtomicList(vertexHead), "\n");
+    
     #Print("new heads ", newHeads, "\n");
     if Length(heads) = Length(newHeads) then
       break;
@@ -131,20 +144,21 @@ MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
   Add(edges, edge);
 end;
 
-MSTP_REC.updateHeads := function(vertex, vertexHead, vertexParent)
+MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)
   local parent;
-  
-  parent := vertexHead[vertex];
+
+  parent := head;
   while vertexParent[parent] > 0 do
     parent := vertexParent[parent];
   od;
 
-  vertexHead[vertex] := parent;
+  if head <> parent then
+    vertexParent[head] := parent; # So vertices attached to this head could find parent faster.
+  fi;
 end;
 
 MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge, headLock)
   local successors, head, minEdge, edgeIndex, successor, weight, update, minWeight, minSuccessor;
-
 
   # Check all unpicked minimal weight edges of the vertex.
   minWeight := -1;
@@ -164,10 +178,10 @@ MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge
         minWeight := weight;
         minSuccessor := successor;
         
-        # It's the first edge that could be picked again.
+        # Update the first edge that could be picked again.
         vertexEdge[vertex] := edgeIndex;
       fi;
-
+      
       if weight = minWeight then
 
         # Pick the one with the smallest head.
