@@ -73,6 +73,25 @@ timeFunction := function(f, args)
   return [Int(Float(1000000*t/n)), result];
 end;
 
+# Times a function f run with the given arguments.
+timeNoReturnFunction := function(f, args)
+  local result, n, t, j;
+
+  n := 1;
+  t := 0;
+  while t < TIMERS_MIN_RUN_LENGTH do
+    GASMAN("collect");
+    t := -Runtime();
+    for j in [1..n] do
+      CallFuncList(f, args);
+    od;
+    t := t + Runtime();
+    n := n * 5;
+  od;
+
+  return Int(Float(1000000*t/n));
+end;
+
 testStrongComponents := function(graph, vertexCount, density)
   local numberOfComponents, result;
 

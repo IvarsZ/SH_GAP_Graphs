@@ -83,27 +83,28 @@ InstallGlobalFunction(GenerateSimpleConnectedGraph, function(vertexCount, densit
   vertices := [1..vertexCount];
   
   # Create a random minimum spanning tree.
-  isVisited := BlistList([1..vertexCount], []);
-  isVisited[1] := true;
+  previous := EmptyPlist(vertexCount);
+  previous[1] := 0;
   visitedCount := 1;
   previousVertex := 1;
   while (visitedCount < vertexCount) do
     nextVertex := RandomList(vertices);
-    if (isVisited[nextVertex] = false) then
+    if (IsBound(previous[nextVertex]) = false) then
 
       AddEdge(graph, previousVertex, nextVertex);
       AddEdge(graph, nextVertex, previousVertex);
       previousVertex := nextVertex;
 
-      isVisited[nextVertex] := true;
+      previous[nextVertex] := previousVertex;
       visitedCount := visitedCount + 1;
+      previousVertex := nextVertex;
     fi;
   od;
 
   # Each edge has probability equal to density.
   for start in [1..vertexCount - 1] do
     for endVertex in [start + 1..vertexCount] do
-      if (RandomList(randomList) <= density) then
+      if (previous[start] <> endVertex and previous[endVertex] <> start and RandomList(randomList) <= density) then
         AddEdge(graph, start, endVertex);
         AddEdge(graph, endVertex, start);
       fi;
@@ -129,7 +130,7 @@ InstallGlobalFunction(GenerateConnectedSimpleWeightedGraph, function(vertexCount
   randomList := [1..randomUnitSize];
   weightList := [1..maxWeight];
 
-  # Create a random minimum spanning tree. # TODO fix rest for non-repeated vertices.
+  # Create a random minimum spanning tree.
   previous := EmptyPlist(vertexCount);
   previous[1] := 0;
   visitedCount := 1;
@@ -141,7 +142,6 @@ InstallGlobalFunction(GenerateConnectedSimpleWeightedGraph, function(vertexCount
       weight := RandomList(weightList);
       AddWeightedEdge(graph, previousVertex, nextVertex, weight);
       AddWeightedEdge(graph, nextVertex, previousVertex, weight);
-      
 
       previous[nextVertex] := previousVertex;
       visitedCount := visitedCount + 1;

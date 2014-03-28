@@ -27,11 +27,14 @@ InstallGlobalFunction(BFSP, function(graph, start)
     offset := 1;
 
     # prepare lists for children vertices.
-    nextVertices := FixedAtomicList(BFSP_REC.TASKS_COUNT);
-    MakeWriteOnceAtomic(nextVertices);
-    for i in [1..BFSP_REC.TASKS_COUNT] do
-      nextVertices[i] := AtomicList(1);
-    od;
+    g := function()
+      nextVertices := FixedAtomicList(BFSP_REC.TASKS_COUNT);
+      MakeWriteOnceAtomic(nextVertices);
+      for i in [1..BFSP_REC.TASKS_COUNT] do
+        nextVertices[i] := AtomicList(1);
+      od;
+    end;
+    Print("List prepare time ", timeNoReturnFunction(g, []), "\n");
 
     # visit all vertices in the current layer partition by partition.
     tasks := [];
@@ -70,9 +73,12 @@ end;
 BFSP_REC.visitPartition := function(graph, partition, isVisited, nextVertices, offset)
   local vertex, successor, partitionIndex;
 
-  for vertex in partition do
-    BFSP_REC.visitVertex(graph, vertex, isVisited, nextVertices, offset);
-  od;
+  g2 := function()
+    for vertex in partition do
+      BFSP_REC.visitVertex(graph, vertex, isVisited, nextVertices, offset);
+    od;
+  end;
+  Print("Partition visit time ", timeNoReturnFunction(g2, []), "\n");
 end;
 
 BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
