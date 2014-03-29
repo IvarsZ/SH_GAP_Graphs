@@ -198,7 +198,7 @@ testColoring := function(graph, vertexCount, density)
   Print("col ", vertexCount, " ", density, " ", Int(Float(1000000*t/n)), " ", colorCount, "\n");
 end;
 
-testMST := function(graph, vertexCount, density)
+testMST := function(graph, vertexCount, edgesPerVertex)
   local result, weight, edge;
 
   result := timeFunction(MinimumSpanningTree, [graph]);
@@ -209,7 +209,7 @@ testMST := function(graph, vertexCount, density)
     weight := weight + GetWeightedEdge(graph, edge[1], edge[2]); # TODO in MST return startvertex and edgeindex and use GetWeight here.
   od;
 
-  Print("mst ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
+  Print("mst ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, "\n");
 
   return weight;
 end;
@@ -221,7 +221,7 @@ testShortestPaths := function(graph, vertexCount, density)
   Print("sp ", vertexCount, " ", density, " ", result[1], "\n"); 
 end;
 
-testMSTP := function(graph, vertexCount, density)
+testMSTP := function(graph, vertexCount, edgesPerVertex)
   local result, weight, edge;
 
   result := timeFunction(MinimumSpanningTreeP, [graph]);
@@ -232,7 +232,7 @@ testMSTP := function(graph, vertexCount, density)
     weight := weight + GetWeightedEdge(graph, edge[1], edge[2]); # TODO in MSTP return startvertex and edgeindex and use GetWeight here.
   od;
 
-  Print("mstp ", vertexCount, " ", density, " ", result[1], " ", weight, "\n");
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, "\n");
 
   return weight;
 end;

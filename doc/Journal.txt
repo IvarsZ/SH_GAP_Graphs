@@ -13,5 +13,55 @@ Week 3
     * Read documentation on creating new objects.
     * Implement a graph representation.
     * Write BFS.
+ 
+Semester 2 Week 1
+BFS
+  1) Need to make the adjacency list essentially readonly for the duration of a task. Can't make immutable, because might have a big graph you want to modify, and so copying it is infesible. The solution is to make it shared and aquire a readonly lock (for each?) task.
+  2) If you want to use locks on a list, have to make it into a list of lists and then lock it, but probably not necessary for this algorithm.
+  3) A simple reducer would divide a set fo things between threads and then combine the results of an associative operation, making a linear operation essentially logn. Say addition.
+  4) Could do bfs relly well if can do parallel union efficiently, because as of know the possible duplicates are ignored, but there's very few of them, as it happens only if two threads set isVisited of the same vertex at the same time.
   
+  Algorithm proposed by Steve:
+    1) Divide Vd in pieces, probably a multiple of the number of threads you have would work well.
+    2) For each piece run a task that visits each vertex and adds its children in parallel to a local piece of Vd+1.
+    3) Combine the Vd+1 pieces before working on the next layer.
+    
+    * Can use bags or arrays for pieces.
+    * To keep track of visited vertices use and atomic isvisited list.
+    
+    return a list of bags or whatever and ignore possible duplicates for now, could flatten it at the end, not sure if you can do it in parallel.
+    
+Coloring:
+  1) Do the usual preprocessing, maybe in parallel but at the beginning just leave it as it is.
+  2) On the rest of the vertices add them to a separate list (probably only virtual).
+  3) To order them write your own next permutation generator that splits them off. It would pick one vertex a the first one, greedy color it, if the colouring is successful split of threads that repeat the process on second position vertex. If not can ignore the rest of the order, as it doesn't matter. Need a way to communicate the currently smallest color? Got bit confused about whether I'm doing it for certain number of colours or not, or if trying to find the optimum. 
+  
+  ??? Pros and cons vs pure greedy order or pure all possible color combinations ???
+  
+MST;
+  1) just use Boruvka, fits parallel execution very nicely. But one needs to be careful about updates when joining to components together might have similar issues as bfs.
+  
+SCC:
+  use the forward and backwards reachable components split method. To get the backwards reachable ones construct reverse graph at the beginning, do it in parallel, try using locks for each adjacency list and see how it performs, will be problematic for a graph where many different vertices point at the same one. But we'll see later.
 
+Week 2
+Continue working on BFS.
+
+Dropped bags, they're complicated and although union and split operations are constant (when amortized) they have a fairly large constant, as there quite a lot of work involved to make the structures bags and join them. Moreover this means there's a lot implement.
+
+The current approach involves splittting vertices per level in k parts (say 16 times the number of processors).
+Then for each level the vertices are added to the next level, which again is a "list" split in k parts. To determine to which part to add a vertex the thread id is used as a step to select a list, say if last element was added to i-th list and t is the thread id, then add it to the i = i + t list, this ensures a uniform distrubution as long k is prime and prevents two threads from writing to the same places all the time.
+
+Week 4
+Implemented coloring, problem with waiting for any tasks, to finish early when solution is found. Turns out it was a bug in hpcgap, updating to new version fixed it.
+
+Week 5
+Started working on mstp, collecting the joined vertices safely and efficiently is hard. Moreover opted to construct "new graph" in place to take speed it up and take advantage of cache. 
+
+Week 6
+
+Problems with fixing bugs.
+Refactored code for experiments and extended it for parallel implementations, split up the packages and made them independant, use atomic lists for paralllel impl graphs.
+
+Week 7
+Mstp switched from keeping collected vertices in a list to using a tree and then compressing it.

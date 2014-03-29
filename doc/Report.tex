@@ -1,0 +1,182 @@
+\documentclass{article}
+
+\usepackage{fullpage}
+\usepackage{cite}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem*{example}{Example}
+\newtheorem{algorithm}{Algorithm}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{note}{Note}
+\newtheorem{case}{Case}
+
+\title{Parallelising graph algorithms in HPC-GAP \\ \vspace{2 mm} {\large A Project Description}}
+\author{Ivars Zubkans \\ \small Supervised by: Steve Linton}
+
+\begin{document}
+\maketitle
+\section{Abstract}
+[WILL WRITE AT THE END]
+
+\section{Declaration}
+[COPY-PASTE FROM HANDBOOK]
+
+\section{Contents page}
+TODO
+
+\section{Introduction}
+
+Efficient implementations of graph theory algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}. The aim of the project was to implements serial and parallel versions of graph algorithms in GAP and explore the possible performance gains of parallel implementations.
+
+The GAP (www.gap-system.org) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
+
+Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each cpu has its own private memory. All of the current implementations in GRAPE are non-parallel.
+
+Two GAP packages were made for serial and parallel implementations. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. Then their performance was analysed and compared.
+
+\section{Objectives}
+\begin{enumerate}
+  \item Serial implementations, which work with the regular GAP version, of:
+  \begin{itemize}
+    \item graph traversal algorithms
+    \item path finding algorithms
+    \item minimum spanning tree algorithms
+    \item graph colouring algorithms
+    	\item connected components in (un)directed graphs
+  \end{itemize}
+  \item Parallel implementations for some of the above algorithms using HPC-GAP.
+  \item Performance analysis of these implementations and a comparison between the serial and parallel versions.
+\end{enumerate}
+
+\section{Basic definitions and problem statements}
+
+[Should go to math section, but having definitions here would be nice too]
+
+\begin{definition}[Graph]
+A $graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
+  \begin{equation}
+  ends:E\to \mathcal P \left({V}\right)
+  \end{equation}
+which assigns to each element of $E$ a set of one or two elements of $V$ . The elements of $V$ are called $vertices$ or $nodes$ of $G$, and elements of $E$ are called $edges$ of $G$.
+\end{definition}
+
+TODO simple graph, directed graph, connected graph, weighted graph, problem statements. 
+
+\section{Context survey}
+
+For serial implementations the sedwick's books, "Algorithms" \cite{algo_sedgewick} and "Algorithms in C++ Part 5: Graph Algorithms" \cite{c++_sedgewick}, were used as a reference for standard implementations and comparisons between them.
+
+\subsection{Parallel Breadth First Search}
+
+Since the discovery of breadth-first search over 50 years ago a variety of parallel BFS algorithms have been developed. For our purposes shared non-external memory algorithms \cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel} were considered, all of them use layer synchronisation (next layers is visited only when previous is finished) and reported a speed up compared to a a serial implementation for some number of processors.
+
+\cite{Leiserson} is implemented in Cilk++ and replaces standard queue with a multiset data structure, called a "bag". Where a bag is a fixed-size array of null pointers or pennants of size 2i for i-th entry and pennants are trees of $2^k$ nodes that can be merged and split in constant time, which allows quick splitting and merging of vertices when distributing vertices between threads and merging results.
+\cite{bader2006designing} examines every vertex in a layer and its adjacent vertices in parallel using thread-safe insertions to the queue and atomic updates of vertex distance from root, but their algorithm depends on the Cray MTA-2 system and uses its built in load balancing and doesn't work well for sparse high-diameter graphs.
+In \cite{cong2008solving} each thread keeps a local queue, and gets an equal portion of vertices of the current layer while allowing repetitive appearances, but it depends on the features of XWS framework and detailed implementation isn't given.
+In \cite{zhang2006parallel} again each thread has its own list of layer's vertices to examine. All working threads are arranged in a ring topology in which each thread splits off a part of its vertices and gives them to a neighbour thread if it has run out of vertices to examine.
+
+This project's implementation is loosely based on \cite{Leiserson} as it uses layer synchronisation and a different data structure from a queue, but a simpler mechanism than bags with constant merging/splitting is used to distribute vertices and merge results.
+
+\subsection{Parallel Depth First Search}
+
+In 1985 Reif proved that depth first search where adjacent vertices of a vertex are visited in fixed order is P-complete, thus suggesting that it is inherently sequential \cite{reif1985depth}. Therefore parallel depth first search has been achieved only for specific graphs such as directed acyclic \cite{ghosh1984parallel} and planar undirected graphs \cite{hagerup1990planar} or the devised algorithms are probabilistic (it could not terminate or return on approximate answer) \cite{aggarwal1989parallel}. In 1993 Goldberg proposed the first sub-liner time deterministic algorithm for general graphs using maximal node-disjoint paths, but no implementation was given or tested \cite{goldberg1993sublinear}. So due to its sequential nature depth first search wasn't further considered for parallel implementation in this project.
+
+\subsection{Parallel Vertex Colouring}
+
+No parallel deterministic vertex colouring algorithm was found in the literature, it seems that the current research has been focused on making the more efficient heuristic colouring algorithms parallel \cite{gebremedhin1999parallel, gebremedhin2000scalable, jones1993parallel}. Either way the brute-force approaches to vertex colouring are inherently parallel, since the possible solutions can be considered independently.
+
+\subsection{Parallel Strongly Connected Components}
+
+In 2000 a parallel algorithm for identifying strongly connected components of a directed graph for shared memory model was developed \cite{fleischer2000identifying}. Parallelism is achieved by splitting the graph into 3 disjoint partitions - intersection of forwards and backwards reachable vertices for some vertex (it's strongly connected component of some vertex), the rest of backwards and the rest of forwards reachable vertices. Then the algorithm is recursively applied to the last two parts. Furthermore adding a simple trim step to eliminate vertices without incoming or outgoing edges improves performance significantly \cite{mclendon2005finding}. Later the limited performance and poor scaling for large real-world graphs was improved as well by adding various extensions like parallel trimming, two-phase parallelization and fast detection of size 2 strongly connected components \cite{hongtechnical}.
+
+\subsection{Minimum Spanning Trees}
+The first algorithm to achieve reasonable speed-up for a wide range of arbitrary graphs including spare graphs is based on Boruvka's algorithm like other approaches and similarly has find-min, connect components and compact-graph steps. But the graph is represented using flexible adjacency lists allowing each vertex to hold multiple adjacency lists thus after the connect components step each vertex appends its adjacency list to its supervertex's adjacency list and the compact step allows to have self-loops and multiple edges in each supervertex's adjacency list \cite{Bader20061366}. This project's implementation is loosely based on that algorithm, but instead a tree that is afterwards compressed is used to connect components.
+
+\section{Requirements specification}
+
+[Is this section needed?]
+
+\section{Software engineering process}
+
+The used methodology was iterative incremental development. The system was developed in increments before proceeding to the development of the next increment. Increments were iteratively improved in a implementation-feedback cycle. The used cycle length was one week where the supervision meetings were used to gather feedback and plan development for the next cycle.   
+
+\section{Ethics}
+
+There were no ethical issues raised by this project.
+
+\section{Design}
+
+The serial and parallel algorithms were split into two GAP packages - a set of user contributed programs that can be distributed with GAP. The serial algorithms are in a package called $graphs$ an parallel algorithms are in a package called $pgraphs$. Both packages are completely independent and can be simultaneously loaded using GAP's standard package loading mechanism. It was done so that the serial package would be available to regular non-HPC GAP installations, but both could be used in HPC-GAP.
+
+The graphs in both packages are represented using adjacency lists, i.e. the graph is a list of lists storing the adjacent vertices for each vertex of the graph. An alternative approach would have been using adjacency matrix. The adjacency matrix of a finite graph $G$ of $n$ vertices is the $n\times n$ matrix where the non-diagonal entry $a_i,j$ is the number of edges from vertex represented by i to vertex represented by j, and the diagonal entry $a_i,i$ is twice the number of edges (loops) from vertex i to itself. In case of simple graphs all entries are 0 or 1. Adjacency lists were chosen because they use much less memory for sparse graphs, a graph in which the number of edges is much smaller compared to the maximal number of edges, as no space is wasted to represent non-existing edges. This is important to allow implementations to deal with large sparse graphs. Moreover, none of the implemented algorithms required to determine if two vertices are adjacent, which is the main advantage of adjacency matrix. Instead all algorithms were finding all adjacent vertices of a given vertex, which is simpler and more efficient with adjacency lists.
+
+\subsection{Serial Breadth First Search}
+ 
+A standard approach with a First-In-First-Out (FIFO) queue is used, where all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered. A separate boolean list is used to track whether a vertex has been discovered.
+
+[PSEUDO-CODE]
+
+\subsection{Serial Depth First Search}
+
+Is very similar to the breadh first search except that Last-In-First-Out (LIFO) stack is used. Again all adjacent undiscovered vertices of the vertex being visited are pushed on the stack and marked as discovered. A separate boolean list is used to track whether a vertex has been discovered.
+
+[PSEUDO-CODE]
+
+\subsection{Serial Vertex Colouring}
+
+For exact (non-heuristic) vertex colouring 3 possible solutions were considered. First is a simple brute force approach where each of the $k^n$ assignments of k colours to n vertices is generated and checked for validity. Second is a greedy colouring approach where for all $n!$ possible permutations of vertices a greedy colouring is found and the one using minimum number of colours is picked. To find a greedy colouring for a permutation $v_1,..v_n$ of vertices process the vertices in the permutation order and assign to the vertex $v_i$ the smallest available colour not used by the $v_1,..v_i-1$ vertices adjacent to $v_i$. This has the benefit of finding the minimum colouring immediately and not required multiple executions for each possible number of colours and thus is more efficient when the minimum number of colours is large and not much smaller than the number of vertices. In the end a backtracking solution was used as it allows easy pruning of invalid branches of the search space while done in place, and more importantly it eliminates solution symmetry - smaller index vertex has smaller colour number when there is a choice.
+
+In a backtracking solution the vertices are coloured with the first available colour and if there is a clash of colours the next colours is tried for the first possible vertex untill a solution is found. To improve the performance the vertices are preordered by colouring the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices any more.
+
+[PSEUDO-CODES, should I include pseudo codes for all algorithms or only the backtracking one?]
+
+\subsection{Serial Strongly Connected Components}
+
+For finding strongly connected components there are 4 widely used algorithms - Kosaraju's, Gabow's and Tarjan's. The Gabow's and Tarjan's algorithms are slightly more efficient and faster than Kosaraju's, while Gabow's and Tarjan's algorithms are very similar both implementation and performance wise - both are linear in time. This project implement's Gabow's algorithm. It traverses the graph with DFS and uses two stacks. One to keep track of visited vertices and another one to keep track of vertices which vertices are backwards reachable and are in the same strong component.
+
+[PSEUDO-CODE]
+
+\subsection{Minimum Spanning Tree}
+
+The three most common algorithms for finding minimum spanning tree of a graoh are Boruvka's, Kruskal's and Prim's algorithms. Boruvka's algorithm finds minimum weight edge for each vertex and merges the vertices accordingly repeating the process until all vertices are merged or no more edges can be selected. In this project the Prim's algorithm was chosen it uses d-ary heap for the priority queue implementation to get the next smallest edge to add and grows one tree by one edge at a time. In contrast the Kruskal's algorithm starts with a forest of single vertex trees and combines those by one edge at time. Both Prim's and Kruskal's algorithm can be implemented to run in $O(E\log V)$ time.
+
+[PSEUDO-CODE]
+
+\subsection{Single-source Shortest Paths}
+
+For finding shortest paths a standard Dijkstra's algorithm that uses d-ary heap for the priority queue implementation to get the next smallest edge to add was used. It has $\Theta((|E| + |V|) \log |V|)$ time complexity and only an implementation with a Fibonacci heap would give smaller time complexity.
+
+[PSEUDO-CODE]
+
+\section{Implementation}
+
+TODO - discuss GAP specific details.
+
+\section{Evaluation and critical appraisal}
+TODO
+
+\section{Conclusions}
+TODO
+
+\section{A1: Testing summary}
+
+\section{A2: Status report}
+
+\section{A3: Appendices}
+
+\bibliographystyle{plain}
+\bibliography{References}
+\end{document}
