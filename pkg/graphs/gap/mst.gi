@@ -41,7 +41,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
       minEdge := Dequeue(heap);
       nextVertex := VertexSuccessors(graph, minEdge.startVertex)[minEdge.edgeIndex];
     od;
-    Add(edges, [minEdge.startVertex, nextVertex, minEdge,weight]);
+    Add(edges, [minEdge.startVertex, nextVertex, minEdge.weight]);
     isAdded[nextVertex] := true;
     verticesLeft := verticesLeft - 1;
     
