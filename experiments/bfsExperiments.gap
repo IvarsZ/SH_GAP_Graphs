@@ -21,12 +21,12 @@ compareBFS := function()
       if GAPInfo.KernelInfo.NUM_CPUS = 1 then
         Print("bfs ");
         result := timeFunction(BFS, [graph, 1]);
-        Print(vertexCount, " ", edgeCount, " ", result[1], "\n");
+        Print(vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPU, "\n");
       fi; 
 
       Print("bfsp ");    
       result := timeFunction(BFSP, [graphP, 1]);
-      Print(vertexCount, " ", edgeCount, " ", result[1], "\n");
+      Print(vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPU, "\n");
     od;
   od;
 end;

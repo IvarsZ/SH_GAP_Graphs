@@ -206,10 +206,10 @@ testMST := function(graph, vertexCount, edgesPerVertex)
   # Traverse mst and get weight.
   weight := 0;
   for edge in result[2] do
-    weight := weight + GetWeightedEdge(graph, edge[1], edge[2]); # TODO in MST return startvertex and edgeindex and use GetWeight here.
+    weight := weight + GetWeightedEdge(graph, edge[1], edge[2]);
   od;
 
-  Print("mst ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, "\n");
+  Print("mst ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", " ", GAPInfo.KernelInfo.NUM_CPU, "\n");
 
   return weight;
 end;
@@ -229,10 +229,10 @@ testMSTP := function(graph, vertexCount, edgesPerVertex)
   # Traverse mst and get weight.
   weight := 0;
   for edge in result[2] do
-    weight := weight + GetWeightedEdge(graph, edge[1], edge[2]); # TODO in MSTP return startvertex and edgeindex and use GetWeight here.
+    weight := weight + GetWeightedEdge(graph, edge[1], edge[2]);
   od;
 
-  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, "\n");
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPU, "\n");
 
   return weight;
 end;

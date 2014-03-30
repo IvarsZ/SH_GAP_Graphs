@@ -68,7 +68,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     od;
     WaitTasks(tasks);
     
-    # Update heads for vertices and get new heads. # TODO paralelize.
+    # Update heads for vertices and get new heads.
     newHeads := [];
     for vertex in vertices do
       head := vertexHead[vertex];
