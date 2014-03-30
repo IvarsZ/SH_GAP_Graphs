@@ -81,22 +81,22 @@ For serial implementations the sedwick's books, "Algorithms" \cite{algo_sedgewic
 
 \subsection{Parallel Breadth First Search}
 
-Since the discovery of breadth-first search over 50 years ago a variety of parallel BFS algorithms have been developed. For our purposes shared non-external memory algorithms \cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel} were considered, all of them use layer synchronisation (next layers is visited only when previous is finished) and reported a speed up compared to a a serial implementation for some number of processors.
+Since the discovery of breadth-first search over 50 years ago a variety of parallel BFS algorithms have been developed. For our purposes shared non-external memory algorithms \cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel} were considered, all of them use layer synchronization (next layers is visited only when previous is finished) and reported a speed up compared to a a serial implementation for some number of processors.
 
 \cite{Leiserson} is implemented in Cilk++ and replaces standard queue with a multiset data structure, called a "bag". Where a bag is a fixed-size array of null pointers or pennants of size 2i for i-th entry and pennants are trees of $2^k$ nodes that can be merged and split in constant time, which allows quick splitting and merging of vertices when distributing vertices between threads and merging results.
 \cite{bader2006designing} examines every vertex in a layer and its adjacent vertices in parallel using thread-safe insertions to the queue and atomic updates of vertex distance from root, but their algorithm depends on the Cray MTA-2 system and uses its built in load balancing and doesn't work well for sparse high-diameter graphs.
 In \cite{cong2008solving} each thread keeps a local queue, and gets an equal portion of vertices of the current layer while allowing repetitive appearances, but it depends on the features of XWS framework and detailed implementation isn't given.
-In \cite{zhang2006parallel} again each thread has its own list of layer's vertices to examine. All working threads are arranged in a ring topology in which each thread splits off a part of its vertices and gives them to a neighbour thread if it has run out of vertices to examine.
+In \cite{zhang2006parallel} again each thread has its own list of layer's vertices to examine. All working threads are arranged in a ring topology in which each thread splits off a part of its vertices and gives them to a neighbor thread if it has run out of vertices to examine.
 
-This project's implementation is loosely based on \cite{Leiserson} as it uses layer synchronisation and a different data structure from a queue, but a simpler mechanism than bags with constant merging/splitting is used to distribute vertices and merge results.
+This project's implementation is loosely based on \cite{Leiserson} as it uses layer synchronization and a different data structure from a queue, but a simpler mechanism than bags with constant merging/splitting is used to distribute vertices and merge results.
 
 \subsection{Parallel Depth First Search}
 
 In 1985 Reif proved that depth first search where adjacent vertices of a vertex are visited in fixed order is P-complete, thus suggesting that it is inherently sequential \cite{reif1985depth}. Therefore parallel depth first search has been achieved only for specific graphs such as directed acyclic \cite{ghosh1984parallel} and planar undirected graphs \cite{hagerup1990planar} or the devised algorithms are probabilistic (it could not terminate or return on approximate answer) \cite{aggarwal1989parallel}. In 1993 Goldberg proposed the first sub-liner time deterministic algorithm for general graphs using maximal node-disjoint paths, but no implementation was given or tested \cite{goldberg1993sublinear}. So due to its sequential nature depth first search wasn't further considered for parallel implementation in this project.
 
-\subsection{Parallel Vertex Colouring}
+\subsection{Parallel Vertex Coloring}
 
-No parallel deterministic vertex colouring algorithm was found in the literature, it seems that the current research has been focused on making the more efficient heuristic colouring algorithms parallel \cite{gebremedhin1999parallel, gebremedhin2000scalable, jones1993parallel}. Either way the brute-force approaches to vertex colouring are inherently parallel, since the possible solutions can be considered independently.
+No parallel deterministic vertex coloring algorithm was found in the literature, it seems that the current research has been focused on making the more efficient heuristic colouring algorithms parallel \cite{gebremedhin1999parallel, gebremedhin2000scalable, jones1993parallel}. Either way the brute-force approaches to vertex coloring are inherently parallel, since the possible solutions can be considered independently.
 
 \subsection{Parallel Strongly Connected Components}
 
@@ -149,17 +149,24 @@ For finding strongly connected components there are 4 widely used algorithms - K
 
 [PSEUDO-CODE]
 
-\subsection{Minimum Spanning Tree}
+\subsection{Serial Minimum Spanning Tree}
 
-The three most common algorithms for finding minimum spanning tree of a graoh are Boruvka's, Kruskal's and Prim's algorithms. Boruvka's algorithm finds minimum weight edge for each vertex and merges the vertices accordingly repeating the process until all vertices are merged or no more edges can be selected. In this project the Prim's algorithm was chosen it uses d-ary heap for the priority queue implementation to get the next smallest edge to add and grows one tree by one edge at a time. In contrast the Kruskal's algorithm starts with a forest of single vertex trees and combines those by one edge at time. Both Prim's and Kruskal's algorithm can be implemented to run in $O(E\log V)$ time.
+The three most common algorithms for finding minimum spanning tree of a graoh are Boruvka's, Kruskal's and Prim's algorithms. Boruvka's algorithm finds minimum weight edge for each vertex and merges the vertices accordingly repeating the process until all vertices are merged or no more edges can be selected. In this project the Prim's algorithm was chosen it uses d-ary heap for the priority queue implementation to get the next smallest edge to add and grows one tree by one edge at a time. In contrast the Kruskal's algorithm starts with a forest of single vertex trees and combines those by one edge at time. Both Prim's and Kruskal's algorithm can be implemented to run in $O(E\log_dV)$ time.
+
+[PSEUDO-CODE]
+
+\subsection{Serial Single-source Shortest Paths}
+
+For finding shortest paths a standard Dijkstra's algorithm that uses d-ary heap for the priority queue implementation to get the next smallest edge to add was used. It has $O(E\log_dV)$ time complexity and only an implementation with a Fibonacci heap would give smaller time complexity.
 
 [PSEUDO-CODE]
 
-\subsection{Single-source Shortest Paths}
+\subsection{Parallel Breadth First Search}
 
-For finding shortest paths a standard Dijkstra's algorithm that uses d-ary heap for the priority queue implementation to get the next smallest edge to add was used. It has $\Theta((|E| + |V|) \log |V|)$ time complexity and only an implementation with a Fibonacci heap would give smaller time complexity.
+Similarly to other approaches my design is based on the idea that a layer of vertices can be processed in parallel to find vertices of the next layer. A layer is a set of all vertices of equal minimal distance $d$ from the starting vertex and its next layer is a set of all vertices with minimal distance $d + 1$ from the starting vertex.
 
-[PSEUDO-CODE]
+,
+ vertices of equal depth, can be processed in parallel to find the vertices of the next layer
 
 \section{Implementation}
 
