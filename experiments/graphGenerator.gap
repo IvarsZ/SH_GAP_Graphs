@@ -68,7 +68,7 @@ InstallGlobalFunction(GenerateSimpleGraph, function(vertexCount, density)
 end);
 
 InstallGlobalFunction(GenerateSimpleConnectedGraph, function(vertexCount, density)
-  local i, graph, start, endVertex, randomUnitSize, vertices, randomList, visitedCount, previousVertex, nextVertex, isVisited;
+  local i, graph, start, endVertex, randomUnitSize, vertices, randomList, visitedCount, previousVertex, nextVertex, isVisited, previous;
 
   # Adjust density to randomUnitSize.
   randomUnitSize := 100000000;

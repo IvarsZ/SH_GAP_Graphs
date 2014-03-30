@@ -13,9 +13,6 @@ ColorVertices_REC.orderVertices := function(graph, numberOfColours)
     degrees[vertex] := Length(VertexSuccessors(graph, vertex));
   od;
 
-  #TODO remove.
-  return order;
-
   verticesToOrderEnd := VertexCount(graph);
   
   # Try to reorder vertices untill no more reordering was done.
@@ -85,7 +82,6 @@ InstallGlobalFunction(ColorVertices, function(graph, numberOfColours)
     vertex := order[vertexIndex];
 
     # Check if no two adjacent vertices have the same colour,
-    Print(colouring, "\n");
     isClash := false;
     for successor in VertexSuccessors(graph, vertex) do
       
