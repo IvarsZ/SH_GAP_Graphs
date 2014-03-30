@@ -106,10 +106,10 @@ void generate_simple_connected_graphs(void)
 {
   igraph_set_error_handler(igraph_error_handler_ignore);
 
-  int max = 10;
-  int vertexCounts[] = {5, max};
-  int edgesPerVertex[] = {0, 3, 5};
-  igraph_integer_t times = 2;
+  int max = 1000000;
+  int vertexCounts[] = {10, 100, 1000, 10000, 50000, 100000, 500000, max};
+  int edgesPerVertex[] = {1, 5, 10, 50, 100, 500, 5000};
+  igraph_integer_t times = 20;
   int i;
 
   int tmp;
@@ -183,10 +183,10 @@ void generate_simple_connected_weighted_graphs(void)
 {
   igraph_set_error_handler(igraph_error_handler_ignore);
 
-  int max = 10;
-  int vertexCounts[] = {5, max};
-  int edgesPerVertex[] = {0, 3, 5};
-  igraph_integer_t times = 2;
+  int max = 1000000;
+  int vertexCounts[] = {10, 100, 1000, 10000, 50000, 100000, 500000, 1000000};
+  int edgesPerVertex[] = {1, 5, 10, 50, 100, 500, 5000};
+  igraph_integer_t times = 20;
   int i;
 
   int tmp;

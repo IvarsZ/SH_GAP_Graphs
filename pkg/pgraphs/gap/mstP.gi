@@ -2,7 +2,7 @@
 MSTP_REC := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2, headLock;
+  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2;
 
   edges := AtomicList([]);
 
@@ -13,7 +13,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   vertexParent := FixedAtomicList(vertexCount);
   vertexEdge := FixedAtomicList(vertexCount);
   headEdge := FixedAtomicList(vertexCount);
-  headLock := FixedAtomicList(vertexCount);
 
   heads := [];
   
@@ -27,9 +26,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     vertexParent[vertex] := 0;
     vertexEdge[vertex] := 1;
 
-    headLock[vertex] := [];
-    ShareObj(headLock[vertex]);
-
     # Sort edges to find minimum edge quickly.
     task := RunTask(MSTP_REC.sortEdges, graph, vertex);
     Add(tasks, task);
@@ -41,12 +37,10 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     # Find min edges.
     tasks := [];
     for vertex in vertices do
-      task := RunTask(MSTP_REC.findMinEdge, graph, vertex, vertexHead, vertexEdge, headEdge, headLock);
+      task := RunTask(MSTP_REC.findMinEdge, graph, vertex, vertexHead, vertexEdge, headEdge);
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-
-    #Print(FromAtomicList(headEdge), "\n");
 
     # Join the edges by changing heads and merging the lists.
     tasks := [];
@@ -60,28 +54,21 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
         head2 := vertexHead[edge[2]];
         edge2 := headEdge[head2];
         if edge2 <> [] and vertexHead[edge2[2]] = head then
-          #Print("skipping ", edge2, "\n");
           headEdge[head2] := MakeImmutable([]);
         fi;
       fi;
     od;
     WaitTasks(tasks);
     
-    #Print("merged heads ", FromAtomicList(vertexHead), "\n");
-    #Print("parents ", FromAtomicList(vertexParent), "\n");
-    
-    # Update vertex heads list. # TODO do current heads first by linking them to parents directly. Combine with below.
+    # Compress heads.
     tasks := [];
     for head in heads do
       task := RunTask(MSTP_REC.compressHeads, head, vertexHead, vertexParent);
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-
-    #Print("compressed heads ", FromAtomicList(vertexHead), "\n");
-    #Print("parents ", FromAtomicList(vertexParent), "\n");
-
-    # Update heads for vertices and get new heads. # TODO paralelise a bit, depending on P count.
+    
+    # Update heads for vertices and get new heads. # TODO paralelize.
     newHeads := [];
     for vertex in vertices do
       head := vertexHead[vertex];
@@ -99,10 +86,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
         fi;
       fi;
     od;
-
-    #Print("updated heads ", FromAtomicList(vertexHead), "\n");
     
-    #Print("new heads ", newHeads, "\n");
     if Length(heads) = Length(newHeads) then
       break;
     else
@@ -157,7 +141,7 @@ MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)
   fi;
 end;
 
-MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge, headLock)
+MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge)
   local successors, head, minEdge, edgeIndex, successor, weight, update, minWeight, minSuccessor;
 
   # Check all unpicked minimal weight edges of the vertex.
@@ -200,16 +184,14 @@ MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge
 
   # Update min of head's partition if needed.
   if minWeight <> -1 then
-    atomic headLock[head] do
+    atomic headEdge[head] do
       minEdge := headEdge[head];
-      #Print("considering ", [vertex, minSuccessor, minWeight], "\n");
       if
         minEdge = [] or
         minWeight < minEdge[3] or
         (minWeight = minEdge[3] and vertexHead[minSuccessor] < vertexHead[minEdge[2]])
       then
         headEdge[head] := MakeImmutable([vertex, minSuccessor, minWeight]);
-        #Print(headEdge[head], " replacing ", minEdge, "\n");
       fi;
     od;
   else
