@@ -37,7 +37,7 @@ InstallGlobalFunction(BFSP, function(graph, start)
     tasks := [];
     for partition in currentVertices do
 
-      if Length(partition) > 0 then # Don't launch unneeded tasks, start offset from end.
+      if Length(partition) > 0 then # Don't launch unneeded tasks.
         task := RunTask(BFSP_REC.visitPartition, graph, partition, isVisited, nextVertices, offset);
         Add(tasks, task);
 
@@ -86,10 +86,11 @@ BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
       isVisited[successor] := true;
       Add(nextVertices[partitionIndex], successor);
       
-
       partitionIndex := (partitionIndex + offset) mod BFSP_REC.TASKS_COUNT + 1;
     fi;
   od;
+  
+  return partitionIndex;
 end;
 
 MakeImmutable(BFSP_REC); # To have access to task count in threads.

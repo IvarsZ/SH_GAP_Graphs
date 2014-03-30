@@ -1,3 +1,5 @@
+Read("experimentsBase.gap");
+
 # Minimum spanning tree.
 compareMST := function()
   local vertexCount, vertexCounts, edgeCount, edgesPerVertex, t, times, graphP, weight1, weight2, isOver;
