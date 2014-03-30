@@ -14,6 +14,7 @@ compareBFS := function()
     for t in [0..times-1] do
 
       filename := JoinStringsWithSeparator(["/scratch2/iz2/graphs/scg", vertexCount, edgeCount, i], "_");
+      filename := JoinStringsWithSeparator([filename, "graph"], ".");
       Read(filename);
       graphP := GraphP(graph!.successors);
 

@@ -17,6 +17,7 @@ compareMST := function()
       fi;
 
       filename := JoinStringsWithSeparator(["/scratch2/iz2/graphs/scwg", vertexCount, edgeCount, i], "_");
+      filename := JoinStringsWithSeparator([filename, "graph"], ".");
       Read(filename);
       graphP := GraphP(graph!.successors);
 
