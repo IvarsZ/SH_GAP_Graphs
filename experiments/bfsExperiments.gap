@@ -29,3 +29,4 @@ compareBFS := function()
     od;
   od;
 end;
+compareBFS();

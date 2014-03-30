@@ -35,3 +35,4 @@ compareMST := function()
     od;
   od;
 end;
+compareMST();
