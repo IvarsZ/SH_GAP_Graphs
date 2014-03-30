@@ -27,11 +27,14 @@ void generate_simple_undirected_graphs(void)
   igraph_vector_init(&neighbors, 0);
   for (int v = 0; v < sizeof(vertexCounts) / sizeof(vertexCounts[0]); v++) {
     for (int e = 0; e < sizeof(edgesPerVertex) / sizeof(edgesPerVertex[0]); e++) {
+      double density = 1.0 * edgesPerVertex[e]/vertexCounts[v];
+      if (density < 0) { density = 0; }
+      if {density > 1} { break; }
       for (int t = 0; t < times; t++) {
 
         // Create the graph.
         igraph_t graph;
-        igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], 1.0 * edgesPerVertex[e]/vertexCounts[v],
+        igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], density,
                                IGRAPH_UNDIRECTED, IGRAPH_NO_LOOPS);
 
         // Print it to a file.
@@ -70,11 +73,14 @@ void generate_simple_directed_graphs(void)
   igraph_vector_init(&neighbors, 0);
   for (int v = 0; v < sizeof(vertexCounts) / sizeof(vertexCounts[0]); v++) {
     for (int e = 0; e < sizeof(edgesPerVertex) / sizeof(edgesPerVertex[0]); e++) {
+      double density = 1.0 * edgesPerVertex[e]/vertexCounts[v];
+      if (density < 0) { density = 0; }
+      if {density > 1} { break; }
       for (int t = 0; t < times; t++) {
 
         // Create the graph.
         igraph_t graph;
-        igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], 1.0 * edgesPerVertex[e]/vertexCounts[v],
+        igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], density,
                                IGRAPH_DIRECTED, IGRAPH_NO_LOOPS);
 
         // Print it to a file.
@@ -122,12 +128,14 @@ void generate_simple_connected_graphs(void)
   igraph_vector_reserve(&neighbors, max);
   for (int v = 0; v < sizeof(vertexCounts) / sizeof(vertexCounts[0]); v++) {
     for (int e = 0; e < sizeof(edgesPerVertex) / sizeof(edgesPerVertex[0]); e++) {
+      double density = 1.0 * edgesPerVertex[e]/vertexCounts[v];
+      if (density < 0) { density = 0; }
+      if {density > 1} { break; }
       for (int t = 0; t < times; t++) {
 
         // Create the graph.
         igraph_t graph;
-        double density = 1.0 * edgesPerVertex[e]/vertexCounts[v];
-        if (density < 0) { density = 0; }
+
         igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], density,IGRAPH_UNDIRECTED, IGRAPH_NO_LOOPS); 
 
         // Connect it.
@@ -205,13 +213,14 @@ void generate_simple_connected_weighted_graphs(void)
 
   for (int v = 0; v < sizeof(vertexCounts) / sizeof(vertexCounts[0]); v++) {
     for (int e = 0; e < sizeof(edgesPerVertex) / sizeof(edgesPerVertex[0]); e++) {
+      double density = 1.0 * edgesPerVertex[e]/vertexCounts[v];
+      if (density < 0) { density = 0; }
+      if {density > 1} { break; }
       for (int t = 0; t < times; t++) {
 
         // Create the graph.
         igraph_t graph;
-        double density = 1.0 * edgesPerVertex[e]/vertexCounts[v];
-        if (density < 0) { density = 0; }
-        igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], density,IGRAPH_UNDIRECTED, IGRAPH_NO_LOOPS); 
+        igraph_erdos_renyi_game(&graph, IGRAPH_ERDOS_RENYI_GNP, vertexCounts[v], density, IGRAPH_UNDIRECTED, IGRAPH_NO_LOOPS); 
 
         // Connect it.
         igraph_vector_clear(&edges);

@@ -10,6 +10,9 @@ compareBFS := function()
 
   for vertexCount in vertexCounts do
     for edgeCount in edgesPerVertex do
+      if edgeCount > vertexCount then
+        break;
+      fi;
       for t in [0..times-1] do
 
         filename := JoinStringsWithSeparator(["/scratch2/iz2/graphs/scg", vertexCount, edgeCount, t], "_");

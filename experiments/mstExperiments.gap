@@ -9,6 +9,9 @@ compareMST := function()
 
   for vertexCount in vertexCounts do
     for edgeCount in edgesPerVertex do
+      if edgeCount > vertexCount then
+        break;
+      fi;
       for t in [0..times-1] do
           
         if isOver then
