@@ -2,7 +2,7 @@ Read("experimentsBase.gap");
 
 # Test BFS and PBFS for large vertex count.
 compareBFS := function()
-  local vertexCounts, edgesPerVertex, times, vertexCount, edgeCount, t, i, graph, graphP, result, filename;
+  local vertexCounts, edgesPerVertex, times, vertexCount, edgeCount, t, i, graphP, result, filename;
   
   vertexCounts := [10, 100, 1000, 10000, 50000, 100000, 500000, 1000000];
   edgesPerVertex := [1, 5, 10, 50, 100, 500, 5000];
