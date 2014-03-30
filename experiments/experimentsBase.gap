@@ -209,7 +209,7 @@ testMST := function(graph, vertexCount, edgesPerVertex)
     weight := weight + GetWeightedEdge(graph, edge[1], edge[2]);
   od;
 
-  Print("mst ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", " ", GAPInfo.KernelInfo.NUM_CPU, "\n");
+  Print("mst ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", " ", GAPInfo.KernelInfo.NUM_CPUS, "\n");
 
   return weight;
 end;
@@ -232,7 +232,7 @@ testMSTP := function(graph, vertexCount, edgesPerVertex)
     weight := weight + GetWeightedEdge(graph, edge[1], edge[2]);
   od;
 
-  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPU, "\n");
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, "\n");
 
   return weight;
 end;
