@@ -163,7 +163,25 @@ For finding shortest paths a standard Dijkstra's algorithm that uses d-ary heap 
 
 \subsection{Parallel Breadth First Search}
 
-Similarly to other approaches my design is based on the idea that a layer of vertices can be processed in parallel to find vertices of the next layer. A layer is a set of all vertices of equal minimal distance $d$ from the starting vertex and its next layer is a set of all vertices with minimal distance $d + 1$ from the starting vertex.
+Similarly to other approaches my design is based on the idea that a layer of vertices can be processed in parallel to find vertices of the next layer. A layer is a set of all vertices of equal minimal distance $d$ from the starting vertex and its next layer is a set of all vertices with minimal distance $d + 1$ from the starting vertex. So the search is done layer by layer with synchronisation between layers by visiting all vertices in the current layer in parallel and adding their adjacent vertices that haven't been discovered yet to the next layer.
+
+Now such parallel processing has a two potential problems. First, if two vertices $v$ and $u$ of the current layer both have a common adjacent vertex $w$ in its next layer, then $w$ can be added to the next layer multiple times. Second, multiple threads will try to add vertices to the next layer simultaneously, resulting in a bottleneck.
+
+The first issue is resolved in  the same manner as in serial version by marking vertices as discovered when they are added to the next layer and thus not adding them again if they are marked as discovered. There can still be a race condition when a vertex is marked as undiscovered for two threads adding it to the next layer, which can be solved using a lock. But i opted not to use one, since it happens very rarely and the only actual problem is that such a vertex is processed multiple times, which should be a much smaller cost than using locks, since its adjacent vertices are not added multiple times unless the race condition happens again.
+
+To resolve the second issue, instead of using complicated data structures \cite{Leiserson}, a simpler approach was tried. Where one queue holding all the vertices of the next layer is essentially replaced by multiple queues, so that multiple threads could add vertices to the next layer simultaneously. But instead of each thread having its own local queue \cite{cong2008solving, zhang2006parallel}, any thread can add to any global queue. The advantage is that it allows to balance the queue sizes. Because, if each thread has its own queue, and one thread happens to process vertices with higher number of undiscovered adjacent vertices, then it can lead to some queues being much larger than others thus resulting in unbalanced load when processing the next layer.
+
+To balance the queues and reduce collisions.
+
+But instead of each thread having its own queue
+
+The next layer is represented by a list of lists and e
+
+The vertices of the current layer are split into some number of disjoint partitions that are processed in parallel
+
+
+
+\cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel}
 
 ,
  vertices of equal depth, can be processed in parallel to find the vertices of the next layer

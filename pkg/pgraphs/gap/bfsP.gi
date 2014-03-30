@@ -1,5 +1,5 @@
 BFSP_REC := rec();
-BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
+BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*2);
 
 #
 # Returns the vertices of the given graph in a breadth first search order
@@ -82,9 +82,10 @@ BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
 
   for successor in VertexSuccessorsP(graph, vertex) do
     if IsBound(isVisited[successor]) = false then
-
-      Add(nextVertices[partitionIndex], successor);
+    
       isVisited[successor] := true;
+      Add(nextVertices[partitionIndex], successor);
+      
 
       partitionIndex := (partitionIndex + offset) mod BFSP_REC.TASKS_COUNT + 1;
     fi;
