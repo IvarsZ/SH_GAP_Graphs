@@ -262,7 +262,6 @@ void generate_simple_connected_weighted_graphs(void)
         // Print it to a file.
         stringstream ss;
         ss << "/scratch2/iz2/graphs/scwg_" <<  vertexCounts[v] << "_" << edgesPerVertex[e] << "_" << t << ".graph";
-        cout << "writing to " << ss.str();
         
         ofstream outfile(ss.str().c_str());
         outfile << "vertexCount := " << vertexCounts[v] << ";\n";
