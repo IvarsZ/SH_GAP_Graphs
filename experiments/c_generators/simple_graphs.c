@@ -114,7 +114,7 @@ void generate_simple_connected_graphs(void)
 
   int max = 1000000;
   int vertexCounts[] = {10, 100, 1000, 10000, 50000, 100000, 500000, max};
-  int edgesPerVertex[] = {1, 5, 10, 50, 100, 500, 5000};
+  int edgesPerVertex[] = {1, 5, 10, 50, 100, 500, 1000, 5000};
   igraph_integer_t times = 20;
   int i;
 
@@ -164,7 +164,7 @@ void generate_simple_connected_graphs(void)
 
         // Print it to a file.
         stringstream ss;
-        ss << "./graphs/scg_" <<  vertexCounts[v] << "_" << edgesPerVertex[e] << "_" << t << ".graph";
+        ss << "/scratch2/iz2/graphs/scg_" <<  vertexCounts[v] << "_" << edgesPerVertex[e] << "_" << t << ".graph";
         ofstream outfile(ss.str().c_str());
         outfile << "vertexCount := " << vertexCounts[v] << ";\n";
         outfile << "edgesPerVertex := " << edgesPerVertex[e] << ";\n";
@@ -261,7 +261,7 @@ void generate_simple_connected_weighted_graphs(void)
 
         // Print it to a file.
         stringstream ss;
-        ss << "./graphs/scwg_" <<  vertexCounts[v] << "_" << edgesPerVertex[e] << "_" << t << ".graph";
+        ss << "/scratch2/iz2/graphs/scwg_" <<  vertexCounts[v] << "_" << edgesPerVertex[e] << "_" << t << ".graph";
         ofstream outfile(ss.str().c_str());
         outfile << "vertexCount := " << vertexCounts[v] << ";\n";
         outfile << "edgesPerVertex := " << edgesPerVertex[e] << ";\n";
