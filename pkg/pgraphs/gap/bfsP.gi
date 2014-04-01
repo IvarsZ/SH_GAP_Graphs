@@ -42,7 +42,7 @@ InstallGlobalFunction(BFSP, function(graph, start)
         Add(tasks, task);
 
         # Increase offset.
-        offset := offset mod BFSP_REC.TASKS_COUNT + 1;
+        offset := offset mod (BFSP_REC.TASKS_COUNT - 1) + 1;
       fi;
     od;
 
