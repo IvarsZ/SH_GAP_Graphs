@@ -5,6 +5,7 @@
 \usepackage{amsthm}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{listings}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -35,7 +36,7 @@
 [COPY-PASTE FROM HANDBOOK]
 
 \section{Contents page}
-TODO
+[DO AT THE END]
 
 \section{Introduction}
 
@@ -63,7 +64,7 @@ Two GAP packages were made for serial and parallel implementations. The serial p
 
 \section{Basic definitions and problem statements}
 
-[Should go to math section, but having definitions here would be nice too]
+[Should go to maths, but having definitions here would be nice too]
 
 \begin{definition}[Graph]
 A $graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
@@ -102,7 +103,7 @@ No parallel deterministic vertex coloring algorithm was found in the literature,
 
 In 2000 a parallel algorithm for identifying strongly connected components of a directed graph for shared memory model was developed \cite{fleischer2000identifying}. Parallelism is achieved by splitting the graph into 3 disjoint partitions - intersection of forwards and backwards reachable vertices for some vertex (it's strongly connected component of some vertex), the rest of backwards and the rest of forwards reachable vertices. Then the algorithm is recursively applied to the last two parts. Furthermore adding a simple trim step to eliminate vertices without incoming or outgoing edges improves performance significantly \cite{mclendon2005finding}. Later the limited performance and poor scaling for large real-world graphs was improved as well by adding various extensions like parallel trimming, two-phase parallelization and fast detection of size 2 strongly connected components \cite{hongtechnical}.
 
-\subsection{Minimum Spanning Trees}
+\subsection{Parallel Minimum Spanning Trees}
 The first algorithm to achieve reasonable speed-up for a wide range of arbitrary graphs including spare graphs is based on Boruvka's algorithm like other approaches and similarly has find-min, connect components and compact-graph steps. But the graph is represented using flexible adjacency lists allowing each vertex to hold multiple adjacency lists thus after the connect components step each vertex appends its adjacency list to its supervertex's adjacency list and the compact step allows to have self-loops and multiple edges in each supervertex's adjacency list \cite{Bader20061366}. This project's implementation is loosely based on that algorithm, but instead a tree that is afterwards compressed is used to connect components.
 
 \section{Requirements specification}
@@ -125,21 +126,53 @@ The graphs in both packages are represented using adjacency lists, i.e. the grap
 
 \subsection{Serial Breadth First Search}
  
-A standard approach with a First-In-First-Out (FIFO) queue is used, where all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered. A separate boolean list is used to track whether a vertex has been discovered.
+A standard approach with a First-In-First-Out (FIFO) queue is used, where all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered. A queue is a data structure that allows two operations. First is adding elements to its end, called $enqueue$. Second, removing and returning elements from its front called $dequeue$. Thus the first added element is always the first one to be removed. A separate boolean list is used to track whether a vertex has been discovered.
 
-[PSEUDO-CODE]
+\subsubsection{Pseudo Code}
+
+\begin{lstlisting}[language=Ruby]
+def BFS(G, v)
+
+  Create empty queue Q
+  enqueue v onto Q
+  mark v as discovered
+  
+  while Q is not empty
+    w = Q.dequeue
+    visit w
+    for each vertex u adjacent to w
+      if u is not discovered
+        enqueue u onto Q
+end
+\end{lstlisting}
 
 \subsection{Serial Depth First Search}
 
-Is very similar to the breadh first search except that Last-In-First-Out (LIFO) stack is used. Again all adjacent undiscovered vertices of the vertex being visited are pushed on the stack and marked as discovered. A separate boolean list is used to track whether a vertex has been discovered.
+Is very similar to the breadth first search except that Last-In-First-Out (LIFO) stack is used. A stack is a data structure that allows two operations. First is adding elements on the top of the stack, called $push$. Second is removing and returning an element from the top of the stack, called $pop$. Thus the last added element is always the first one to be removed. Again all adjacent undiscovered vertices of the vertex being visited are pushed on the stack and marked as discovered. A separate boolean list is used to track whether a vertex has been discovered.
 
-[PSEUDO-CODE]
+\subsubsection{Pseudo Code}
+
+\begin{lstlisting}[language=Ruby]
+def DFS(G, v)
+
+  Create empty stack S
+  push v onto S
+  mark v as discovered
+  
+  while S is not empty
+    w = S.pop
+    visit w
+    for each vertex u adjacent to w
+      if u is not discovered
+        push u onto Q
+end
+\end{lstlisting}
 
 \subsection{Serial Vertex Colouring}
 
 For exact (non-heuristic) vertex colouring 3 possible solutions were considered. First is a simple brute force approach where each of the $k^n$ assignments of k colours to n vertices is generated and checked for validity. Second is a greedy colouring approach where for all $n!$ possible permutations of vertices a greedy colouring is found and the one using minimum number of colours is picked. To find a greedy colouring for a permutation $v_1,..v_n$ of vertices process the vertices in the permutation order and assign to the vertex $v_i$ the smallest available colour not used by the $v_1,..v_i-1$ vertices adjacent to $v_i$. This has the benefit of finding the minimum colouring immediately and not required multiple executions for each possible number of colours and thus is more efficient when the minimum number of colours is large and not much smaller than the number of vertices. In the end a backtracking solution was used as it allows easy pruning of invalid branches of the search space while done in place, and more importantly it eliminates solution symmetry - smaller index vertex has smaller colour number when there is a choice.
 
-In a backtracking solution the vertices are coloured with the first available colour and if there is a clash of colours the next colours is tried for the first possible vertex untill a solution is found. To improve the performance the vertices are preordered by colouring the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices any more.
+In a backtracking solution the vertices are coloured with the first available colour and if there is a clash of colours the next colours is tried for the first possible vertex until a solution is found. To improve the performance the vertices are preordered by colouring the vertices of degree smaller than the number of colours last. Note in such case the vertex does not contribute to the degree of other vertices any more.
 
 [PSEUDO-CODES, should I include pseudo codes for all algorithms or only the backtracking one?]
 
@@ -151,9 +184,33 @@ For finding strongly connected components there are 4 widely used algorithms - K
 
 \subsection{Serial Minimum Spanning Tree}
 
-The three most common algorithms for finding minimum spanning tree of a graoh are Boruvka's, Kruskal's and Prim's algorithms. Boruvka's algorithm finds minimum weight edge for each vertex and merges the vertices accordingly repeating the process until all vertices are merged or no more edges can be selected. In this project the Prim's algorithm was chosen it uses d-ary heap for the priority queue implementation to get the next smallest edge to add and grows one tree by one edge at a time. In contrast the Kruskal's algorithm starts with a forest of single vertex trees and combines those by one edge at time. Both Prim's and Kruskal's algorithm can be implemented to run in $O(E\log_dV)$ time.
+The three most common algorithms for finding minimum spanning tree of a graph are Boruvka's, Kruskal's and Prim's algorithms.
 
-[PSEUDO-CODE]
+Boruvka's algorithm finds minimum weight edge for each vertex and merges the vertices accordingly repeating the process until all vertices are merged or no more edges can be selected.
+
+Prim's algorithm grows the minimum spanning tree by one edge at a time, it divides the graph in two parts - the tree vertices and non-tree vertices. To add an edge/vertex to the minimum spanning tree it picks an edge from a tree vertex to a non-tree vertex with the minimum weight. A brute force approach would check all outgoing edges of the tree to find the minimum weight one. It has $O(V^2)$ time complexity, but using a d-ary heap to find the next minimum weight edge brings down the time complexity to $Elog_dV$, and is linear for non-sparse graphs. A d-ary heap is a d-ary tree where the value of each node is larger or equal to the value of its parent node.
+
+Kruskal's algoritm also built the minimum spanning tree one edge at a time, but instead of growing one tree it grows a forest of minimum spanning trees by connecting two trees at a time. It picks the edges in ascending order of weights and excludes those that introduce cycles. Kruskal's algorithm is best in practice for graphs with low density.
+
+In this project the Prim's algorithm with d-ary heap was chosen. Because it has the best performance for wide range of graph densities and 
+the ability to change the used data structure adds extra flexibility. Moreover, the algorithm itself is fairly easy to implement, the hardest part is to implement a heap.
+
+\subsubsection{Prim's Pseudo Code}
+\begin{lstlisting}[language=Ruby]
+def MST(G)
+
+  Create empty d-ary heap H
+  Pick a vertex v
+  Mark v as added to MST
+  Enqueue incident edges of v onto H
+  
+  while H is not empty
+    dequeue an edge e=(u,w) from H until w is not in MST
+    Add e to MST
+    Mark w as added to MST
+    Enqueue incident edges of w onto H
+end
+\end{lstlisting}
 
 \subsection{Serial Single-source Shortest Paths}
 
@@ -175,7 +232,27 @@ To balance the queues and reduce collisions of simultaneously adding multiple ve
 
 Each thread is given a unique id and that id is used as step size to determine the index of the next queue to which this thread will add a vertex. So if the thread id is $i$ and it is adding 3 vertices, the first vertex is added to the i-th queue, second to the 2i-th queue, third to the 3i-th queue, of course wrapping around the list of queues when the index of queue to add add goes over the number of queues. This ensures balanced queues if the number of queues is prime, because then teach thread will add a vertex to all queues before adding to the same queue again. This is a direct consequence of ${0, 1,..,n-1}$ being a field if $n$ is prime. Moreover since all threads have different step sizes (ids), then if two threads use the same queue, they won't be using the same queue for next added vertices, reducing the number of collisions.
 
-[PSEUDO-CODE]
+\begin{lstlisting}[language=Ruby]
+def BFSP(G, v)
+
+  Create empty partition list C
+  Add v to C
+  Mark v as discovered
+  
+  while C is not empty do
+    Create empty partition list N
+  	
+    for each partition P in C do in parallel
+      for each vertex w in P
+        visit w
+        for each adjacent vertex u to w
+          if u is not discovered  	      
+            mark u as discovered
+            add u to some partition of N
+    C = N
+  end
+end
+\end{lstlisting}
 
 \subsection{Parallel Minimum Spanning Tree}
 
@@ -197,9 +274,106 @@ The last step is update heads, it could be done in parallel for each vertex, but
 
 These four steps are repeated until no more min edges are picked, in which case the minimum spanning tree forest is complete.
 
+\begin{lstlisting}[language=Ruby, mathescape]
+def MSTP(G)
+
+  for each vertex v of G
+    sort edges incident to v in ascending order by weights
+
+  Add every vertex of G to heads H
+  
+  while length(H) > 1
+    for each vertex v of G do in parallel
+      findMin(v)
+
+    for each head h of H do in parallel
+      e = minEdge(h)
+      mergeParents(e)
+  
+    for each head h of H do in parallel
+      compressHead(h)
+    
+    Create empty list nH of new heads
+    for each vertex v in G
+      if v was not head
+       head(v) = parent(head(v))
+      else
+        if v has no parent
+          Add v to nH
+        else
+          head(v) = parent(v)
+        
+    if nH == H
+      return MST
+    else
+      H = nH
+end
+
+def findMin(v)
+  find minimal weight edge e(v,w) incident to v such that head(v) != head(w)
+    if weight(e) < weight(minEdge(head(v)))
+      minEdge(head(v)) = e
+
+def mergeParents(e)
+  v = startV(e)
+  w = endV(e)
+  
+  $p_1$ = topParent(v)
+  $p_2$ = topParent(w)
+   
+  parent($p_1$) = $p_2$
+  Add e to MST 
+end
+
+def compressHead(h)
+  p = topParent(h)  
+  
+  if h != p
+    parent(h) = p  
+  
+def topParent(v)
+  p = head(v)
+  while p has parent
+    p = parent(p)
+    
+  return p
+end
+
+\end{lstlisting}
+
+\subsection{Graph Generation}
+
+To carry out experiments and measure the performance it was necessary to generate some random graphs to test the implementations on. The generated graphs followed the Erdős–Rényi model denoted by $G_{n,p}$, which has $n$ vertices and in which each edge between two vertices has independent probability of being present, and chance of $1-p$ of being excluded. This model has the advantages of being easy to implement and allows to easily control the density of the graph as well. The disadvantages of this model are that it does not represent real-world networks such as social networks and Internet realisticly, since it does not have large clusters and follows an unrealistic Poissonian degree distribution \cite{newman20062}.
+
+To generate a $G_{n,p}$ graph one goes over all pairs of vertices and for each pair $v,w$ generates a random number $r$ in $(0..1)$ and if $r < p$ then an edge from $v$ to $w$ is added, if the generated graph is undirected then one can only consider pairs where the first vertex is smaller than the second and add an edge in both directions if the implementation requires it. Some of the experiments and algorithms required the graph to be connected this was achieved by arranging vertices in a random sequence $v_1,v_2,..,v_n$ and adding edges from $v_1$ to $v_2$, from $v_2$ to $v_1$ and so on until adding an edge from $v_{n-1}$ to $v_n$  before adding the other random edges and recording them to avoid repeated edges. To generate a graph with weights just a random weight is generated for each edge.
+
+Initially the graphs were generated on the fly in GAP as they were needed  using a specific random seed to ensure repeatability, the downside of this approach was that it took a long time to generate those graphs and often the bottleneck in the experiments would be the graph generation. Moreover the experiments involving parallel algorithms needed to be run using a different number of processors, which requires restarting GAP and thus resulted in having to generate the graphs again. Therefore the generated graphs were written to files and read from them when necessary.
+
+First the graphs were generated and written to files using GAP, but that proved to be time too consuming. Generating and writing a graph with one million vertices took more than 30 hours no matter how low the density/edge-probability was. Thus it was decided to use C instead for generating the graphs. There is a C library called igraph for manipulating and generating graphs, which was able to generate $G_{n,p}$ graphs and thus was used. Although it was still necessary to format the graphs to make them readable by GAP, make them connected and add weights if needed, which was done the same way as discussed above. Switching to igraph reduced the generation time by multiple orders, especially for sparse graphs. This allowed to execute experiments on larger datasets, although having to read them in GAP still remained as a bottleneck slowing them down.
+
+\subsection{Experiment Design}
+
+To measure the performance of both serial and parallel implementations and compare them a number of experiments were run. To measure execution time of a function it is repeated until its total running time is over a certain threshold (200 ms) to ensure that the impreciseness of time measurements does not have a significant effect. Moreover between time measurements the garbage collected is called to minimize the chance of it running during measurements. The varied parameters in experiments were the number of vertices, average number of edges per vertex (density) and the number of processors used for parallel implementations.
+
 \section{Implementation}
 
-TODO - discuss GAP specific details.
+\subsection{Serial Breadth First Search}
+
+GAP does not have a built in queue data structure, therefore plain GAP list was used, a list in GAP is similar to resizable arrays in other programming languages say ArrayList in Java. In addition an integer variable $queueStart$ for recording the start of the queue was used. When an element is dequeued from the queue, the $queueStart$ is incremented by one effectively removing the first element of the queue. When an element is enqueued it is just added to the end of the list. This approach was chosen because it is simple and effective, the only downside is that one has to remember to increment the $queueStart$ when dequeuing an element. For marking already discovered vertices a plain boolean list was used, because those use only 1 bit for each entry and is much more compact.
+
+\subsection{Serial Depth First Search}
+
+Again GAP does not have built in stack data structure, and the implicit stack by a recursive depth first search can easily exceed GAP's stack limit, thus a plain GAP list was used with the addition of an integer variable $stackTop$ for recording the index of the last added element to the stack. When an element is pushed on the stack, $stackTop$ is incremented and when an element is popped from the stack $stackTop$ is decremented effectively removing the element. This approach was chosen because it is simple and effective, the only downside is that one has to remember to increment/decrement the $stackTop$ when pushing/popping an element. Again plain boolean list was used for marking already discovered vertices.
+
+\subsection{Serial Minimum Spanning Tree}
+
+This implementation works only for connected graphs, as it does not find a minimum spanning tree forest, but only a tree. Although it could be modified fairly easily to find the minimum spanning tree, by running it on all not yet added to the minimum spanning tree forest vertices.
+
+The implementation keeps track of number of vertices in the growing minimum spanning tree and stops when all vertices have been added. To add a vertex an edge is dequeued from the heap until an edge with not yet added endpoint vertex is found. To keep track of already added vertices a boolean list is used again.
+
+The d-ary heap is implemented using a list where the first element is the root of the tree, the next d elements are its children, the next d elements are the children of the first child node of the root, and so on. So given an i-th element in the heap's list, its parent element's position in the list is $\left\lceil(i-1)/d\right\rceil$. Note that in GAP lists are indexed starting from 1. 
+
+When an element is added to the heap, it is added at the end of it, but is compared to it's parent(s) and moved upwards in the tree until its value is not larger than its parent's value, causing the element to swim up to its proper position in the tree. When dequeuing the root of the tree is removed and returned. Note since in GAP removing an element from a list causes shifting of all elements after it by one to the left, it is not actually removed but replaced with the last element of the heap, which is then removed from the list to avoid duplication. Then similarly as with enqueuing the new root is sunk to its proper position in the tree by comparing it to its smallest child and swapping them if the child is smaller.
 
 \section{Evaluation and critical appraisal}
 TODO

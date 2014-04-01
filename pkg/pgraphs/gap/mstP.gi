@@ -124,7 +124,7 @@ MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
   od;
 
   # Links parent1 to parent2, note the direction is important when doing it in parallel.
-  vertexParent[parent1] := head2;
+  vertexParent[parent1] := parent2;
   Add(edges, edge);
 end;
 
