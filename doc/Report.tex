@@ -70,7 +70,7 @@ Two GAP packages were made for serial and parallel implementations, so each made
 
 \section{Software engineering process}
 
-The used methodology was iterative incremental development. The system was developed in increments before proceeding to the development of the next increment. Increments were iteratively improved in a implementation-feedback cycle. The used cycle length was one week where the supervision meetings were used to gather feedback and plan development for the next cycle.   
+The used methodology was iterative incremental development. The system was developed in increments before proceeding to the development of the next increment. Increments were iteratively improved in a implementation-feedback cycle. The used cycle length was one week where the supervision meetings were used to gather feedback and plan development for the next cycle. 
 
 \section{Ethics}
 
@@ -474,11 +474,38 @@ In GAP the tasks do not have accessible ids, so the mechanism of each task using
 
 To find the head and parent of a vertex/head fixed atomic lists were used that, technically one could use smaller lists for parents in later iterations of the algorithm since its only used for heads, but initially all vertices are heads and so the old list of parents is just reused with the parents being updated. Due the same reason the minimum weight edge found for each component (head) by find min step is stored in a fixed size atomic list with the edges of old heads just being ignored. To quickly find the next unused minimum weight edge for each vertex there is another fixed atomic list $vertexEdge$ storing the index such edge, which is incremented when an edge is skipped or used. A vertex is a head if it is its own head, but to allow quick iteration over current heads instead of having to go over all vertices the heads are stored in a separate list.
 
+\section{Experiments}
+
+The code for generating graphs and running experiments can be found in the experiments folder.
+\begin{description}
+\item[graphGenerator.gap] file contains code for generating the various types of graphs in GAP.
+\item[experimentsBase.gap] file has functions for timing, comparing results and writing graphs to files this file is loaded for all experiments.
+\item[onlySerialExperiments.gap] file contains experiments but only for all the serial implementations.
+\item[bfsExperiments.gap] file contains experiments for breadth first search, both serial and parallel.
+\item[mstExperiments.gap] file contains experiments for minimum spanning trees, both serial and parallel.
+\item[c\_generators$\backslash$generate\_graphs.c] file in contains the C code for generating and writing graphs to files.
+\end{description}
+
+TODO - WHAT EXPERIMENT VALUES WERE EXACTLY TESTED! WHY?
+
 \chapter{Evaluation and critical appraisal}
+
 TODO
 
+You should evaluate your own work with respect to your original
+objectives. You should also critically evaluate your work with respect to
+related work done by others. You should compare and contrast the project
+to similar work in the public domain, for example as written about in
+published papers, or as distributed in software available to you.
+
+
 \chapter{Conclusions}
+
 TODO
+
+You should summarise your project, emphasising your key achievements
+and significant drawbacks to your work, and discuss future directions your
+work could be taken in.
 
 \chapter{Appendices}
 
