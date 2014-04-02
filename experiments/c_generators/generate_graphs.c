@@ -284,16 +284,16 @@ void generate_simple_connected_weighted_graphs(void)
           outfile << "[";
           igraph_incident(&graph, &eids, i, IGRAPH_ALL);
           for (j = 0; j < igraph_vector_size(&eids) - 1; j++) {
-              outfile << EAN(&graph, "weight", VECTOR(eids)[j]) << ", ";
+              outfile << (int) EAN(&graph, "weight", VECTOR(eids)[j]) << ", ";
           }
-          outfile << EAN(&graph, "weight", VECTOR(eids)[j]) << "], ";
+          outfile << (int) EAN(&graph, "weight", VECTOR(eids)[j]) << "], ";
         }
         outfile << "[";
         igraph_incident(&graph, &eids, i, IGRAPH_ALL);
         for (j = 0; j < igraph_vector_size(&eids) - 1; j++) {
-            outfile << EAN(&graph, "weight", VECTOR(eids)[j]) << ", ";
+            outfile << (int) EAN(&graph, "weight", VECTOR(eids)[j]) << ", ";
         }
-        outfile << EAN(&graph, "weight", VECTOR(eids)[j])  << "]]);\n";
+        outfile << (int) EAN(&graph, "weight", VECTOR(eids)[j])  << "]]);\n";
         
         outfile.close();
         igraph_destroy(&graph);
