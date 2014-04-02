@@ -23,7 +23,7 @@ q$cilUp <- q$time + q$absError
 queries <- q
 
 # Average running time for strongly connected components.
-plot(zero, zero, xlab="Number of vertices", ylab="Time, ns", log="xy", main="Strongly connected components", pch=p, xlim=c(100, 10000), ylim=c(10000, 11000000000))
+plot(zero, zero, xlab="Number of vertices", ylab="Time, ns", log="xy", main="Strongly connected components", pch=p, xlim=c(100, 10000), ylim=c(10000, 2000000000))
 for (c in c_range) {
   d_set <- subset(queries, queries$density == d_range[c] & queries$type == "sc")
   lines(d_set$vertexCount, d_set$time, col=c)
@@ -43,7 +43,7 @@ for (c in c_range) {
 legend("topleft", title="density", legend=d_range, col=c_range, cex=0.5, pch=1)
 
 # Average running time for BFS.
-plot(zero, zero, xlab="Number of vertices", ylab="Time, ns", log="xy", main="Breadth first search", pch=p, xlim=c(100, 10000), ylim=c(10000, 11000000000))
+plot(zero, zero, xlab="Number of vertices", ylab="Time, ns", log="xy", main="Breadth first search", pch=p, xlim=c(100, 10000), ylim=c(10000, 1000000000))
 for (c in c_range) {
   d_set <- subset(queries, queries$density == d_range[c] & queries$type == "bfs")
   lines(d_set$vertexCount, d_set$time, col=c)
@@ -63,7 +63,7 @@ for (c in c_range) {
 legend("topleft", title="density", legend=d_range, col=c_range, cex=0.5, pch=1)
 
 # Average depth for bfs.
-plot(zero, zero, xlab="Number of vertices", ylab="Average depth", log="x", main="Breadth first search", pch=p, xlim=c(100, 10000), ylim=c(0, 15))
+plot(zero, zero, xlab="Number of vertices", ylab="Average depth", log="x", main="Breadth first search", pch=p, xlim=c(100, 10000), ylim=c(0, 12))
 for (c in c_range) {
   d_set <- subset(queries, queries$density == d_range[c] & queries$type == "bfs")
   lines(d_set$vertexCount, d_set$totalDepth / d_set$numberOfComponents, col=c)
@@ -72,7 +72,7 @@ for (c in c_range) {
 legend("topright", title="density", legend=d_range, col=c_range, cex=0.5, pch=1)
 
 # Average running time for DFS.
-plot(zero, zero, xlab="Number of vertices", ylab="Time, ns", log="xy", main="Depth first search", pch=p, xlim=c(100, 10000), ylim=c(10000, 11000000000))
+plot(zero, zero, xlab="Number of vertices", ylab="Time, ns", log="xy", main="Depth first search", pch=p, xlim=c(100, 10000), ylim=c(10000, 1000000000))
 for (c in c_range) {
   d_set <- subset(queries, queries$density == d_range[c] & queries$type == "dfs")
   lines(d_set$vertexCount, d_set$time, col=c)
