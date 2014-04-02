@@ -2,7 +2,7 @@
 MSTP_REC := rec();
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2;
+  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2, headLock;
 
   edges := AtomicList([]);
 
@@ -13,6 +13,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   vertexParent := FixedAtomicList(vertexCount);
   vertexEdge := FixedAtomicList(vertexCount);
   headEdge := FixedAtomicList(vertexCount);
+  headLock := FixedAtomicList(vertexCount);
 
   heads := [];
   
@@ -21,6 +22,8 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
 
     heads[vertex] := vertex; # Initialize in parallel.
     headEdge[vertex] := MakeImmutable([]);
+    headLock[vertex] := [];
+    ShareObj(headLock[vertex]);
 
     vertexHead[vertex] := vertex;
     vertexParent[vertex] := 0;
@@ -37,7 +40,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     # Find min edges.
     tasks := [];
     for vertex in vertices do
-      task := RunTask(MSTP_REC.findMinEdge, graph, vertex, vertexHead, vertexEdge, headEdge);
+      task := RunTask(MSTP_REC.findMinEdge, graph, vertex, vertexHead, vertexEdge, headEdge, headLock);
       Add(tasks, task);
     od;
     WaitTasks(tasks);
@@ -141,7 +144,7 @@ MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)
   fi;
 end;
 
-MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge)
+MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge, headLock)
   local successors, head, minEdge, edgeIndex, successor, weight, update, minWeight, minSuccessor;
 
   # Check all unpicked minimal weight edges of the vertex.
@@ -184,7 +187,7 @@ MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge
 
   # Update min of head's partition if needed.
   if minWeight <> -1 then
-    atomic headEdge[head] do
+    atomic headLock[head] do
       minEdge := headEdge[head];
       if
         minEdge = [] or
