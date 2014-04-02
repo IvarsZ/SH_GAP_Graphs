@@ -6,6 +6,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{listings}
+\usepackage{graphicx}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -71,6 +72,8 @@ Two GAP packages were made for serial and parallel implementations, so each made
 \section{Software engineering process}
 
 The used methodology was iterative incremental development. The system was developed in increments before proceeding to the development of the next increment. Increments were iteratively improved in a implementation-feedback cycle. The used cycle length was one week where the supervision meetings were used to gather feedback and plan development for the next cycle. 
+
+TODO used version control, expand with other stuff.
 
 \section{Ethics}
 
@@ -474,6 +477,8 @@ In GAP the tasks do not have accessible ids, so the mechanism of each task using
 
 To find the head and parent of a vertex/head fixed atomic lists were used that, technically one could use smaller lists for parents in later iterations of the algorithm since its only used for heads, but initially all vertices are heads and so the old list of parents is just reused with the parents being updated. Due the same reason the minimum weight edge found for each component (head) by find min step is stored in a fixed size atomic list with the edges of old heads just being ignored. To quickly find the next unused minimum weight edge for each vertex there is another fixed atomic list $vertexEdge$ storing the index such edge, which is incremented when an edge is skipped or used. A vertex is a head if it is its own head, but to allow quick iteration over current heads instead of having to go over all vertices the heads are stored in a separate list.
 
+IMMUTABLE ELEMENTS CANT BE USED AS LISTS.
+
 \section{Experiments}
 
 The code for generating graphs and running experiments can be found in the experiments folder.
@@ -485,6 +490,16 @@ The code for generating graphs and running experiments can be found in the exper
 \item[mstExperiments.gap] file contains experiments for minimum spanning trees, both serial and parallel.
 \item[c\_generators$\backslash$generate\_graphs.c] file in contains the C code for generating and writing graphs to files.
 \end{description}
+
+The experiments for the serial versions were also tested separately, because the serial package was implemented first and it was a good way for testing out running experiments, verifying algorithms and finding out more information about the generated graphs.
+
+The BFS/DFS "extended" for all vertices to standardize. Connected for parallel due same reasons, could really extend to make them comparable at least not easily.
+
+Values for BFS
+
+Values for DFS
+
+Values for MST
 
 TODO - WHAT EXPERIMENT VALUES WERE EXACTLY TESTED! WHY?
 
@@ -498,6 +513,31 @@ related work done by others. You should compare and contrast the project
 to similar work in the public domain, for example as written about in
 published papers, or as distributed in software available to you.
 
+\section{Serial Experiments results}
+
+TODO - GRAPHS, complexity mathces practical results, what happened with MST.
+
+\includegraphics[width=\textwidth]{../experiments/plots/SCC_time}
+
+\includegraphics[width=\textwidth]{../experiments/plots/SCC_components}
+
+\includegraphics[width=\textwidth]{../experiments/plots/BFS_time}
+
+\includegraphics[width=\textwidth]{../experiments/plots/BFS_components}
+
+\includegraphics[width=\textwidth]{../experiments/plots/BFS_depth}
+
+\includegraphics[width=\textwidth]{../experiments/plots/DFS_time}
+
+\includegraphics[width=\textwidth]{../experiments/plots/MST_time}
+
+\includegraphics[width=\textwidth]{../experiments/plots/MST_weight}
+
+\includegraphics[width=\textwidth]{../experiments/plots/SP_time}
+
+\includegraphics[width=\textwidth]{../experiments/plots/MC_time}
+
+\includegraphics[width=\textwidth]{../experiments/plots/MC_colors}
 
 \chapter{Conclusions}
 
