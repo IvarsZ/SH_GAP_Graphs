@@ -1,5 +1,5 @@
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
-  local edges, heap, isAdded, verticesLeft, nextVertex, i, minEdge, successors, ratio;
+  local edges, heap, minDistance, verticesLeft, nextVertex, i, minEdge, successors, ratio, weight;
 
   edges := [];
   verticesLeft := VertexCount(graph);
@@ -23,32 +23,44 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
   );
 
   # Add the first vertex to the tree.
-  isAdded := BlistList([1..VertexCount(graph)], []);
-  isAdded[1] := true;
+  minDistance := EmptyPlist(VertexCount(graph));
+  minDistance[1] := -1;
   verticesLeft := verticesLeft - 1; 
 
   # Add its outgoing edges to the heap.
   nextVertex := 1;
   successors := VertexSuccessors(graph, nextVertex);
   for i in [1..Length(successors)] do
-    Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := graph!.weights[nextVertex][i]));
+    weight := graph!.weights[nextVertex][i];
+    Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight));
+    minDistance[successors[i]] := weight;
   od;
 
   while (verticesLeft > 0) do
   
     # Find the edge of smallest weight, that adds an unadded vertex.
-    while (isAdded[nextVertex] = true) do
+    while (minDistance[nextVertex] = -1) do
+    
+      if Length(heap!.nodes) < 1 then
+        return edges; # Done, because no more edges are left.
+      fi;
+    
       minEdge := Dequeue(heap);
       nextVertex := VertexSuccessors(graph, minEdge.startVertex)[minEdge.edgeIndex];
     od;
     Add(edges, [minEdge.startVertex, nextVertex, minEdge.weight]);
-    isAdded[nextVertex] := true;
+    minDistance[nextVertex] := -1;
     verticesLeft := verticesLeft - 1;
     
     # Add the edges of the added vertex.
     successors := VertexSuccessors(graph, nextVertex);
     for i in [1..Length(successors)] do
-      Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := graph!.weights[nextVertex][i]));
+    
+      weight := graph!.weights[nextVertex][i];
+      if IsBound(minDistance[successors[i]]) = false or weight < minDistance[successors[i]] then
+        Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight));
+        minDistance[successors[i]] := weight;
+      fi;
     od;
   od;
 

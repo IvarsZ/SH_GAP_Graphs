@@ -3,7 +3,7 @@ MSTP_REC := rec();
 MSTP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*10);
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, task, tasks, edge, edges, head2, edge2, headLock, vertexPartitions, startV, endV, partitionSize, vertexPartition, vertices;
+  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, task, tasks, edge, edges, head2, edge2, headLock, vertexPartitions, startV, endV, partitionSize, vertexPartition, vertices, partitionCount;
 
   edges := AtomicList([]);
 
@@ -17,7 +17,10 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   headLock := FixedAtomicList(vertexCount);
   
   partitionSize := Int(Float(vertexCount/MSTP_REC.TASKS_COUNT)) + 1;
-  vertexPartitions := EmptyPlist(Int(Float(vertexCount/partitionSize)) + 1);
+  partitionCount := Int(Float(vertexCount/partitionSize)) + 1;
+  vertexPartitions := EmptyPlist(partitionCount);
+  
+  
   startV := 1;
   while startV <= vertexCount do
     endV := startV + partitionSize;
@@ -30,7 +33,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
 
   heads := [];
   
-  tasks := [];
+  tasks := EmptyPlist(vertexCount);
   for vertex in vertices do
 
     heads[vertex] := vertex; # Initialize in parallel.
@@ -51,7 +54,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   while Length(heads) > 1 do
     
     # Find min edges.
-    tasks := [];
+    tasks := EmptyPlist(partitionCount);
     for vertexPartition in vertexPartitions do
       task := RunTask(MSTP_REC.findMinEdge, graph, vertexPartition, vertexHead, vertexEdge, headEdge, headLock);
       Add(tasks, task);

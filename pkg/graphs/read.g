@@ -10,7 +10,7 @@ ReadPackage("Graphs", "gap/colorVertices.gi");
 ReadPackage("Graphs", "gap/scc.gi");
 
 ReadPackage("Graphs", "gap/weightedGraph.gi");
-ReadPackage("Graphs", "gap/mst2.gi");
+ReadPackage("Graphs", "gap/mst.gi");
 ReadPackage("Graphs", "gap/shortestPath.gi");
 
 
