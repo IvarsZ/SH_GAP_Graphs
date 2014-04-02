@@ -1,7 +1,8 @@
 LoadPackage("graphs");
-ReadTest("pkg/graphs/test/bfs.test");
-ReadTest("pkg/graphs/test/dfs.test");
-ReadTest("pkg/graphs/test/colouring.test");
-ReadTest("pkg/graphs/test/minimumSpanningTree.test");
-ReadTest("pkg/graphs/test/shortestPaths.test");
-ReadTest("pkg/graphs/test/strongComponents.test");
+ReadTest("pkg/graphs/tst/bfs.test");
+ReadTest("pkg/graphs/tst/dfs.test");
+ReadTest("pkg/graphs/tst/colouring.test");
+#ReadTest("pkg/graphs/tst/minimumSpanningTree.test");
+Read("pkg/graphs/tst/mst.test");
+ReadTest("pkg/graphs/tst/shortestPaths.test");
+ReadTest("pkg/graphs/tst/strongComponents.test");

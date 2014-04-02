@@ -22,6 +22,6 @@ graphPToWeights := function(graph)
   return weights;
 end;
 
-Read("pkg/pgraphs/test/bfsP.test");
-Read("pkg/pgraphs/test/vertexColoringP.test");
-Read("pkg/pgraphs/test/mstP.test");
+Read("pkg/pgraphs/tst/bfsP.test");
+Read("pkg/pgraphs/tst/vertexColoringP.test");
+Read("pkg/pgraphs/tst/mstP.test");
