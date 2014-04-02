@@ -1,5 +1,5 @@
 # Record for private members.
-MSTP_REC := rec();
+MST_REC := rec();
 
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
   local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2;
@@ -26,14 +26,14 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     vertexEdge[vertex] := 1;
 
     # Sort edges to find minimum edge quickly.
-    MSTP_REC.sortEdges(graph, vertex);
+    MST_REC.sortEdges(graph, vertex);
   od;
 
   while Length(heads) > 1 do
     
     # Find min edges.
     for vertex in vertices do
-      MSTP_REC.findMinEdge(graph, vertex, vertexHead, vertexEdge, headEdge);
+      MST_REC.findMinEdge(graph, vertex, vertexHead, vertexEdge, headEdge);
     od;
 
     # Join the edges by changing heads and merging the lists.
@@ -41,7 +41,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     for head in heads do
       edge := headEdge[head];
       if edge <> [] then
-        MSTP_REC.mergeParents(edge, vertexHead, vertexParent, heads, edges);
+        MST_REC.mergeParents(edge, vertexHead, vertexParent, heads, edges);
         
         # if the partition of end vertex links back remove it to avoid unneeded tasks.
         head2 := vertexHead[edge[2]];
@@ -54,7 +54,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     
     # Compress heads.
     for head in heads do
-      MSTP_REC.compressHeads(head, vertexHead, vertexParent);
+      MST_REC.compressHeads(head, vertexHead, vertexParent);
     od;
     
     # Update heads for vertices and get new heads.
@@ -86,13 +86,13 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
   return edges;
 end);
 
-MSTP_REC.sortEdges := function(graph, vertex)
+MST_REC.sortEdges := function(graph, vertex)
   local successors, weights;
 
   SortParallel(graph!.weights[vertex], graph!.successors[vertex]);
 end;
 
-MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
+MST_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
   local head1, head2, parent1, parent2;
   
   head1 := vertexHead[edge[1]];
@@ -113,7 +113,7 @@ MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
   Add(edges, edge);
 end;
 
-MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)
+MST_REC.compressHeads := function(head, vertexHead, vertexParent)
   local parent;
 
   parent := head;
@@ -126,7 +126,7 @@ MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)
   fi;
 end;
 
-MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge)
+MST_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge)
   local successors, head, minEdge, edgeIndex, successor, weight, update, minWeight, minSuccessor;
 
   # Check all unpicked minimal weight edges of the vertex.
