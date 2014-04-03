@@ -1,5 +1,5 @@
 # Record for private members.
-MSTP_REC := rec();
+MSTP_REC := AtomicRecord(6); # Atomic to have access to task count in threads.
 MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS*10;
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
@@ -59,7 +59,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-    #Print("AAA ",Length(heads),"\n");
     # Join the edges by changing heads and merging the lists.
     tasks := [];
     for head in heads do
@@ -78,7 +77,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       fi;
     od;
     WaitTasks(tasks);
-    #Print("AAB\n");
     # Compress heads.
     tasks := [];
     for head in heads do
@@ -86,7 +84,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-    #Print("AAC\n");
 	
     # Update heads for vertices and get new heads.
     newHeads := [];
@@ -111,8 +108,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       break;
     else
       heads := newHeads;
-    fi;    
-    #Print("AAD\n");
+    fi;
   od;
 
   return edges;
@@ -222,5 +218,3 @@ MSTP_REC.findMinEdge := function(graph, vertices, vertexHead, vertexEdge, headEd
     fi;
   od;
 end;
-
-MakeImmutable(MSTP_REC); # To have access to task count in threads.
