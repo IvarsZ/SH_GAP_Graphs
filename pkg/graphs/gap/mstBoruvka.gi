@@ -4,7 +4,7 @@ MST_REC := rec();
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
   local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2;
 
-  edges := [];
+  edges := EmptyPlist(vertexCount);
 
   vertexCount := VertexCount(graph);
   vertices := [1..vertexCount];
@@ -41,7 +41,8 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     for head in heads do
       edge := headEdge[head];
       if edge <> [] then
-        MST_REC.mergeParents(edge, vertexHead, vertexParent, heads, edges);
+        MST_REC.mergeParents(edge, vertexHead, vertexParent);
+        Add(edges, edge);
         
         # if the partition of end vertex links back remove it to avoid unneeded tasks.
         head2 := vertexHead[edge[2]];
@@ -92,7 +93,7 @@ MST_REC.sortEdges := function(graph, vertex)
   SortParallel(graph!.weights[vertex], graph!.successors[vertex]);
 end;
 
-MST_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
+MST_REC.mergeParents := function(edge, vertexHead, vertexParent)
   local head1, head2, parent1, parent2;
   
   head1 := vertexHead[edge[1]];
@@ -110,7 +111,6 @@ MST_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
 
   # Links parent1 to parent2, note the direction is important when doing it in parallel.
   vertexParent[parent1] := parent2;
-  Add(edges, edge);
 end;
 
 MST_REC.compressHeads := function(head, vertexHead, vertexParent)
