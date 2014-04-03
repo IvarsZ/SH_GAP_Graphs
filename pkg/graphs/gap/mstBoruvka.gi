@@ -4,11 +4,11 @@ MST_REC := rec();
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
   local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2;
 
-  edges := EmptyPlist(vertexCount);
-
   vertexCount := VertexCount(graph);
   vertices := [1..vertexCount];
-
+  
+  edges := EmptyPlist(vertexCount);
+  
   vertexHead := EmptyPlist(vertexCount); 
   vertexParent := EmptyPlist(vertexCount);
   vertexEdge := EmptyPlist(vertexCount);

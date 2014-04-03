@@ -1,8 +1,9 @@
-InstallGlobalFunction(MinimumSpanningTree, function(graph)
-  local edges, heap, minDistance, verticesLeft, nextVertex, i, minEdge, successors, ratio, weight;
+InstallGlobalFunction(MinimumSpanningTreePrims, function(graph)
+  local edges, heap, minDistance, verticesLeft, nextVertex, i, minEdge, successors, ratio, weight, vertexCount;
 
-  edges := [];
-  verticesLeft := VertexCount(graph);
+  vertexCount := VertexCount(graph);
+  edges := EmptyPlist(vertexCount);
+  verticesLeft := vertexCount;
   
   # Empty graph has an empty spanning tree.
   if (verticesLeft = 0) then

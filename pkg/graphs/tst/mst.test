@@ -9,7 +9,7 @@ testMST := function(graph, expectedMSTWeight)
   od;
 
   if actualMSTWeight = expectedMSTWeight then
-    Print("mstp test successful\n");
+    Print("mst test successful\n");
   else  
     Print("Error in mstp test\n");
     Print("expected weight: ", expectedMSTWeight, "\n");
@@ -20,18 +20,43 @@ testMST := function(graph, expectedMSTWeight)
   fi;
 end;
 
+testMSTPrims := function(graph, expectedMSTWeight)
+  local edges, edge, actualMSTWeight;
+
+  edges := MinimumSpanningTreePrims(graph);
+
+  actualMSTWeight := 0;
+  for edge in edges do
+    actualMSTWeight := actualMSTWeight + GetWeightedEdge(graph, edge[1], edge[2]);
+  od;
+
+  if actualMSTWeight = expectedMSTWeight then
+    Print("mst prims test successful\n");
+  else  
+    Print("Error in mst prims test\n");
+    Print("expected weight: ", expectedMSTWeight, "\n");
+    Print("actual weight: ", actualMSTWeight, "\n");
+    Print("mst edges: ", edges, "\n");
+    Print("graph: ", graph!.successors);
+    Print("weights: ", graph!.weights);
+  fi;
+end;
+
 w := WeightedGraph([[2, 3, 4, 5], [1, 5], [1, 4, 6, 7], [1, 3, 5, 7], [1, 2, 4, 7, 8], [3, 7], [3, 4, 5, 6, 8], [5, 7]], [[2, 2, 5, 5], [2, 1], [2, 2, 10, 5], [5, 2, 10, 3], [5, 1, 10, 10, 10], [10, 9], [5, 3, 10, 9, 3], [10, 3]]);
 testMST(w, 22);
+testMSTPrims(w, 22);
 
 
 w := WeightedGraph([[2, 3, 8, 9], [1, 3, 5, 6], [1, 2, 4, 7, 9], [3, 7], [2, 6, 7], [2, 5, 7], [3, 4, 5, 6, 9], [1, 9], [1, 3, 7, 8], []], [[1, 6, 6, 6], [1, 6, 6, 4], [6, 6, 1, 2, 6], [1, 6], [6, 5, 6], [4, 5, 3], [2, 6, 6, 3, 3], [6, 1], [6, 6, 3, 1], []]);
 testMST(w, 20);
+testMSTPrims(w, 20);
 
 w := WeightedGraph([ [ 6, 4 ], [ 5, 7 ], [ 9, 10 ], [ 10, 8, 1 ], [ 6, 2 ], 
   [ 1, 5 ], [ 2, 9 ], [ 4 ], [ 7, 3 ], [ 3, 4 ] ],
 [ [ 5, 9 ], [ 3, 4 ], [ 2, 10 ], [ 7, 3, 9 ], [ 2, 3 ], [ 5, 2 ], 
   [ 4, 8 ], [ 3 ], [ 8, 2 ], [ 10, 7 ] ]);
 testMST(w, 43);
+testMSTPrims(w, 43);
 
 w := WeightedGraph([ [ 8, 8, 10 ], [ 5, 10 ], [ 9, 5 ], [ 6, 5, 8, 10 ], 
   [ 4, 2, 3, 7 ], [ 7, 4, 7 ], [ 8, 6, 5, 6 ], [ 1, 7, 1, 4 ], 
@@ -39,6 +64,7 @@ w := WeightedGraph([ [ 8, 8, 10 ], [ 5, 10 ], [ 9, 5 ], [ 6, 5, 8, 10 ],
   [ 5, 9, 7, 4 ], [ 9, 7, 4, 7 ], [ 1, 5, 1 ], [ 6, 1, 7, 1 ], 
   [ 3, 6, 3, 7 ], [ 8, 5 ], [ 1, 8, 7, 4 ] ]);
 testMST(w, 36);
+testMSTPrims(w, 36);
 
 w := WeightedGraph([ [ 7 ], [ 9, 10, 5, 7, 11 ], [ 8, 11, 7 ], [ 10, 6, 9 ], [ 11, 2 ], 
   [ 4, 8, 11 ], [ 1, 9, 2, 3, 8 ], [ 6, 3, 7 ], [ 7, 2, 4 ], [ 2, 4 ], 
@@ -46,9 +72,11 @@ w := WeightedGraph([ [ 7 ], [ 9, 10, 5, 7, 11 ], [ 8, 11, 7 ], [ 10, 6, 9 ], [ 1
   [ 3, 7, 9 ], [ 11, 2 ], [ 7, 11, 11 ], [ 8, 6, 8, 7, 10 ], 
   [ 11, 10, 10 ], [ 6, 9, 9 ], [ 11, 3 ], [ 1, 11, 9, 11 ] ]);
 testMST(w, 61);
+testMSTPrims(w, 61);
 
 w := WeightedGraph([ [ 11 ], [ 7, 13 ], [ 8, 7 ], [ 12, 6 ], [ 11, 8 ], [ 4, 14 ], [ 3, 2 ], [ 5, 3 ], [ 10, 15 ], [ 14, 9 ], [ 1, 5, 14 ], [ 13, 4 ], [ 2, 12 ], [ 6, 10, 11 ], [ 9 ] ], [ [ 13 ], [ 5, 4 ], [ 15, 8 ], [ 1, 8 ], [ 8, 10 ], [ 8, 4 ], [ 8, 5 ], [ 10, 15 ], [ 6, 6 ], [ 2, 6 ], [ 13, 8, 2 ], [ 5, 1 ], [ 4, 5 ], [ 4, 2, 2 ], [ 6 ] ]);
 testMST(w, 82);
+testMSTPrims(w, 82);
 
 w := WeightedGraph([ [ 8, 2, 3, 12, 13 ], [ 12, 14, 1, 3, 5, 6, 7, 8, 10, 11, 13 ], 
   [ 13, 9, 1, 2, 5, 6, 7, 10, 11 ], [ 14, 13, 5, 6, 7, 10, 11 ], 
@@ -63,9 +91,11 @@ w := WeightedGraph([ [ 8, 2, 3, 12, 13 ], [ 12, 14, 1, 3, 5, 6, 7, 8, 10, 11, 13
   [ 11, 3, 6, 1, 13, 8 ], [ 9, 5, 7, 3, 6, 9, 14 ], [ 8, 12, 3, 5, 5 ], 
   [ 6, 6, 3, 12, 12, 4 ], [ 2, 7, 14, 9, 5, 14 ] ]);
 testMST(w, 40);
+testMSTPrims(w, 40);
 
 w := WeightedGraph([ [ 10 ], [ 6, 9 ], [ 4, 7 ], [ 8, 3 ], [ 10, 6 ], [ 5, 2 ], [ 3 ], [ 9, 4 ], [ 2, 8 ],[ 1, 5 ] ], [ [ 1 ], [ 1, 8 ], [ 6, 5 ], [ 2, 6 ], [ 5, 1 ], [ 1, 1 ], [ 5 ], [ 8, 2 ], [ 8, 8 ], [ 1, 5 ] ]);
 testMST(w, 37);
+testMSTPrims(w, 37);
 
 w := WeightedGraph([ [ 5, 2, 3, 4, 6, 7, 8, 9, 10 ], [ 6, 3, 1, 4, 5, 7, 8, 9, 10 ], 
   [ 2, 10, 1, 4, 5, 6, 7, 8, 9 ], [ 9, 8, 1, 2, 3, 5, 6, 7, 10 ], 
@@ -78,3 +108,4 @@ w := WeightedGraph([ [ 5, 2, 3, 4, 6, 7, 8, 9, 10 ], [ 6, 3, 1, 4, 5, 7, 8, 9, 1
   [ 7, 2, 3, 6, 4, 7, 3, 7, 10 ], [ 8, 8, 10, 10, 2, 9, 7, 10, 5 ], 
   [ 2, 8, 8, 1, 6, 2, 9, 10, 5 ], [ 1, 4, 3, 10, 8, 10, 10, 5, 5 ] ]);
 testMST(w, 17);
+testMSTPrims(w, 17);

@@ -2,10 +2,10 @@ Read("experimentsBase.gap");
 
 # Minimum spanning tree.
 compareMST := function()
-  local vertexCount, vertexCounts, edgeCount, edgesPerVertex, t, times, graphP, weight1, weight2, isOver, filename;
+  local vertexCount, vertexCounts, edgeCount, edgesPerVertex, t, times, graphP, weight1, weight2, weight3, isOver, filename;
 
   isOver := false;
-  vertexCounts := [10, 100, 1000, 10000, 100000];
+  vertexCounts := [10, 100, 1000, 10000, 100000, 100000];
   edgesPerVertex := [1, 5, 10, 50, 100, 1000];
   times := 10;
 
@@ -28,8 +28,9 @@ compareMST := function()
         if GAPInfo.KernelInfo.NUM_CPUS = -1 then
           weight1 := testMST(graph, vertexCount, edgeCount);
           weight2 := testMSTP(graphP, vertexCount, edgeCount);
+          weight3 := testMSTPrims(graphP, vertexCount, edgeCount);
 
-          if weight1 <> weight2 then
+          if weight1 <> weight2 or weight2 <> weight3 then
             Print(graph!.successors, " ", graph!.weights, "\n");
             Print(weight1, " not eq ", weight2);
             isOver := true;

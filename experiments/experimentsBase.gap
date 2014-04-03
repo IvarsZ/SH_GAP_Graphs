@@ -214,6 +214,22 @@ testMST := function(graph, vertexCount, edgesPerVertex)
   return weight;
 end;
 
+testMSTPrims := function(graph, vertexCount, edgesPerVertex)
+  local result, weight, edge;
+
+  result := timeFunction(MinimumSpanningTree, [graph]);
+  
+  # Traverse mst and get weight.
+  weight := 0;
+  for edge in result[2] do
+    weight := weight + edge[3];
+  od;
+
+  Print("mstPrims ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, "\n");
+
+  return weight;
+end;
+
 testShortestPaths := function(graph, vertexCount, density)
   local result;
 
@@ -232,7 +248,23 @@ testMSTP := function(graph, vertexCount, edgesPerVertex)
     weight := weight + edge[3];
   od;
 
-  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, "\n");
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "tenTimes", "\n");
+
+  MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS;
+  result := timeFunction(MinimumSpanningTreeP, [graph]);
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "single", "\n");
+  
+  MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS * 2;
+  result := timeFunction(MinimumSpanningTreeP, [graph]);
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "double", "\n");
+  
+  MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS^2;
+  result := timeFunction(MinimumSpanningTreeP, [graph]);
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "square", "\n");
+
+  MSTP_REC.TASKS_COUNT := vertexCount;
+  result := timeFunction(MinimumSpanningTreeP, [graph]);
+  Print("mstp ", vertexCount, " ", edgesPerVertex, " ", result[1], " ", weight, " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "one", "\n");
 
   return weight;
 end;
