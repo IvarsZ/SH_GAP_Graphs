@@ -1,4 +1,4 @@
-BFSP_REC := rec();
+BFSP_REC := AtomicRecord(2); # Atomic to have access to task count in threads.
 BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*2);
 
 #
@@ -92,5 +92,3 @@ BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
   
   return partitionIndex;
 end;
-
-MakeImmutable(BFSP_REC); # To have access to task count in threads.
