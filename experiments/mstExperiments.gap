@@ -25,10 +25,10 @@ compareMST := function()
         Read(filename);
         graphP := WeightedGraphP(graph!.successors, graph!.weights);
 
-        if GAPInfo.KernelInfo.NUM_CPUS = -1 then
+        if GAPInfo.KernelInfo.NUM_CPUS = 1 then
           weight1 := testMST(graph, vertexCount, edgeCount);
+          weight3 := testMSTPrims(graph, vertexCount, edgeCount);
           weight2 := testMSTP(graphP, vertexCount, edgeCount);
-          weight3 := testMSTPrims(graphP, vertexCount, edgeCount);
 
           if weight1 <> weight2 or weight2 <> weight3 then
             Print(graph!.successors, " ", graph!.weights, "\n");
