@@ -1,3 +1,13 @@
+PrintHeap := function(heap)
+  local i, node;
+  
+  for i in [1..Length(heap!.nodes)] do
+    node := heap!.nodes[i];
+    #Print("[", node.endVertex, ", ", node.weight, "], ");
+  od;
+  #Print("\n");
+end;
+
 InstallGlobalFunction(MinimumSpanningTree, function(graph)
   local edges, heap, minDistance, verticesLeft, nextVertex, i, minEdge, successors, ratio, weight;
 
@@ -19,7 +29,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
   heap := EmptyDHeap(ratio,
                      function(first, second)
                        return first.weight > second.weight;
-                     end
+                     end, EmptyPlist(VertexCount(graph))
   );
 
   # Add the first vertex to the tree.
@@ -32,7 +42,7 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
   successors := VertexSuccessors(graph, nextVertex);
   for i in [1..Length(successors)] do
     weight := graph!.weights[nextVertex][i];
-    Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight));
+    Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight, endVertex := successors[i]));
     minDistance[successors[i]] := weight;
   od;
 
@@ -57,8 +67,25 @@ InstallGlobalFunction(MinimumSpanningTree, function(graph)
     for i in [1..Length(successors)] do
     
       weight := graph!.weights[nextVertex][i];
-      if IsBound(minDistance[successors[i]]) = false or weight < minDistance[successors[i]] then
-        Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight));
+      if IsBound(minDistance[successors[i]]) = false then
+        Enqueue(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight, endVertex := successors[i]));
+        #Print("-------------\n");
+        #Print(heap!.elementNodeIndex, "\n");
+        #PrintHeap(heap);
+        #Print(nextVertex, "->", successors[i], "\n");
+        #Print(heap!.elementNodeIndex, "\n");
+        #PrintHeap(heap);
+        minDistance[successors[i]] := weight;
+      fi;
+      
+      if weight < minDistance[successors[i]] then
+        LowerElement(heap, rec(startVertex := nextVertex, edgeIndex := i, weight := weight, endVertex := successors[i]));
+        #Print("-------------\n");
+        #Print(heap!.elementNodeIndex, "\n");
+        #PrintHeap(heap);
+        #Print(nextVertex, "->", successors[i], "\n");
+        #Print(heap!.elementNodeIndex, "\n");
+        #PrintHeap(heap);
         minDistance[successors[i]] := weight;
       fi;
     od;

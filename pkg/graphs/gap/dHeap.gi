@@ -5,12 +5,12 @@
 #!
 #! The representation for a d-ary heap is a record with a d value, a list of nodes and a nodes comparison function isLarger. 
 #!
-DeclareRepresentation("IsDHeapRep", IsComponentObjectRep, ["d", "nodes", "isLarger"]);
+DeclareRepresentation("IsDHeapRep", IsComponentObjectRep, ["d", "nodes", "isLarger", "elementNodeIndex"]);
 
-InstallGlobalFunction(EmptyDHeap,  function(d, isLarger)
+InstallGlobalFunction(EmptyDHeap,  function(d, isLarger, elementNodeIndex) # elementNode is a "pointer" to the node containing the element.
 
   return Objectify(NewType(NewFamily("DHeaps"), IsDHeap and IsDHeapRep),
-                   rec(d := d, nodes := [], isLarger := isLarger));
+                   rec(d := d, nodes := [], isLarger := isLarger, elementNodeIndex := elementNodeIndex));
 end);
 
 # Record for private functions.
@@ -95,6 +95,10 @@ D_HEAP := rec(
     tmp := dHeap!.nodes[secondPosition];
     dHeap!.nodes[secondPosition] := dHeap!.nodes[firstPosition];
     dHeap!.nodes[firstPosition] := tmp;
+    
+    # Swap element indices, works only for edge nodes, uses endpoint as value.
+    dHeap!.elementNodeIndex[tmp.endVertex] := firstPosition;
+    dHeap!.elementNodeIndex[dHeap!.nodes[secondPosition].endVertex] := secondPosition;
   end
 );
 
@@ -103,6 +107,7 @@ InstallGlobalFunction(Enqueue, function(dHeap, node)
   # Adds the element at the end of the array, the heap might become improper,
   # as the element could be bigger than its parent.
   Add(dHeap!.nodes, node);
+  dHeap!.elementNodeIndex[node.endVertex] := Length(dHeap!.nodes);
 
   # Makes the heap proper again, by making the added element to swim up
   # to a position in the heap, where it is not greater than its parent.
@@ -111,16 +116,31 @@ InstallGlobalFunction(Enqueue, function(dHeap, node)
 end);
 
 InstallGlobalFunction(Dequeue, function(dHeap)
-  local top;
+  local top, newTop;
 
   top := dHeap!.nodes[1];
   dHeap!.nodes[1] := dHeap!.nodes[D_HEAP.size(dHeap)];
   Remove(dHeap!.nodes, D_HEAP.size(dHeap));
+  
+  dHeap!.elementNodeIndex[top.endVertex] := -1;
+  if D_HEAP.size(dHeap) > 0 then
+    dHeap!.elementNodeIndex[dHeap!.nodes[1].endVertex] := 1;
+  fi;
 
   # Makes the heap proper again, by sinking the element placed at the top
   # to a position in the heap, where it not larger than its children.
   D_HEAP.sink(dHeap, 1);
 
   return top;
+end);
+
+InstallGlobalFunction(LowerElement, function(dHeap, node)
+
+  # Replace old element.
+  dHeap!.nodes[dHeap!.elementNodeIndex[node.endVertex]] := node;
+
+  # Makes the heap proper again, by making the added element to swim up
+  # to a position in the heap, where it is not greater than its parent.
+  D_HEAP.swim(dHeap, dHeap!.elementNodeIndex[node.endVertex]);
 end);
 

@@ -39,3 +39,9 @@ DeclareGlobalFunction("Enqueue");
 #!
 #! @Returns the smallest element of the given heap and removes it.
 DeclareGlobalFunction("Dequeue");
+
+#! @Description
+#! @Arguments heap
+#!
+#! @Returns changes a value of an element in the heap.
+DeclareGlobalFunction("LowerElement");
