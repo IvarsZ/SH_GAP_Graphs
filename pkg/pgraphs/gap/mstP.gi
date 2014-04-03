@@ -4,7 +4,7 @@ MSTP_REC := rec();
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2, headLock;
 
-  edges := AtomicList([]);
+  edges := [];
 
   vertexCount := VertexCountP(graph);
   vertices := [1..vertexCount];
@@ -44,14 +44,16 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       Add(tasks, task);
     od;
     WaitTasks(tasks);
+    Print("AAA\n");
 
     # Join the edges by changing heads and merging the lists.
     tasks := [];
     for head in heads do
       edge := headEdge[head];
       if edge <> [] then
-        task := RunTask(MSTP_REC.mergeParents, edge, vertexHead, vertexParent, heads, edges);
+        task := RunTask(MSTP_REC.mergeParents, edge, vertexHead, vertexParent);
         Add(tasks, task);
+        Add(edges, edge);
         
         # if the partition of end vertex links back remove it to avoid unneeded tasks.
         head2 := vertexHead[edge[2]];
@@ -62,6 +64,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       fi;
     od;
     WaitTasks(tasks);
+    Print("AAB\n");
     
     # Compress heads.
     tasks := [];
@@ -97,7 +100,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
     fi;    
   od;
 
-  return FromAtomicList(edges);
+  return edges;
 end);
 
 MSTP_REC.sortEdges := function(graph, vertex)
@@ -110,7 +113,7 @@ MSTP_REC.sortEdges := function(graph, vertex)
   graph!.successors[vertex] := AtomicList(successors);
 end;
 
-MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
+MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent)
   local head1, head2, parent1, parent2;
   
   head1 := vertexHead[edge[1]];
@@ -128,7 +131,6 @@ MSTP_REC.mergeParents := function(edge, vertexHead, vertexParent, heads, edges)
 
   # Links parent1 to parent2, note the direction is important when doing it in parallel.
   vertexParent[parent1] := parent2;
-  Add(edges, edge);
 end;
 
 MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)

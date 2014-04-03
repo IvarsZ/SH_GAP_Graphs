@@ -193,7 +193,7 @@ void generate_simple_connected_weighted_graphs(void)
   igraph_i_set_attribute_table(&igraph_cattribute_table);
 
   int max = 1000000;
-  int vertexCounts[] = {10, 100, 1000, 10000, 100000, max};
+  int vertexCounts[] = {max};
   int edgesPerVertex[] = {1, 5, 10, 50, 100, 1000};
   igraph_integer_t times = 10;
   int i, j;
