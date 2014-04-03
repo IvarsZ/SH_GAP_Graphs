@@ -324,6 +324,8 @@ The number of used partitions depends on the number of used processors by HPC-GA
 
 In GAP the tasks do not have accessible ids, so the mechanism of each task using a different offset was implemented by passing a different offset parameter to each function execution in the concurrent tasks. The task processing the first partition would get the offset 1, the second would get the offset 2 and so on with the last partition getting the offset 1 again to avoid using offset of 0.
 
+TODO switched from task per vertex, why, how it looked previously.
+
 \chapter{Minimum Spanning Trees}
 
 \section{Context Survey}

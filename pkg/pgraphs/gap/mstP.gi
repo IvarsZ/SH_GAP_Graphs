@@ -1,8 +1,9 @@
 # Record for private members.
-MSTP_REC := rec();
+MSTP_REC := AtomicRecord(6); # Atomic to have access to task count in threads.
+MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS*10;
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
-  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, vertices, task, tasks, edge, edges, head2, edge2, headLock;
+  local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, task, tasks, edge, edges, head2, edge2, headLock, vertexPartitions, startV, endV, partitionSize, vertexPartition, vertices, partitionCount;
 
   edges := [];
 
@@ -14,10 +15,24 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   vertexEdge := FixedAtomicList(vertexCount);
   headEdge := FixedAtomicList(vertexCount);
   headLock := FixedAtomicList(vertexCount);
+  
+  partitionSize := Int(Float(vertexCount/MSTP_REC.TASKS_COUNT)) + 1;
+  partitionCount := Int(Float(vertexCount/partitionSize)) + 1;
+  vertexPartitions := EmptyPlist(partitionCount);
+  
+  startV := 1;
+  while startV <= vertexCount do
+    endV := startV + partitionSize;
+    if endV > vertexCount then
+      endV := vertexCount;
+    fi;
+    Add(vertexPartitions, [startV..endV]);
+    startV := endV + 1;
+  od;
 
   heads := [];
   
-  tasks := [];
+  tasks := EmptyPlist(vertexCount);
   for vertex in vertices do
 
     heads[vertex] := vertex; # Initialize in parallel.
@@ -38,14 +53,12 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   while Length(heads) > 1 do
     
     # Find min edges.
-    tasks := [];
-    for vertex in vertices do
-      task := RunTask(MSTP_REC.findMinEdge, graph, vertex, vertexHead, vertexEdge, headEdge, headLock);
+    tasks := EmptyPlist(partitionCount);
+    for vertexPartition in vertexPartitions do
+      task := RunTask(MSTP_REC.findMinEdge, graph, vertexPartition, vertexHead, vertexEdge, headEdge, headLock);
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-    Print("AAA\n");
-
     # Join the edges by changing heads and merging the lists.
     tasks := [];
     for head in heads do
@@ -53,7 +66,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       if edge <> [] then
         task := RunTask(MSTP_REC.mergeParents, edge, vertexHead, vertexParent);
         Add(tasks, task);
-        Add(edges, edge);
+	Add(edges, edge);
         
         # if the partition of end vertex links back remove it to avoid unneeded tasks.
         head2 := vertexHead[edge[2]];
@@ -64,8 +77,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       fi;
     od;
     WaitTasks(tasks);
-    Print("AAB\n");
-    
     # Compress heads.
     tasks := [];
     for head in heads do
@@ -73,7 +84,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       Add(tasks, task);
     od;
     WaitTasks(tasks);
-    
+	
     # Update heads for vertices and get new heads.
     newHeads := [];
     for vertex in vertices do
@@ -97,7 +108,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       break;
     else
       heads := newHeads;
-    fi;    
+    fi;
   od;
 
   return edges;
@@ -146,61 +157,64 @@ MSTP_REC.compressHeads := function(head, vertexHead, vertexParent)
   fi;
 end;
 
-MSTP_REC.findMinEdge := function(graph, vertex, vertexHead, vertexEdge, headEdge, headLock)
-  local successors, head, minEdge, edgeIndex, successor, weight, update, minWeight, minSuccessor;
+MSTP_REC.findMinEdge := function(graph, vertices, vertexHead, vertexEdge, headEdge, headLock)
+  local successors, head, minEdge, edgeIndex, successor, weight, update, minWeight, minSuccessor, vertex;
+  
+  for vertex in vertices do
 
-  # Check all unpicked minimal weight edges of the vertex.
-  minWeight := -1;
-  minSuccessor := -1;
-  head := vertexHead[vertex];
-  successors := VertexSuccessorsP(graph, vertex);
+    # Check all unpicked minimal weight edges of the vertex.
+    minWeight := -1;
+    minSuccessor := -1;
+    head := vertexHead[vertex];
+    successors := VertexSuccessorsP(graph, vertex);
 
-  edgeIndex := vertexEdge[vertex];
-  while edgeIndex <= Length(successors) do
-    successor := successors[edgeIndex];
+    edgeIndex := vertexEdge[vertex];
+    while edgeIndex <= Length(successors) do
+      successor := successors[edgeIndex];
 
-    # Consider only edges outside partition.
-    if head <> vertexHead[successor] then
-      
-      weight := GetWeightP(graph, vertex, edgeIndex);
-      if minWeight = -1 then
-        minWeight := weight;
-        minSuccessor := successor;
+      # Consider only edges outside partition.
+      if head <> vertexHead[successor] then
         
-        # Update the first edge that could be picked again.
-        vertexEdge[vertex] := edgeIndex;
-      fi;
-      
-      if weight = minWeight then
-
-        # Pick the one with the smallest head.
-        if vertexHead[successor] < vertexHead[minSuccessor] then
+        weight := GetWeightP(graph, vertex, edgeIndex);
+        if minWeight = -1 then
           minWeight := weight;
           minSuccessor := successor;
+          
+          # Update the first edge that could be picked again.
+          vertexEdge[vertex] := edgeIndex;
         fi;
-      else
-        # stop since the list is sorted.
-        break;
-      fi;
-    fi;
+        
+        if weight = minWeight then
 
-    edgeIndex := edgeIndex + 1;
-  od;
-
-  # Update min of head's partition if needed.
-  if minWeight <> -1 then
-    atomic headLock[head] do
-      minEdge := headEdge[head];
-      if
-        minEdge = [] or
-        minWeight < minEdge[3] or
-        (minWeight = minEdge[3] and vertexHead[minSuccessor] < vertexHead[minEdge[2]])
-      then
-        headEdge[head] := MakeImmutable([vertex, minSuccessor, minWeight]);
+          # Pick the one with the smallest head.
+          if vertexHead[successor] < vertexHead[minSuccessor] then
+            minWeight := weight;
+            minSuccessor := successor;
+          fi;
+        else
+          # stop since the list is sorted.
+          break;
+        fi;
       fi;
+
+      edgeIndex := edgeIndex + 1;
     od;
-  else
-    # No edge could be repicked.
-    vertexEdge[vertex] := edgeIndex;
-  fi;
+
+    # Update min of head's partition if needed.
+    if minWeight <> -1 then
+      atomic headLock[head] do
+        minEdge := headEdge[head];
+        if
+          minEdge = [] or
+          minWeight < minEdge[3] or
+          (minWeight = minEdge[3] and vertexHead[minSuccessor] < vertexHead[minEdge[2]])
+        then
+          headEdge[head] := MakeImmutable([vertex, minSuccessor, minWeight]);
+        fi;
+      od;
+    else
+      # No edge could be repicked.
+      vertexEdge[vertex] := edgeIndex;
+    fi;
+  od;
 end;
