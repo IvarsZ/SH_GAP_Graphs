@@ -1,6 +1,6 @@
 # Record for private members.
 MSTP_REC := rec();
-MSTP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*10);
+MSTP_REC.TASKS_COUNT := 1;
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, task, tasks, edge, edges, head2, edge2, headLock, vertexPartitions, startV, endV, partitionSize, vertexPartition, vertices, partitionCount;
@@ -19,7 +19,6 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   partitionSize := Int(Float(vertexCount/MSTP_REC.TASKS_COUNT)) + 1;
   partitionCount := Int(Float(vertexCount/partitionSize)) + 1;
   vertexPartitions := EmptyPlist(partitionCount);
-  
   
   startV := 1;
   while startV <= vertexCount do
