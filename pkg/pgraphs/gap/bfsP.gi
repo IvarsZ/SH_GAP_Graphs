@@ -70,6 +70,7 @@ end;
 BFSP_REC.visitPartition := function(graph, partition, isVisited, nextVertices, offset)
   local vertex, successor, partitionIndex;
 
+  # Visits partition by visiting all its vertices.
   for vertex in partition do
     BFSP_REC.visitVertex(graph, vertex, isVisited, nextVertices, offset);
   od;
@@ -80,6 +81,7 @@ BFSP_REC.visitVertex := function(graph, vertex, isVisited, nextVertices, offset)
 
   partitionIndex := offset;
 
+  # Adds all unadded adjacent vertices of the vertex.
   for successor in VertexSuccessorsP(graph, vertex) do
     if IsBound(isVisited[successor]) = false then
     
