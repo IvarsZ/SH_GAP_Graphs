@@ -1,26 +1,3 @@
- ┌───────┐   HPC-GAP, Version 4.dev of today (free software, GPL)
- │  GAP  │   http://www.gap-system.org
- └───────┘   Architecture: x86_64-unknown-linux-gnu-gcc-hpc
-             Maximum concurrent threads: 4
- Libs used:  gmp
-
-#W <<< This is an alpha release.      >>>
-#W <<< Do not use for important work. >>>
-
- Loading the library and packages ...
- Components: trans 1.0, prim 2.1, small* 1.0, id* 1.0
- Packages:   GAPDoc 1.5.1
- Try '?help' for help. See also  '?copyright' and  '?authors'
-─────────────────────────────────────────────────────────────────────────────
-Loading  Graphs 0.0.1 (GAP package for creating and manipulating graphs)
-by Zubkans Ivars (iz2@st-andrews.ac.uk).
-Homepage: TODO
-─────────────────────────────────────────────────────────────────────────────
-─────────────────────────────────────────────────────────────────────────────
-Loading  PGraphs 0.0.1 (HPC-GAP package for creating and manipulating graphs)
-by Zubkans Ivars (iz2@st-andrews.ac.uk).
-Homepage: TODO
-─────────────────────────────────────────────────────────────────────────────
 bfsp 10 1 430400 4 square
 bfsp 10 1 835200 4 square
 bfsp 10 1 832000 4 square
@@ -341,4 +318,3 @@ bfsp 1000000 1000 15791000000 4 square
 bfsp 1000000 1000 16090800000 4 square
 bfsp 1000000 1000 16309000000 4 square
 bfsp 1000000 1000 19390200000 4 square
-gap> 
