@@ -299,10 +299,9 @@ Breadth first search (BFS) was discovered by Moore and Lee in independently more
 
 Since the discovery of breadth-first search a variety of parallel BFS algorithms have been developed. For our purposes shared non-external memory algorithms \cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel} were considered, all of them use layer synchronization (next layers is visited only when previous is finished) and reported a speed up compared to a a serial implementation for some number of processors.
 
-TODO EXPAND TO DESCRIBE BETTER!!!!
+The implementation of \cite{Leiserson} is in Cilk++ and replaces standard queue with a multiset data structure, called a "bag" consisting of pennants. A pennant is a tree whose root has only one child node, say only left child, which is a complete binary tree of size $2^k-1$ for some non-negative integer $k$. So the pennant has exactly $2^k$ nodes. The bag itself is a fixed-size array $B[0..r]$, where $2^{r+1}$ is larger than the total number of vertices ever stored in it, i.e. the number of vertices of the graph. Each of the entries $B[i]$ is either a null pointer or a pennant of size exactly $2^i$. Therefore the bag in a way is similar to a binary representation of some integer. The bag's structure allows quick splitting and merging of vertices when distributing vertices between threads and merging results. The merging is similar to binary addition while merging is similar to arithmetic right shift.
 
-\cite{Leiserson} is implemented in Cilk++ and replaces standard queue with a multiset data structure, called a "bag". Where a bag is a fixed-size array of null pointers or pennants of size 2i for i-th entry and pennants are trees of $2^k$ nodes that can be merged and split in constant time, which allows quick splitting and merging of vertices when distributing vertices between threads and merging results.
-\cite{bader2006designing} examines every vertex in a layer and its adjacent vertices in parallel using thread-safe insertions to the queue and atomic updates of vertex distance from root, but their algorithm depends on the Cray MTA-2 system and uses its built in load balancing and doesn't work well for sparse high-diameter graphs.
+The implementation by \cite{bader2006designing} examines every vertex in a layer and its adjacent vertices in parallel using thread-safe insertions to the queue and atomic updates of vertex distance from root, but their algorithm depends on the Cray MTA-2 system and uses its built in load balancing and doesn't work well for sparse high-diameter graphs.
 In \cite{cong2008solving} each thread keeps a local queue, and gets an equal portion of vertices of the current layer while allowing repetitive appearances, but it depends on the features of XWS framework and detailed implementation isn't given.
 In \cite{zhang2006parallel} again each thread has its own list of layer's vertices to examine. All working threads are arranged in a ring topology in which each thread splits off a part of its vertices and gives them to a neighbour thread if it has run out of vertices to examine.
 
@@ -385,12 +384,39 @@ Again the average depth is increasing while then number of vertices increases fo
 
 Experiments for parallel BFS captured only the execution time, as the graph properties should stay the same. The only change in the generated graphs was that now they were made connected to again enforce uniform and comparable result. This time the search was not extended on all vertices, because it would complicate comparing parallel and serial implementations. 
 
-Different functions from the number of processors $P$ to number of partitions/queues used $K$ were tested to find the quickest one. Additionally the implementation of experiments was changed to allow changing the function on the fly, so that the different functions could be tested in the same run, since reading the graphs in GAP takes a significant time. The tested functions were $P, 2P, 10P, P^2, V$, where V is the number of vertices. The density parameter was changed to average number of edges per vertex, because this allows to easier control the average number of edges in the whole graph.
+Different functions $pToK$ from the number of processors $P$ to number of partitions/queues used $K$ were tested to find the quickest one. Additionally the implementation of experiments was changed to allow changing the function on the fly, so that the different functions could be tested in the same run, since reading the graphs in GAP takes a significant time. The tested functions were $P, 2P, 10P, P^2, V$, where V is the number of vertices, let's call them "single", "double", "tenTimes", "square" and "one", respectively. The density parameter was changed to average number of edges per vertex, because this allows to easier control the average number of edges in the whole graph.
 
-The used graphs had vertex counts of 10, 100, 1000, 10000, 100000 and average number of edges per vertex 1, 5, 10, 50, 100, 1000. For each pair of vertex count and density 10 graphs were generated on which the experiments were run. Only 10 graphs were generated, because with the addition of graphs with 1000000 vertices, the disk space used by these graphs was over 1TB which in combination with graphs for other experiments exceeded the available storage space.
- 
-TODO MAYBE?
-If the number of processors is $P$, then the number of used partitions was $2P$. Because using too large number of partitions adds unnecessary overhead and quick experimentation showed that having a higher number like $P^2$ takes more time.
+The used graphs had vertex counts of 10, 100, 1000, 10000, 100000 and average number of edges per vertex 1, 5, 10, 50, 100, 1000. For each pair of vertex count and density 10 graphs were generated on which the experiments were run using 2, 4, 8, 16 and 32 processors. Only 10 graphs were generated, because with the addition of graphs with 1000000 vertices, the disk space used by these graphs was over 1TB which in combination with graphs for other experiments exceeded the available storage space.
+
+\includegraphics[width=\textwidth]{../experiments/plots/BFSP_10_32}
+
+This chart shows the execution times for the $pToK$ functions for a graphs with 10 edges per vertex on average when 32 processors are used. It confirms that measurements are precise, since error bars are small. Moreover, we can see that while "single" function implementation has the smallest execution times, but the "square" catches up and has a much better scaling factor. The other 29 charts can be seen by executing the R code in R studio, they were not included to save space and because they are very similar. 
+
+\begin{center}
+$
+\begin{array}{cc}
+\includegraphics[width=90mm]{../experiments/plots/BFSP_A_32}
+\includegraphics[width=90mm]{../experiments/plots/BFSP_A_16}
+\end{array}
+$
+
+\center
+$
+\begin{array}{cc}
+\includegraphics[width=55mm]{../experiments/plots/BFSP_A_8}
+\includegraphics[width=55mm]{../experiments/plots/BFSP_A_4}
+\includegraphics[width=55mm]{../experiments/plots/BFSP_A_2}
+\end{array}
+$
+\end{center}
+
+Since all the results were not show in the previous chart, the relationship between the average number of edges and execution time was plotted. These charts confirm that "single" function implementation has the smallest execution times, but the "square" catches up and has a much better scaling factor, moreover its scaling factor improves as the number of processors increases.
+
+Due these results, the "square" function was chosen as the default implementation, besides "square" function should have smaller execution times for graphs with large number of clusters. Because of the higher number of queues.
+
+\includegraphics[width=\textwidth]{../experiments/plots/BFSP_S}
+
+The next chart shows the default (square) parallel BFS implementation scales with the number of processors for a fixed number of edges $E$. As we can see it does not  scale to the number of processors when $E$ is smaller than $10^7$, but when $E$ is at least $10^7$ adding up to 4 processors reduces the execution time, unfortunately the effect stops past 4 processors at least for the tested number of edges. As it is quite possible that even higher numbers of edges are necessary for extra processors to be useful.
 
 \subsection{Comparison BFS}
 
@@ -660,7 +686,7 @@ TODO
 
 \subsection{Serial MST}
 
-Serial experiments for MST captured the average MST weight for random graphs with varied vertex count and density. To ensure uniform and comparable results MST was run on a connected graph, since Prim's algorithm out of the box works only for connected graphs. Note the implementation tested here does not have the optimization of only having one edge per vertex in the heap, since it was not implemented yet at the time when this set of experiments was run.
+Serial experiments for MST captured the average MST weight for random graphs with varied vertex count and density. To ensure uniform and comparable results MST was run on a connected graph and, moreover, Prim's algorithm out of the box works only for connected graphs. Note the implementation tested here does not have the optimization of only having one edge per vertex in the heap, since it was not implemented yet at the time when this set of experiments was run.
 
 The used graphs had vertex counts of 100, 250, 500, 750, 1000 and densities of 0.01, 0.05, 0.1, 0.5, 1. For each pair of vertex count and density 100 graphs were generated on which the experiments were run.
 
@@ -668,15 +694,63 @@ TODO where these results can be found.
 
 \includegraphics[width=\textwidth]{../experiments/plots/MST_time}
 
-This graph displays that in practice Prim's algorithm is linear against the number of edges and the measurements are really price again, as the error bars show.
+This graph displays that in practice Prim's algorithm is linear against the number of edges and the measurements are really precise again, as the error bars show.
 
 \includegraphics[width=\textwidth]{../experiments/plots/MST_weight}
 
 This graph shows that the higher density the smaller the weight of the MST is, because there are more edges to pick from and the possible weight values range from 1 to number of vertices.
 
-TODO the 8 by 5 speedup.
+TODO compare with Boruvka.
 
-TODO switched implementation style from rerunning gap when changing stuff, impl. because reading graphs takes time. seperate experiments at first.
+\subsection{Parallel MST}
+
+Experiments for parallel MST captured only the execution time, as the graph properties should stay the same. The only change in the generated graphs was that now they were made connected to again enforce uniform and comparable result.
+
+Different functions $pToK$ from the number of processors $P$ to number of vertex groups $K$ in the find min step were tested to find the quickest one. Additionally the implementation of experiments was changed to allow changing the function on the fly, so that the different functions could be tested in the same run, since reading the graphs in GAP takes a significant time. The tested functions were $P, 2P, 10P, P^2, V$, where V is the number of vertices, let's call them "single", "double", "tenTimes", "square" and "one", respectively. The density parameter was changed to average number of edges per vertex, because this allows to easier control the average number of edges in the whole graph.
+
+The used graphs had vertex counts of 10, 100, 1000, 10000 and average number of edges per vertex 1, 5, 10, 50, 100, 1000. For each pair of vertex count and density 10 graphs were generated on which the experiments were run using 1, 2, 4, 8, 16 and 32 processors. Only 10 graphs were generated, because with the addition of graphs with 1000000 vertices, the disk space used by these graphs was over 2TB which in combination with graphs for other experiments exceeded the available storage space.
+Moreover the execution times for the serial implementations were measured as well, where the first serial implementation was the optimized version of Prim's algorithm implementation and the second was the parallel implementation but rewritten to be compatible with regular GAP.
+
+\includegraphics[width=\textwidth]{../experiments/plots/MSTP_10_16}
+
+This chart shows the execution times for the $pToK$ functions for a graphs with 10 edges per vertex on average when 16 processors are used. It confirms that measurements are precise, since error bars are small. Moreover, we can see that all $pToK$ implementations have similar execution times, with "single" and "double" being slightly faster. The other 35 charts can be seen by executing the R code in R studio, they were not included to save space and because they are very similar.
+
+TODO this chart shows scaling ... lalal scales... a bit... Note log scale.
+
+\begin{center}
+$
+\begin{array}{cc}
+\includegraphics[width=55mm]{../experiments/plots/MSTP_A_32}
+\includegraphics[width=55mm]{../experiments/plots/MSTP_A_16}
+\includegraphics[width=55mm]{../experiments/plots/MSTP_A_8}
+\end{array}
+$
+
+\center
+$
+\begin{array}{cc}
+\includegraphics[width=55mm]{../experiments/plots/MSTP_A_4}
+\includegraphics[width=55mm]{../experiments/plots/MSTP_A_2}
+\includegraphics[width=55mm]{../experiments/plots/MSTP_A_1}
+\end{array}
+$
+\end{center}
+
+Since all the results were not shown in the previous chart, the relationship between the average number of edges and execution time was plotted. These charts confirm that all $pToK$ implementations have similar execution times, with "single" and "double" being slightly faster. Therefore "double" was chosen as default, as it "single" might not work well for graphs with large number of clusters.
+
+\includegraphics[width=\textwidth]{../experiments/plots/MSTP_D}
+
+The next chart shows how well the double implementation scales with the number of processors for a fixed number of edges $E$. It shows that the implementation scales linearly to the number of processors $P$, but $E$ has to be high for the running time to reduce when extra processors are added, as it happens only when $E$ is at least $10^6$ and at some point the extra processors cause it slow down unless even more edges/vertices are added. So the implementation scales for a large number of edges, but only up to a certain $P$.
+
+\subsection{Comparison}
+
+\includegraphics[width=\textwidth]{../experiments/plots/MST_S_vs_P}
+
+This chart compares the parallel implementation with different number of processors against the two serial implementations. We can see that the serial implementations are faster than the parallel implementations for any tested number of processors. More specifically the Prim's implementation is slightly faster than than Boruvka's. But the parallel implementation when the number of processors is sufficient (at least 8) scales better than the serial ones and seems to catch up. Moreover, a comparison of the parallel version when one processor is used compared against the equivalent serial implementation shows that there is quite a bit of overhead added when using elements of HPC-GAP, note that it is not due to simultaneous locks since only one processor is used.
+
+TODO Experiments on graphs with even larger graphs should be run.
+
+TODO why not larger graphs. P = 1 shows there's a lot of overhead.
 
 \chapter{Conclusions}
 
@@ -686,17 +760,24 @@ You should summarise your project, emphasising your key achievements
 and significant drawbacks to your work, and discuss future directions your
 work could be taken in.
 
-TODO see all charts in R with R studio.
-
-TODO picked 2 for mstp, square cachted up weird, square might have a better sacling factor but very hard to tell.
-
-TODO picked square for bfsp better scaling factor.
 
 TODO boruvka works on not conncted graphs, ADVATNGE (out of the box).
+
+TODO number exaples for exp. res.
+
+TODO update numbers.
+
+TODO why removed error bars for edge totals graphs
+
+TODO don't count all impl.
+
+TODO hard to use in pratice bfsp due inverse scaling.
 
 \chapter{Appendices}
 
 \section{Testing summary}
+
+The algorithm implementations were tested using unit tests that can be found in the tst directory of the packages. The graphs and the expected output was made by hand. Some of the tests use the built in testing mechanism of GAP, but it only works on console output basis, i.e. it assumes a live session is running and checks the text output of each run command. Therefore some tests required their own implementation like counting the weight of a minimum spanning tree and checking that it matches the expected, because the parallel algorithms are not deterministic. For example the parallel minimum spanning tree algorithm could return different minimum spanning trees for different test runs. Moreover the outputs of serial and parallel versions were checked for equality. This actually allowed to discover a number of bugs in the parallel minimum spanning trees implementation. Moreover these failed tests were added to the test suite to ensure that their respective bugs are not reintroduced.
 
 \bibliographystyle{plain}
 \bibliography{References}

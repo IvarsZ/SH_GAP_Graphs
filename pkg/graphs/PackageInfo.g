@@ -7,13 +7,13 @@ SetPackageInfo( rec(
   Version := "0.0.1",
   Date := "09/11/2013",
 
-  PackageWWWHome := "TODO",
-  ArchiveURL := "TODO",
-  ArchiveFormats := "TODO",
-  README_URL := "TODO",
-  PackageInfoURL := "TODO",
-  AbstractHTML := "TODO",
-  PackageWWWHome := "TODO",
+  PackageWWWHome := "Will be provided in later release",
+  ArchiveURL := "Will be provided in later release",
+  ArchiveFormats := "Will be provided in later release",
+  README_URL := "Will be provided in later release",
+  PackageInfoURL := "Will be provided in later release",
+  AbstractHTML := "Will be provided in later release",
+  PackageWWWHome := "Will be provided in later release",
 
   Persons := [
     rec(

@@ -10,6 +10,6 @@ AutoDoc(
 );
 
 # Create VERSION file for "make towww"
-PrintTo( "VERSION", PackageInfo( "Graphs" )[1].Version );
+PrintTo( "VERSION", PackageInfo( "PGraphs" )[1].Version );
 
 QUIT;

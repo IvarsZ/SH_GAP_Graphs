@@ -1,13 +1,13 @@
 #! @AutoDoc
-#! @Chapter Graphs
-#! @Section Weighted Graphs
+#! @Chapter GraphsP
+#! @Section Weighted GraphsP
 
 #! @Description
 #!
 #! The representation is record with  a list of successors and a list of weights for each vertex.
 #!
-if IsBound(IsWeightedGraphAdjacencyListRep) = false then
-  DeclareRepresentation("IsWeightedGraphAdjacencyListRep", IsGraphAdjacencyListRep, ["successors", "weights"]);
+if IsBound(IsWeightedGraphAdjacencyListRepP) = false then
+  DeclareRepresentation("IsWeightedGraphAdjacencyListRepP", IsGraphAdjacencyListRepP, ["successors", "weights"]);
 fi;
 
 InstallGlobalFunction(WeightedGraphP, function(successorsLists, weightsLists)
@@ -24,13 +24,13 @@ InstallGlobalFunction(WeightedGraphP, function(successorsLists, weightsLists)
     Add(atomicWeightsList, AtomicList(weights));
   od;
 
-  return Objectify(NewType(NewFamily("WeightedGraphs"), IsWeightedGraph and IsWeightedGraphAdjacencyListRep),
+  return Objectify(NewType(NewFamily("WeightedGraphsP"), IsWeightedGraphP and IsWeightedGraphAdjacencyListRepP),
                    rec(successors := atomicSuccessorsList, weights := atomicWeightsList));
 end); 
 
 InstallGlobalFunction(EmptyWeightedGraphP, function()
 
-  return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
+  return Objectify(NewType(NewFamily("GraphsP"), IsGraphP and IsGraphAdjacencyListRepP),
                    rec(successors := AtomicList([]), weights := AtomicList([])));
 end);
 
