@@ -5,7 +5,7 @@ compareMST := function()
   local vertexCount, vertexCounts, edgeCount, edgesPerVertex, t, times, graphP, weight1, weight2, weight3, isOver, filename;
 
   isOver := false;
-  vertexCounts := [10, 100, 1000, 10000, 100000, 100000];
+  vertexCounts := [1000000];
   edgesPerVertex := [1, 5, 10, 50, 100, 1000];
   times := 10;
 
