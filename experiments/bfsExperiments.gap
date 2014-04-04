@@ -4,10 +4,8 @@ Read("experimentsBase.gap");
 compareBFS := function()
   local vertexCounts, edgesPerVertex, times, vertexCount, edgeCount, t, graphP, result, filename;
   
-  #vertexCounts := [10, 100, 1000, 10000, 100000, 1000000];
-  #edgesPerVertex := [1, 5, 10, 50, 100, 1000];
-  vertexCounts := [100000];
-  edgesPerVertex := [1000];
+  vertexCounts := [10, 100, 1000, 10000, 100000, 1000000];
+  edgesPerVertex := [1, 5, 10, 50, 100, 1000];
   times := 10;
 
   for vertexCount in vertexCounts do
