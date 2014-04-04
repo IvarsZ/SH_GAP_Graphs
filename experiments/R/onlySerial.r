@@ -89,8 +89,6 @@ legend("topleft", title="density", legend=d_range, col=c_range, cex=0.5, pch=1)
 
 
 
-
-
 queries <- read.table("weightResults.txt", head = TRUE, sep=" ", fill=TRUE)
 
 p <- 0

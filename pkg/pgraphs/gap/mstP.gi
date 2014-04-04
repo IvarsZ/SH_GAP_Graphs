@@ -59,6 +59,7 @@ InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
       Add(tasks, task);
     od;
     WaitTasks(tasks);
+    
     # Join the edges by changing heads and merging the lists.
     tasks := [];
     for head in heads do

@@ -96,7 +96,15 @@ which assigns to each element of $E$ a pair two elements of $V$ .
 
 Note graphs that are not directed (graphs according the previous definition) are also called $undirected$ graphs and the only difference is that the order of elements in the range of ends function is important, i.e edges have a direction. All the definitions in this section are applicable to directed graphs with the obvious change of sets to ordered pairs of vertices.
 
-TODO dense, sparse graphs, depth
+\begin{definition}[Density]
+
+Let $G = (V, E, ends)$ be a graph, then the density of $G$ is 
+  \begin{equation}
+  d=\frac{2|E|}{|V|(|V|-1)}
+  \end{equation}
+\end{definition}
+
+A graph is dense if the its density is close to 1 and sparse if it is close to 0.
 
 \section*{Minimum Spanning Tree}
 
@@ -156,6 +164,10 @@ Let $G = (V, E, ends)$ be a graph and $P=v_1,v_2,..,v_n$ be path in $G$, then th
 Let $G = (V, E, ends)$ be a graph and $v, w \in V$ be vertices, then the distance $d$ between $v$ and $w$ is the length of a shortest path between them. 
 \end{definition}
 
+\begin{definition}[Depth]
+Let $G = (V_G, E_G, ends_G)$ be a graph, then the depth of a connected component (subgraph) $C$ of $G$ is the maximum distance between two vertices in $C$.
+\end{definition}
+
 \begin{definition}[Breadth First Order]
 Let $G = (V, E, ends)$ be a graph and $P=v_1,v_2,..,v_n$ be a sequence of vertices, then they are in $breadth \ first \ order$ if the distance from $v_1$ to $v_i$ is smaller or equal than the distance from $v_1$ to $v_{i+1}$ for all $1 \leq i \leq n - 1$, i.e the vertices are in ascending order by their distance from the start vertex $v_1$.
 \end{definition}
@@ -209,7 +221,9 @@ For graphs with weights there is an additional list of lists storing the weights
 
 To carry out experiments and measure the performance it was necessary to generate some random graphs to test the implementations on. The generated graphs followed the Erdős–Rényi model denoted by $G_{n,p}$, which has $n$ vertices and in which each edge between two vertices has independent probability of being present, and chance of $1-p$ of being excluded. This model has the advantages of being easy to implement and allows to easily control the density of the graph as well. The disadvantages of this model are that it does not represent real-world networks such as social networks and Internet realisticly, since it does not have large clusters and follows an unrealistic Poissonian degree distribution \cite{newman20062}.
 
-To generate a $G_{n,p}$ graph one goes over all pairs of vertices and for each pair $v,w$ generates a random number $r$ in $(0..1)$ and if $r < p$ then an edge from $v$ to $w$ is added, if the generated graph is undirected then one can only consider pairs where the first vertex is smaller than the second and add an edge in both directions if the implementation requires it. Some of the experiments and algorithms required the graph to be connected this was achieved by arranging vertices in a random sequence $v_1,v_2,..,v_n$ and adding edges from $v_1$ to $v_2$, from $v_2$ to $v_1$ and so on until adding an edge from $v_{n-1}$ to $v_n$  before adding the other random edges and recording them to avoid repeated edges. To generate a graph with weights just a random weight is generated for each edge.
+To generate a $G_{n,p}$ graph one goes over all pairs of vertices and for each pair $v,w$ generates a random number $r$ in $(0..1)$ and if $r < p$ then an edge from $v$ to $w$ is added, if the generated graph is undirected then one can only consider pairs where the first vertex is smaller than the second and add an edge in both directions if the implementation requires it. Some of the experiments and algorithms required the graph to be connected this was achieved by arranging vertices in a random sequence $v_1,v_2,..,v_n$ and adding edges from $v_1$ to $v_2$, from $v_2$ to $v_1$ and so on until adding an edge from $v_{n-1}$ to $v_n$  before adding the other random edges and recording them to avoid repeated edges.
+
+To generate a graph with weights just a random weight is generated for each edge. The possible weight values range from 1 to number of vertices, because it allows a wide range of graphs where likely most edges do not have equal weight.
 
 \section{Implementation}
 
@@ -270,12 +284,6 @@ The code for generating graphs and running experiments can be found in the exper
 \item[mstExperiments.gap] file contains experiments for minimum spanning trees, both serial and parallel.
 \item[c\_generators$\backslash$generate\_graphs.c] file in contains the C code for generating and writing graphs to files.
 \end{description}
-
-TODO The BFS/DFS "extended" for all vertices to standardize. Connected for parallel due same reasons, could really extend to make them comparable at least not easily.
-
-TODO - WHY BFPS diff impl. tested for multiple cores.
-
-TODO - GRAPHS, complexity matches practical results, what happened with MST.
 
 TODO switched implementation style from rerunning gap when changing stuff, impl. because reading graphs takes time. seperate experiments at first.
 
@@ -373,11 +381,15 @@ One can see that for small enough density as the number vertices increases so do
 
 Again the average depth is increasing while then number of vertices increases for graphs with small density, but once the number of edges per vertex reaches a certain threshold it decreases.
 
-
 \subsection{Parallel BFS}
 
-TODO
+Experiments for parallel BFS captured only the execution time, as the graph properties should stay the same. The only change in the generated graphs was that now they were made connected to again enforce uniform and comparable result. This time the search was not extended on all vertices, because it would complicate comparing parallel and serial implementations. 
 
+Different functions from the number of processors $P$ to number of partitions/queues used $K$ were tested to find the quickest one. Additionally the implementation of experiments was changed to allow changing the function on the fly, so that the different functions could be tested in the same run, since reading the graphs in GAP takes a significant time. The tested functions were $P, 2P, 10P, P^2, V$, where V is the number of vertices. The density parameter was changed to average number of edges per vertex, because this allows to easier control the average number of edges in the whole graph.
+
+The used graphs had vertex counts of 10, 100, 1000, 10000, 100000 and average number of edges per vertex 1, 5, 10, 50, 100, 1000. For each pair of vertex count and density 10 graphs were generated on which the experiments were run. Only 10 graphs were generated, because with the addition of graphs with 1000000 vertices, the disk space used by these graphs was over 1TB which in combination with graphs for other experiments exceeded the available storage space.
+ 
+TODO MAYBE?
 If the number of processors is $P$, then the number of used partitions was $2P$. Because using too large number of partitions adds unnecessary overhead and quick experimentation showed that having a higher number like $P^2$ takes more time.
 
 \subsection{Comparison BFS}
@@ -455,6 +467,7 @@ end
 \end{lstlisting}
 
 \subsection*{Prim's Algorithm}
+
 Prim's algorithm grows the minimum spanning tree by one edge at a time, it divides the graph in two parts - the tree vertices and non-tree vertices. To add an edge/vertex to the minimum spanning tree it picks an edge from a tree vertex to a non-tree vertex with the minimum weight. A brute force approach would check all outgoing edges of the tree to find the minimum weight one. It has $O(V^2)$ time complexity, but using a d-ary heap to find the next minimum weight edge brings down the time complexity to $Elog_dV$, and is linear for non-sparse graphs. A d-ary heap is a d-ary tree where the value of each node is larger or equal to the value of its parent node.
 
 \begin{lstlisting}[language=Ruby]
@@ -509,7 +522,7 @@ When an element is added to the heap, it is added at the end of it, but is compa
 
 The heap in this implementation has a slight optimization to improve performance. It only keeps the minimal weight edge for each vertex on the heap. So for example if there is an edge $e$ to a vertex $v$ of weight 5 and later an edge $e$ of weight 4 to the vertex $v$ is discovered, then instead of enqueueing $f$ on the heap it actually just replaces the edge $e$ in the heap. This is achieved by tracking for each vertex the position of the minimal weight edge in the heap that leads to that vertex and just updating it as necessary when edges are enqueued, dequeued and swapped. This optimization caps the number of edges in the heap by the number of vertices thus making enqueue and dequeue operations faster.
 
-TODO ratio
+The used $d$ value for the d-ary heaps in this implementation depends on the number of vertices $V$ and edges $E$, it is $r=\lceil E/V \rceil$ if $r \geq 2$, because it improves the worst-case running time by a factor of $lg(r)$ compared to a binary heap \cite{algo_sedgewick}.
 
 \section{Parallel Minimum Spanning Tree Design}
 
@@ -517,7 +530,7 @@ Similarly as in other approaches \cite{Bader20061366} for finding a minimum span
 
 The approach with flexible adjacency lists \cite{Bader20061366} was not used, because having flexibly adjacency lists would either affect the implementations of other algorithms or require copying the graph which would be inefficient for an algorithm that has linear time complexity in many cases. Moreover flexible adjacency lists in GAP essentially would be a list of lists of lists since there are no pointers in GAP thus they would use more space and have higher access times than normal adjacency list. Note that merging two lists in GAP takes linear time.
 
-Initially there was an implementation written where the flexible adjacency lists were simulated in place by having a next vertex "pointer" for each vertex, i.e a list where the index of next vertex is stored for each vertex. Then when two adjacency lists were merged the next vertex "pointers" were changed accordingly. Unfortunately this implementation did now work in the end.
+Initially there was an implementation written where the flexible adjacency lists were simulated in place by having a next vertex "pointer" for each vertex, i.e a list where the index of next vertex is stored for each vertex. Then when two adjacency lists were merged the next vertex "pointers" were changed accordingly. Unfortunately this implementation did not work in the end. The advantage of this approach would have been that all edges for a particular head are processed in the same thread therefore no locks on the minimum weight edge of each head would have been required. But in contrast it did require usage of locks when merging lists and there would not have been enough tasks for every processor when number of heads gets small, which probably would not have been a problem since the number of such steps is very small. Therefore it is hard to tell which approach would have been more efficient.
 
 So the used approach achieves implicit elimination of edges between the same component by assigning to each vertex a vertex that indicates to which component the vertex currently belongs to, initially it is the vertex itself. We will call such vertices head vertices, so all vertices in the same component as the head vertex have it as head vertex. Now to deal with updating heads for each vertex when components are connected by edges a tree of heads is built and the root of it becomes the head vertex of all vertices in the new component. This tree is represented by each head vertex having a parent vertex that denotes the head of the component to which it was connected to.
 
@@ -636,9 +649,10 @@ end
 
 To find the head and parent of a vertex/head fixed atomic lists were used that, technically one could use smaller lists for parents in later iterations of the algorithm since its only used for heads, but initially all vertices are heads and so the old list of parents is just reused with the parents being updated. Due the same reason the minimum weight edge found for each component (head) by find min step is stored in a fixed size atomic list with the edges of old heads just being ignored. To quickly find the next unused minimum weight edge for each vertex there is another fixed atomic list $vertexEdge$ storing the index such edge, which is incremented when an edge is skipped or used. A vertex is a head if it is its own head, but to allow quick iteration over current heads instead of having to go over all vertices the heads are stored in a separate list.
 
-TODO switched from task per vertex, why, how it looked previously.
+The parallelization of the find min step was slightly changed during implementation, because for a large number of vertices repeatedly launching a task for each vertex is expensive in GAP and adds quite a bit of overhead. Therefore instead of having a task per vertex in min step, the vertices were split into equal groups according to the number of processors available. Similarly as in parallel BFS, different functions from number of processors $P$ to the number of used groups $K$ were tried.
+This approach still should achieve high parallelism. Because there is roughly equal amount of work to be done for each vertex and therefore grouping them in large enough number of groups should not cause imbalanced use of processors. The necessary read-write locks in the find min step are implemented by having a list of empty lists for each vertex/head and locking that when its minimum weight edge is being changed.
 
-IMMUTABLE ELEMENTS CANT BE USED AS LISTS.
+TODO This is how the list approach would have worked, unclear if it would have been better.
 
 \section{Experiments and Evaluation}
 
@@ -646,25 +660,23 @@ TODO
 
 \subsection{Serial MST}
 
-TODO
+Serial experiments for MST captured the average MST weight for random graphs with varied vertex count and density. To ensure uniform and comparable results MST was run on a connected graph, since Prim's algorithm out of the box works only for connected graphs. Note the implementation tested here does not have the optimization of only having one edge per vertex in the heap, since it was not implemented yet at the time when this set of experiments was run.
 
-Serial experiments for BFS captured the execution time, the number of connected components (subgraphs) and average depth for random graphs with varied vertex count and density. To ensure uniform and comparable results BFS was run on all connected components of a graph, because then the number of found visited vertices by BFS is constant - all vertices. It was done by marking the found vertices by BFS and running it on a yet not found vertex until all vertices are found.
+The used graphs had vertex counts of 100, 250, 500, 750, 1000 and densities of 0.01, 0.05, 0.1, 0.5, 1. For each pair of vertex count and density 100 graphs were generated on which the experiments were run.
 
-
-
-\includegraphics[width=\textwidth]{../experiments/plots/SCC_time}
-
-\includegraphics[width=\textwidth]{../experiments/plots/SCC_components}
+TODO where these results can be found.
 
 \includegraphics[width=\textwidth]{../experiments/plots/MST_time}
 
+This graph displays that in practice Prim's algorithm is linear against the number of edges and the measurements are really price again, as the error bars show.
+
 \includegraphics[width=\textwidth]{../experiments/plots/MST_weight}
 
-\includegraphics[width=\textwidth]{../experiments/plots/SP_time}
+This graph shows that the higher density the smaller the weight of the MST is, because there are more edges to pick from and the possible weight values range from 1 to number of vertices.
 
-\includegraphics[width=\textwidth]{../experiments/plots/MC_time}
+TODO the 8 by 5 speedup.
 
-\includegraphics[width=\textwidth]{../experiments/plots/MC_colors}
+TODO switched implementation style from rerunning gap when changing stuff, impl. because reading graphs takes time. seperate experiments at first.
 
 \chapter{Conclusions}
 
@@ -673,6 +685,8 @@ TODO
 You should summarise your project, emphasising your key achievements
 and significant drawbacks to your work, and discuss future directions your
 work could be taken in.
+
+TODO boruvka works on not conncted graphs, ADVATNGE (out of the box).
 
 \chapter{Appendices}
 
