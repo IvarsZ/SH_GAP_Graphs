@@ -25,26 +25,29 @@ compareBFS := function()
         if GAPInfo.KernelInfo.NUM_CPUS = 1 then
           result := timeFunction(BFS, [graph, 1]);
           Print("bfs ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, "\n");
-        fi; 
-
-        result := timeFunction(BFSP, [graphP, 1]);
-        Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "double", "\n");
+        fi;
         
-        BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS);
-        result := timeFunction(BFSP, [graphP, 1]);
-        Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "single", "\n");
-        
-        BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*10);
-        result := timeFunction(BFSP, [graphP, 1]);
-        Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "tenTimes", "\n");
-        
-        BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
         result := timeFunction(BFSP, [graphP, 1]);
         Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "square", "\n");
+
+        #result := timeFunction(BFSP, [graphP, 1]);
+        #Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "double", "\n");
         
-        BFSP_REC.TASKS_COUNT := NextPrimeInt(vertexCount);
-        result := timeFunction(BFSP, [graphP, 1]);
-        Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "one", "\n");
+        #BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS);
+        #result := timeFunction(BFSP, [graphP, 1]);
+        #Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "single", "\n");
+        
+        #BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*10);
+        #result := timeFunction(BFSP, [graphP, 1]);
+        #Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "tenTimes", "\n");
+        
+        #BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
+        #result := timeFunction(BFSP, [graphP, 1]);
+        #Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "square", "\n");
+        
+        #BFSP_REC.TASKS_COUNT := NextPrimeInt(vertexCount);
+        #result := timeFunction(BFSP, [graphP, 1]);
+        #Print("bfsp ", vertexCount, " ", edgeCount, " ", result[1], " ", GAPInfo.KernelInfo.NUM_CPUS, " ", "one", "\n");
       od;
     od;
   od;

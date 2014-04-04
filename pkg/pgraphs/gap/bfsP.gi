@@ -1,5 +1,5 @@
 BFSP_REC := AtomicRecord(2); # Atomic to have access to task count in threads.
-BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS*2);
+BFSP_REC.TASKS_COUNT := NextPrimeInt(GAPInfo.KernelInfo.NUM_CPUS^2);
 
 #
 # Returns the vertices of the given graph in a breadth first search order

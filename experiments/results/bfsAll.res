@@ -1,3 +1,4 @@
+type vertexCount edgesPerVertex time pCount kFunction
 bfsp 10 1 136640 2 double
 bfsp 10 1 96000 2 single
 bfsp 10 1 566400 2 tenTimes
