@@ -1,3 +1,4 @@
+type vertexCount edgesPerVertex time weight pCount kFunction
 mst 10 1 16064 24 1
 mstPrims 10 1 15616 24 1
 mstp 10 1 550400 24 1 tenTimes

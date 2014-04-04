@@ -1,6 +1,6 @@
 # Record for private members.
 MSTP_REC := AtomicRecord(6); # Atomic to have access to task count in threads.
-MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS*10;
+MSTP_REC.TASKS_COUNT := GAPInfo.KernelInfo.NUM_CPUS*2;
 
 InstallGlobalFunction(MinimumSpanningTreeP, function(graph)
   local vertexCount, vertexHead, vertexParent, vertexEdge, head, heads, headEdge, newHeads, vertex, task, tasks, edge, edges, head2, edge2, headLock, vertexPartitions, startV, endV, partitionSize, vertexPartition, vertices, partitionCount;
