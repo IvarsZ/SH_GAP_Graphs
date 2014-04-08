@@ -7,6 +7,7 @@
 \usepackage{amssymb}
 \usepackage{listings}
 \usepackage{graphicx}
+\usepackage{url}
 
 \theoremstyle{plain}
 \newtheorem{theorem}{Theorem}
@@ -25,29 +26,41 @@
 \newtheorem*{note}{Note}
 \newtheorem{case}{Case}
 
-\title{Parallelising graph algorithms in HPC-GAP}
-\author{Ivars Zubkans \\ \small Supervised by: Steve Linton}
+\title{Parallelising graph algorithms in HPC-GAP \\ \vspace{2 mm} {\large University of St Andrews}}
+\author{Ivars Zubkans \\ \small Supervised by: Prof. Stephen Linton}
 
 \begin{document}
 
 \maketitle
 
 \begin{abstract}
-[WILL WRITE AT THE END]
+The GAP system for computational discrete algebra did not have a general purpose package for graphs and graph theoretic algorithms. Moreover, parallelism capabilities were recently added in a high performance version of GAP. Therefore, this project implements a general purpose package for working with graphs. In addition, it is explored how the implemented algorithms can be modified to suit parallel execution. With the aim of having parallel implementations that scale with increase in number of processors and are faster than their serial counterparts, the parallel minimum spanning tree implementation partially scales with increase in number of processors and has a smaller scaling factor than its serial counterpart. The parallel breadth first search implementation did not scale very well with additional processors, but it is as fast as its serial counterpart for large graphs.
 \end{abstract}
 
 \chapter*{Declaration}
-[COPY-PASTE FROM HANDBOOK]
+I declare that the material submitted for assessment is
+my own work except where credit is explicitly given to others
+by citation or acknowledgement. This work was performed during
+the current academic year except where otherwise stated.
+The main text of this project report is 10037 words long,
+including project specification and plan.
+Declaration
+In submitting this project report to the University of St Andrews,
+I give permission for it to be made available for use in
+accordance with the regulations of the University Library. I
+also give permission for the title and abstract to be published and
+for copies of the report to be made and supplied at cost to any bonafide library or research worker, and to be made available on the
+World Wide Web. I retain the copyright in this work.
 
 \tableofcontents
 
 \chapter{Introduction}
 
-Efficient implementations of graph theory algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}. The aim of the project was to implements serial and parallel versions of graph algorithms in GAP and explore the possible performance gains of parallel implementations.
+Efficient implementations of graph theoretic algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}. The aim of the project was to implements serial and parallel versions of graph algorithms in GAP and explore the possible performance gains of parallel implementations.
 
-The GAP (www.gap-system.org) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
+The GAP (\url{www.gap-system.org}) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
 
-Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each cpu has its own private memory. All of the current implementations in GRAPE are non-parallel.
+Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each central unit of processing (CPU) has its own private memory. All of the current implementations in GRAPE are non-parallel.
 
 Two GAP packages were made for serial and parallel implementations, so each made package is a self-contained extension to the core system of GAP. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. Then their performance was analysed and compared.
 
@@ -55,7 +68,7 @@ Two GAP packages were made for serial and parallel implementations, so each made
 
 \section*{Basic definitions}
 
-[Should go to maths, but having definitions here would be nice too]
+[This section mostly overlaps with the mathematics submission and therefore is here only for reference]
 
 \begin{definition}[Graph]
 A $graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
@@ -87,11 +100,11 @@ Let $G = (V, E, ends)$ be a graph, then $G$ is simple if
 \end{definition}
 
 \begin{definition}[Directed graph]
-A $directed graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
+A $directed \ graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
   \begin{equation}
   ends:E\to V \times V
   \end{equation}
-which assigns to each element of $E$ a pair two elements of $V$ .
+which assigns to each element of $E$ a pair of two elements of $V$ .
 \end{definition}
 
 Note graphs that are not directed (graphs according the previous definition) are also called $undirected$ graphs and the only difference is that the order of elements in the range of ends function is important, i.e edges have a direction. All the definitions in this section are applicable to directed graphs with the obvious change of sets to ordered pairs of vertices.
@@ -109,15 +122,15 @@ A graph is dense if the its density is close to 1 and sparse if it is close to 0
 \section*{Minimum Spanning Tree}
 
 \begin{definition}[Path]
-Let $G = (V, E, ends)$ be a graph, then a $path$ on $G$ is a sequence $P$ of vertices $v_1,v_2,..,v_n$ such that $v_i$ and $v_{i+1}$ are adjacent for $1 \leq i \leq n - 1$, we say that $P$ is a path between $v_1$ and $v_n$.
+Let $G = (V, E, ends)$ be a graph, then a $path$ in $G$ is a sequence $P$ of vertices $v_1,v_2,..,v_n$ such that $v_i$ and $v_{i+1}$ are adjacent for $1 \leq i \leq n - 1$, we say that $P$ is a path between $v_1$ and $v_n$.
 \end{definition}
 
 \begin{definition}[Cycle]
-Let $G = (V, E, ends)$ be a graph, then a $path$ on $G$ is a sequence of vertices $v_1,v_2,..,v_n$ such that $v_i$ and $v_{i+1}$ are adjacent for $1 \leq i \leq n - 1$ and $v_1=v_n$.
+Let $G = (V, E, ends)$ be a graph, then a $cycle$ on $G$ is a sequence of vertices $v_1,v_2,..,v_n$ such that $v_i$ and $v_{i+1}$ are adjacent for $1 \leq i \leq n - 1$ and $v_1=v_n$.
 \end{definition}
 
 \begin{definition}[Connected]
-Let $G = (V, E, ends)$ be a graph, then a $G$ is connected if there exists a path between any pair of vertices in $V$.
+Let $G = (V, E, ends)$ be a graph, then a $G$ is $connected$ if there exists a path between any pair of vertices in $V$.
 \end{definition}
 
 \begin{definition}[Tree]
@@ -126,15 +139,14 @@ A graph $T = (V, E, ends)$ is a $tree$ if
 \item $T$ is connected,
 \item $T$ has no cycles,
 \end{itemize}
-and $e \in E$ be an edge , then $e$ is a $loop$ if $ends(e) = \{v\}$ for some vertex $v \in V$.
 \end{definition}
 
 \begin{definition}[Subgraph]
-Let $G = (V_G, E_G, ends_G)$ be a graph, then a subgraph of $G$ is graph $H = (V_H, E_H, ends_H)$ where $V_H \subseteq V_G$, $E_H \subseteq E_G$, $ends_H \subseteq ends_G$.
+Let $G = (V_G, E_G, ends_G)$ be a graph, then a subgraph of $G$ is a graph $H = (V_H, E_H, ends_H)$ where $V_H \subseteq V_G$, $E_H \subseteq E_G$, $ends_H \subseteq ends_G$.
 \end{definition}
 
 \begin{definition}[Spanning Tree]
-Let $G = (V, E, ends)$ be a connected graph then a spanning tree $T$ of $G$ is a subgraph $G$ such that
+Let $G = (V, E, ends)$ be a connected graph then a spanning tree $T$ of $G$ is a subgraph of $G$ such that
 \begin{itemize}
 \item $T$ is a tree,
 \item For every $v \in V$ there exists $e \in T$ such that $v \in ends(e)$, i.e every vertex belongs to at least one edge.
@@ -177,12 +189,9 @@ Let $G = (V, E, ends)$ be a graph and $P=v_1,v_2,..,v_n$ be a sequence of vertic
   \item Serial implementations, which work with the regular GAP version, of:
   \begin{itemize}
     \item graph traversal algorithms
-    \item path finding algorithms
     \item minimum spanning tree algorithms
-    \item graph colouring algorithms
-    	\item connected components in (un)directed graphs
   \end{itemize}
-  \item Parallel implementations for some of the above algorithms using HPC-GAP.
+  \item Parallel implementations for the above algorithms using HPC-GAP.
   \item Performance analysis of these implementations and a comparison between the serial and parallel versions.
 \end{enumerate}
 
@@ -195,11 +204,13 @@ Have a GAP package for serial versions of algorithms that are compatible with re
 \item[Minimum Spanning Tree] for a given weighted graph $W$ should return a list of edges of a minimum spanning tree of $W$, where each edge is specified by its starting vertex, end vertex and weight.
 \end{description}
 
-Have another GAP package for parallel versions of breadth first search and minimum spanning tree algorithms that again are loadable using standard package loading mechanism and follow the standard GAP package guidelines, but this time use the features of HPC-GAP to achieve parallelism.
+Have another GAP package for parallel versions of breadth first search and minimum spanning tree algorithms that again are loadable using standard package loading mechanism and follow the standard GAP package guidelines, but this time use the features of HPC-GAP to achieve parallelization.
+
+Have a test suite for generating random graphs and executing time and other measurements of the implemented algorithms.
 
 \section{Software engineering process}
  
-The used methodology was iterative incremental development. The system was developed in increments, usually an algorithm by algorithm, before proceeding to the development of the next increment. The increments were grouped by the GAP packages, where the serial package was worked on and finished first, since it is easier to implement and as a way of gaining the required experience for implementing the parallel package. Increments themselves were iteratively improved in a implementation-feedback cycle. The used cycle length was one week where the supervision meetings were used to gather feedback and plan development for the next cycle.
+The used methodology was iterative incremental development. The system was developed in increments, usually on algorithm by algorithm basis, before proceeding to the development of the next increment. The increments were grouped by the GAP packages, where the serial package was worked on and finished first, since it is easier to implement and as a way of gaining the required experience for implementing the parallel package. Increments themselves were iteratively improved in an implementation-feedback cycle. The used cycle length was one week where the supervision meetings were used to gather feedback and plan development for the next cycle.
 
 Test driven development was used where the tests for algorithm implementations were written first and used to guide their implement. Of course version control was used - all the work was uploaded to the schools mercurial repository. Because it simplifies tracking and reversing changes when necessary, provides back ups and allows sharing the code easily.
 
@@ -211,23 +222,23 @@ There were no ethical issues raised by this project.
 
 \section{Design}
 
-The serial and parallel algorithms were split into two GAP packages - a set of user contributed programs that can be distributed with GAP. The serial algorithms are in a package called $graphs$ an parallel algorithms are in a package called $pgraphs$. Both packages are completely independent and can be simultaneously loaded using GAP's standard package loading mechanism. It was done so that the serial package would be available to regular non-HPC GAP installations, but both could be used in HPC-GAP.
+The serial and parallel algorithms were split into two GAP packages - sets of user contributed programs that can be distributed with GAP. The serial algorithms are in a package called $graphs$ and parallel algorithms are in a package called $pgraphs$. Both packages are completely independent and can be simultaneously loaded using GAP's standard package loading mechanism. It was done so that the serial package would be available to regular non-HPC GAP installations, but both could be used in HPC-GAP.
 
-The graphs in both packages are represented using adjacency lists, i.e. the graph is a list of lists storing the adjacent vertices for each vertex of the graph. An alternative approach would have been using adjacency matrix. The adjacency matrix of a finite graph $G$ of $n$ vertices is the $n\times n$ matrix where the non-diagonal entry $a_i,j$ is the number of edges from vertex represented by i to vertex represented by j, and the diagonal entry $a_i,i$ is twice the number of edges (loops) from vertex i to itself. In case of simple graphs all entries are 0 or 1. Adjacency lists were chosen because they use much less memory for sparse graphs, a graph in which the number of edges is much smaller compared to the maximal number of edges, as no space is wasted to represent non-existing edges. This is important to allow implementations to deal with large sparse graphs. Moreover, none of the implemented algorithms required to determine if two vertices are adjacent, which is the main advantage of adjacency matrix. Instead all algorithms were finding all adjacent vertices of a given vertex, which is simpler and more efficient with adjacency lists.
+The graphs in both packages are represented using adjacency lists, i.e. the graph is a list of lists storing the adjacent vertices for each vertex of the graph. An alternative approach would have been using adjacency matrix. The adjacency matrix of a finite graph $G$ of $n$ vertices is the $n\times n$ matrix where the non-diagonal entry $a_{i,j}$ is the number of edges from vertex represented by i to vertex represented by j, and the diagonal entry $a_{i,i}$ is twice the number of edges (loops) from vertex i to itself. In the case of simple graphs all entries are 0 or 1. Adjacency lists were chosen because they use much less memory for sparse graphs,  as no space is wasted to represent non-existing edges. This is important to allow implementations to deal with large sparse graphs. Moreover, none of the implemented algorithms required to determine if two vertices are adjacent, which is the main advantage of adjacency matrix. Instead all algorithms are finding all adjacent vertices of a given vertex, which is simpler and more efficient with adjacency lists.
 
-For graphs with weights there is an additional list of lists storing the weights of edges. For a vertex with index v with adjacent vertex $w$ that is the i-th entry in v's adjacency list , the weight of the edge between them is the i-th entry of the v's weights list (the v-th list in the list of lists of weights).
+For graphs with weights there is an additional list of lists storing the weights of edges. For a vertex with index $v$ with adjacent vertex $w$, that is the i-th entry in v's adjacency list, the weight of the edge between them is the i-th entry of the v's weights list (the v-th list in the list of lists of weights).
 
 \subsection{Graph Generation Design}
 
-To carry out experiments and measure the performance it was necessary to generate some random graphs to test the implementations on. The generated graphs followed the Erdős–Rényi model denoted by $G_{n,p}$, which has $n$ vertices and in which each edge between two vertices has independent probability of being present, and chance of $1-p$ of being excluded. This model has the advantages of being easy to implement and allows to easily control the density of the graph as well. The disadvantages of this model are that it does not represent real-world networks such as social networks and Internet realisticly, since it does not have large clusters and follows an unrealistic Poissonian degree distribution \cite{newman20062}.
+To carry out experiments and measure the performance it was necessary to generate some random graphs to test the implementations on. The generated graphs followed the Erdős–Rényi model denoted by $G_{n,p}$, which has $n$ vertices and in which each edge between two vertices has independent probability of being present, and chance of $1-p$ of being excluded \cite{newman20062}. This model has the advantages of being easy to implement and allows to easily control the density of the graph as well. The disadvantages of this model are that it does not represent real-world networks such as social networks and Internet realisticly, since it does not have large clusters and follows an unrealistic Poissonian degree distribution \cite{newman20062}.
 
 To generate a $G_{n,p}$ graph one goes over all pairs of vertices and for each pair $v,w$ generates a random number $r$ in $(0..1)$ and if $r < p$ then an edge from $v$ to $w$ is added, if the generated graph is undirected then one can only consider pairs where the first vertex is smaller than the second and add an edge in both directions if the implementation requires it. Some of the experiments and algorithms required the graph to be connected this was achieved by arranging vertices in a random sequence $v_1,v_2,..,v_n$ and adding edges from $v_1$ to $v_2$, from $v_2$ to $v_1$ and so on until adding an edge from $v_{n-1}$ to $v_n$  before adding the other random edges and recording them to avoid repeated edges.
 
-To generate a graph with weights just a random weight is generated for each edge. The possible weight values range from 1 to number of vertices, because it allows a wide range of graphs where likely most edges do not have equal weight.
+To generate a graph with weights, simply a random weight is generated for each edge. The possible weight values range from 1 to the number of vertices, because it allows a wide range of graphs where it is likely that most edges do not have equal weight.
 
 \section{Implementation}
 
-The serial graphs package "graphs" is in the directory graphs, and the parallel graphs package "pgraphs" is in the directory pgraphs. Their layout follows the standard GAP package layout of:
+The serial graphs package $graphs$ is in the directory graphs, and the parallel graphs package $pgraphs$ is in the directory pgraphs. The standard GAP package layout is used:
 
 \begin{lstlisting}
 package/
@@ -241,18 +252,18 @@ package/
   makedoc.g
 \end{lstlisting}
 
-The only change is that the directory containing the source code of the package (gap/ directory) is usually named src/, but the used AutoDoc package required the source to be in a directory named gap. The documentation can be generated by executing the makedoc.g file in GAP.
+The only change is that the directory containing the source code of the package (gap/directory) is usually named src/, but the used AutoDoc package required the source to be in a directory named gap. The documentation can be generated by executing the makedoc.g file in GAP.
 The PackageInfo.g file contains meta-information about packages (name, author, ...). The doc folder contains documentation and the tst folder contains tests files of the package, inside it there is a file testAll.test that runs all of the tests.
 
-Init.g file loads the "declaration" part of packages, it consists of files that declare functions, variables names and object categories usually denoted by ".gd" extension. Read.g file loads the "implementation" part of the package, it consists of fless that provide actual definitions of the functions, variables declared in the "declaration" part and representation for object categories.
+Init.g file loads the ``declaration'' part of packages, it consists of files that declare functions, variables names and object categories usually denoted by ``.gd'' extension. Read.g file loads the "implementation" part of the package, it consists of files that provide actual definitions of the functions, variables declared in the "declaration" part and representation for object categories.
 
-In GAP objects are organized in categories so there is category defined for each of serial graphs, parallel graphs, serial weighted graphs and parallel weighted graphs. Moreover the weighted graphs are a subcategory of graphs, as functions applicable to graphs are applicable to weighted graphs. The provided functions for graphs allow creating an empty graph, create a graph from an adjacency list, add vertices and edges to a graph, get vertex and edge counts, get a list of adjacent vertices of a vertex in graph or the i-th adjacent vertex. In addition weighted graphs have functions for finding weights of edges. All of these operations are fairly simple manipulations of the adjacency lists and/or weights lists.
+In GAP objects are organized in categories so there are categories defined for each of serial graphs, parallel graphs, serial weighted graphs and parallel weighted graphs. Moreover the weighted graphs are a subcategory of graphs, as functions applicable to graphs are applicable to weighted graphs. The provided functions for graphs allow creating an empty graph, create a graph from an adjacency list, add vertices and edges to a graph, get vertex and edge counts, get a list of adjacent vertices of a vertex in graph or the i-th adjacent vertex. In addition weighted graphs have functions for finding weights of edges. All of these operations are fairly simple manipulations of the adjacency lists and/or weights lists.
 
 To make the parallel graph implementation thread safe and avoid having to use locks every time when a graph was used the adjacency and weight lists were made atomic. An atomic list in HPC-GAP is just like a plain list, except that it cam be accessed by multiple threads concurrently without requiring explicit synchronization. The used replacement policy for adjacency and weight lists was rewritable to allow modifying the graphs if needed (like changing a weight of an edge).
 
-Generally parallel execution in HPC-GAP is achieved using tasks. A tasks is an asynchronously or synchronously executing jobs. In HPC-GAP there are functions to create tasks that are executed concurrently, on demand, or in the current thread. So to achieve parallel execution a task is created and executed concurrently to the current thread by using RunTask method. The WaitTask function can be used for synchronization, it blocks the current thread until the task specified in WaitTask is done. The returned computation results can be accessed by using TaskResult function, which does an implicit WaitTask.
+Generally parallel execution in HPC-GAP is achieved using tasks. A task is an asynchronously or synchronously executing jobs. In HPC-GAP there are functions to create tasks that are executed concurrently, on demand, or in the current thread. So to achieve parallel execution a task is created and executed concurrently to the current thread by using RunTask method. The WaitTask function can be used for synchronization, it blocks the current thread until the task specified in WaitTask is done. The returned computation results can be accessed by using TaskResult function, which does an implicit WaitTask.
 
-In this project most of the required parallel execution was in the form of for loops such as for each vertex $v$ of the graph $G$ execute a function $f$ in parallel. A parallel for loop can be simulated in the way shown below:
+In this project most of the required parallel execution was in the form of for-loops such as for each vertex $v$ of the graph $G$ execute a function $f$ in parallel. A parallel for-loop can be simulated in the way shown below:
 
 \begin{lstlisting}
 tasks := [];
@@ -267,11 +278,11 @@ WaitTasks(tasks);
 
 Initially the graphs were generated on the fly in GAP as they were needed  using a specific random seed to ensure repeatability, the downside of this approach was that it took a long time to generate those graphs and often the bottleneck in the experiments would be the graph generation. Moreover the experiments involving parallel algorithms needed to be run using a different number of processors, which requires restarting GAP and thus resulted in having to generate the graphs again. Therefore the generated graphs were written to files and read from them when necessary.
 
-First the graphs were generated and written to files using GAP, but that proved to be time too consuming. Generating and writing a graph with one million vertices took more than 30 hours no matter how low the density/edge-probability was. Thus it was decided to use C instead for generating the graphs. There is a C library called igraph for manipulating and generating graphs, which was able to generate $G_{n,p}$ graphs and thus was used. Although it was still necessary to format the graphs to make them readable by GAP, make them connected and add weights if needed, which was done the same way as discussed above. Switching to igraph reduced the generation time by multiple orders, especially for sparse graphs. This allowed to execute experiments on larger datasets, although having to read them in GAP still remained as a bottleneck slowing them down.
+At the start the graphs were generated and written to files using GAP, but that proved to be too time consuming. Generating and writing a graph with one million vertices took more than 30 hours no matter how low the density/edge-probability was. Thus it was decided to use C instead for generating the graphs. There is a C library called igraph (\url{http://igraph.sourceforge.net/}) for manipulating and generating graphs, which was able to generate $G_{n,p}$ graphs and thus was used. Although it was still necessary to format the graphs to make them readable by GAP, make them connected and add weights if needed, this was done the same way as discussed above. Switching to igraph reduced the generation time by multiple orders, especially for sparse graphs, resulting in generation time for a graph of million vertices under an hour. This allowed to execute experiments on larger datasets, although having to read them in GAP still remained as a bottleneck slowing them down.
 
 \section{Experiments}
 
-To measure the performance of both serial and parallel implementations and compare them, experiments were run measuring execution time and capturing parameters about the used graphs. To measure execution time of a function it is repeated until its total running time is over a certain threshold (200 ms) to ensure that the impreciseness of time measurements does not have a significant effect. Moreover between time measurements the garbage collector is called to minimize the chance of it running during measurements. The varied parameters in experiments were the number of vertices, average number of edges per vertex (density) and the number of processors used for parallel implementations.
+To measure the performance of both serial and parallel implementations and compare them, experiments were run measuring execution time and capturing parameters about the used graphs. To measure execution time of a function, the function is repeated until its total running time is over a certain threshold (200 ms) to ensure that the impreciseness of time measurements does not have a significant effect. Moreover between time measurements the garbage collector is called to minimize the chance of it running during measurements. The varied parameters in experiments were the number of vertices, the average number of edges per vertex (density), and the number of processors used for parallel implementations.
 
 The experiments for the serial versions were also tested separately, because the serial package was implemented first and it was a good way for testing out running experiments, verifying algorithms and finding out more information about the generated graphs.
 
@@ -282,34 +293,32 @@ The code for generating graphs and running experiments can be found in the exper
 \item[onlySerialExperiments.gap] file contains experiments but only for all the serial implementations.
 \item[bfsExperiments.gap] file contains experiments for breadth first search, both serial and parallel.
 \item[mstExperiments.gap] file contains experiments for minimum spanning trees, both serial and parallel.
-\item[c\_generators$\backslash$generate\_graphs.c] file in contains the C code for generating and writing graphs to files.
+\item[c\_generators$\backslash$generate\_graphs.c] file contains the C code for generating and writing graphs to files.
 \end{description}
 
-TODO switched implementation style from rerunning gap when changing stuff, impl. because reading graphs takes time. seperate experiments at first.
+Currently there are two implementation of serial minimum spanning trees in the serial package - implementation of Prim's algorithm and modified Boruvka's. This is done to compare both implementations without reloading GAP, as reading graps from text files takes considerable time in GAP.
 
-TODO process results in R what exatly used for - plots, and?
-
-TODO plotting errors/precision. Confidence interval shit like that.
+The statistics package R (\url{http://www.r-project.org/}) was used to process the results of experiments. It was used to slice the data, calculate variance and errors and to generate plots.
 
 \chapter{Breadth First Search}
 
 \section{Context Survey}
 
-Breadth first search (BFS) was discovered by Moore and Lee in independently more than 50 years ago. Moore discovered it while working on finding paths through mazes, meanwhile Lee made the discovery while working on routing wires on circuit boards \cite{cormen2001introduction}. This already shows that breadth first search has a wide range of applications. It uses a First-In-First-Out (FIFO) queue, where all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered \cite{c++_sedgewick}.
+Breadth first search (BFS) was discovered by Moore and Lee in independently more than 50 years ago. Moore discovered it while working on finding paths through mazes, Lee instead made the discovery while working on routing wires on circuit boards around the same time \cite{cormen2001introduction}. This already shows that breadth first search has a wide range of applications. It uses a First-In-First-Out (FIFO) queue, where all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered \cite{c++_sedgewick}.
 
-Since the discovery of breadth-first search a variety of parallel BFS algorithms have been developed. For our purposes shared non-external memory algorithms \cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel} were considered, all of them use layer synchronization (next layers is visited only when previous is finished) and reported a speed up compared to a a serial implementation for some number of processors.
+Since the discovery of breadth-first search a variety of parallel BFS algorithms have been developed. For our purposes shared non-external memory algorithms \cite{Leiserson, bader2006designing, cong2008solving, zhang2006parallel} were considered, all of which use layer synchronization (next layers is visited only when previous is finished) and reported a speed up compared to a serial implementation for some number of processors.
 
-The implementation of \cite{Leiserson} is in Cilk++ and replaces standard queue with a multiset data structure, called a "bag" consisting of pennants. A pennant is a tree whose root has only one child node, say only left child, which is a complete binary tree of size $2^k-1$ for some non-negative integer $k$. So the pennant has exactly $2^k$ nodes. The bag itself is a fixed-size array $B[0..r]$, where $2^{r+1}$ is larger than the total number of vertices ever stored in it, i.e. the number of vertices of the graph. Each of the entries $B[i]$ is either a null pointer or a pennant of size exactly $2^i$. Therefore the bag in a way is similar to a binary representation of some integer. The bag's structure allows quick splitting and merging of vertices when distributing vertices between threads and merging results. The merging is similar to binary addition while merging is similar to arithmetic right shift.
+The implementation of \cite{Leiserson} is in Cilk++ and replaces standard queue with a multiset data structure, called a ``bag'' consisting of pennants. A pennant is a tree whose root has only one child node, say only the left child, which is a complete binary tree of size $2^k-1$ for some non-negative integer $k$. So the pennant has exactly $2^k$ nodes. The bag itself is a fixed-size array $B[0..r]$, where $2^{r+1}$ is larger than the total number of vertices ever stored in it, i.e. the number of vertices of the graph. Each of the entries $B[i]$ is either a null pointer or a pennant of size exactly $2^i$. Therefore the bag in a way is similar to a binary representation of some integer. The bag's structure allows quick splitting and merging of vertices when distributing vertices between threads and merging results. The merging is similar to binary addition while splitting is similar to arithmetic right shift.
 
-The implementation by \cite{bader2006designing} examines every vertex in a layer and its adjacent vertices in parallel using thread-safe insertions to the queue and atomic updates of vertex distance from root, but their algorithm depends on the Cray MTA-2 system and uses its built in load balancing and doesn't work well for sparse high-diameter graphs.
+The implementation by \cite{bader2006designing} examines every vertex in a layer and its adjacent vertices in parallel. It uses thread-safe insertions to the queue and atomic updates of vertex distance from root, but their algorithm depends on the Cray MTA-2 system and uses its built-in load balancing and doesn't work well for sparse high-diameter graphs.
 In \cite{cong2008solving} each thread keeps a local queue, and gets an equal portion of vertices of the current layer while allowing repetitive appearances, but it depends on the features of XWS framework and detailed implementation isn't given.
-In \cite{zhang2006parallel} again each thread has its own list of layer's vertices to examine. All working threads are arranged in a ring topology in which each thread splits off a part of its vertices and gives them to a neighbour thread if it has run out of vertices to examine.
+In \cite{zhang2006parallel}, again, each thread has its own list of layer's vertices to examine. All working threads are arranged in a ring topology in which each thread splits off a part of its vertices and gives them to a neighbour thread if it has run out of vertices to examine.
 
 This project's implementation is loosely based on \cite{Leiserson} as it uses layer synchronization and a different data structure from a queue, but a simpler mechanism than bags with constant merging/splitting is used to distribute vertices and merge results.
 
 \section{Serial BFS Design}
  
-The standard approach with a queue is used by adding all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered. A queue is a data structure that allows two operations. First is adding elements to its end, called $enqueue$. Second, removing and returning elements from its front called $dequeue$. Thus the first added element is always the first one to be removed.
+The standard approach with a queue is used. It works by adding all adjacent undiscovered vertices of the vertex being visited to the queue (enqueuing them) and marking as discovered. A queue is a data structure that allows two operations. First is adding elements to its end, called $enqueue$. Second, removing and returning elements from its front called $dequeue$. Thus the first added element is always the first one to be removed.
 
 \subsection*{Pseudo Code}
 
@@ -329,35 +338,31 @@ def BFS(G, v)
 end
 \end{lstlisting}
 
-TODO - EXAMPLE.
-
 \section{Serial BFS Implementation}
 
-GAP does not have a built in queue data structure, therefore plain GAP list was used, a list in GAP is similar to resizable arrays in other programming languages say ArrayList in Java. In addition an integer variable $queueStart$ for recording the start of the queue was used. When an element is dequeued from the queue, the $queueStart$ is incremented by one effectively removing the first element of the queue. When an element is enqueued it is just added to the end of the list. This approach was chosen because it is simple and effective, the only downside is that one has to remember to increment the $queueStart$ when dequeuing an element. For marking already discovered vertices a plain boolean list was used, because those use only 1 bit for each entry and is much more compact.
+GAP does not have a built in queue data structure, therefore a plain GAP list was used, a list in GAP is similar to resizable arrays in other programming languages (e.g. ArrayList in Java). In addition an integer variable $queueStart$ for recording the start of the queue was used. When an element is dequeued from the queue, the $queueStart$ is incremented by one effectively removing the first element of the queue. When an element is enqueued it is just added to the end of the list. This approach was chosen because it is simple and effective, the only downside is that one has to remember to increment the $queueStart$ when dequeuing an element. For marking already discovered vertices a plain boolean list was used, because those use only 1 bit for each entry which is much more compact.
 
 \section{Parallel BFS Design}
 
-Similarly to other approaches my design is based on the idea that a layer of vertices can be processed in parallel to find vertices of the next layer. A layer is a set of all vertices of equal minimal distance $d$ from the starting vertex and its next layer is a set of all vertices with minimal distance $d + 1$ from the starting vertex. So the search is done layer by layer with synchronisation between layers by visiting all vertices in the current layer in parallel and adding their adjacent vertices that haven't been discovered yet to the next layer.
+Similarly to other approaches my design is based on the idea that a layer of vertices can be processed in parallel to find vertices of the next layer. A layer is a set of all vertices of equal minimal distance $d$ from the starting vertex and its next layer is a set of all vertices with minimal distance $d + 1$ from the starting vertex. So the search is done layer by layer with synchronisation between layers by visiting all vertices in the current layer in parallel and adding their adjacent vertices that have not been discovered yet to the next layer.
 
-Now such parallel processing has a two potential problems. First, if two vertices $v$ and $u$ of the current layer both have a common adjacent vertex $w$ in its next layer, then $w$ can be added to the next layer multiple times. Second, multiple threads will try to add vertices to the next layer simultaneously, resulting in a bottleneck.
+Now, such parallel processing has two potential problems. First, if two vertices $v$ and $u$ of the current layer both have a common adjacent vertex $w$ in its next layer, then $w$ can be added to the next layer multiple times. Second, multiple threads will try to add vertices to the next layer simultaneously, resulting in a bottleneck.
 
-The first issue is resolved in  the same manner as in serial version by marking vertices as discovered when they are added to the next layer and thus not adding them again if they are marked as discovered. There can still be a race condition when a vertex is marked as undiscovered for two threads adding it to the next layer, which can be solved using a lock. But I opted not to use one, since it happens very rarely and the only actual problem is that such a vertex is processed multiple times, which should be a much smaller cost than using locks, since its adjacent vertices are not added multiple times unless the race condition happens again.
+The first issue is resolved in the same manner as in the serial version by marking vertices as discovered when they are added to the next layer and thus not adding them again if they are already marked as discovered. There can still be a race condition when a vertex is marked as undiscovered for two threads adding it to the next layer, which can be solved using a lock. I opted not to use a lock, since it happens very rarely and the only actual problem is that such a vertex is processed multiple times, which should be a much smaller cost than using locks, since its adjacent vertices are not added multiple times unless the race condition happens again.
 
-To resolve the second issue, instead of using complicated data structures \cite{Leiserson}, a simpler approach was tried. Where one queue holding all the vertices of the next layer is essentially replaced by multiple queues, so that multiple threads could add vertices to the next layer simultaneously. But instead of each thread having its own local queue \cite{cong2008solving, zhang2006parallel}, any thread can add to any global queue. The advantage is that it allows to balance the queue sizes. Because, if each thread has its own queue, and one thread happens to process vertices with a higher number of undiscovered adjacent vertices, then it can lead to some queues being much larger than others thus resulting in unbalanced load when processing the next layer.
+To resolve the second issue, instead of using complicated data structures \cite{Leiserson}, a simpler approach was tried. One queue holding all the vertices of the next layer is essentially replaced by multiple queues, so that multiple threads could add vertices to the next layer simultaneously. But instead of each thread having its own local queue \cite{cong2008solving, zhang2006parallel}, any thread can add to any global queue. The advantage is that it allows to balance the queue sizes. Because, if each thread has its own queue, and one thread happens to process vertices with a higher number of undiscovered adjacent vertices, then it can lead to some queues being much larger than others thus resulting in an unbalanced load when processing the next layer.
 
-To balance the queues and reduce collisions of simultaneously adding multiple vertices to the same queue, vertices could be added to a random queue with an equal chance for each queue, resulting in fairly similar queue lengths and few collisions. If two threads are adding two vertices at the same time, the chance of collision is $1/Q$, where $Q$ is the number of queues. Now random number generation in GAP is slow and would add unneeded overhead, thus a different queue balancing scheme was used.
+To balance the queues and reduce collisions of simultaneously adding multiple vertices to the same queue, vertices could be added to a random queue with an equal chance for each queue, resulting in fairly similar queue lengths and few collisions. If two threads are adding two vertices at the same time, the chance of collision is $1/Q$, where $Q$ is the number of queues. Now random number generation in GAP is slow and would add overhead, thus a different queue balancing scheme was used.
 
-Each thread is given a unique id and that id is used as step size to determine the index of the next queue to which this thread will add a vertex. So if the thread id is $i$ and it is adding 3 vertices, the first vertex is added to the i-th queue, second to the 2i-th queue, third to the 3i-th queue, of course wrapping around the list of queues when the index of queue to add add goes over the number of queues. This ensures balanced queues if the number of queues is prime, because then teach thread will add a vertex to all queues before adding to the same queue again. This is a direct consequence of ${0, 1,..,n-1}$ being a field if $n$ is prime. Moreover since all threads have different step sizes (ids), then if two threads use the same queue, they won't be using the same queue for next added vertices, reducing the number of collisions.
-
-TODO Fermats thm. TODO why other queueu sizes don't work.
+Each thread is given a unique id and that id is used as step size to determine the index of the next queue to which this thread will add a vertex. So if the thread id is $i$ and it is adding 3 vertices, the first vertex is added to the i-th queue, second to the 2i-th queue, third to the 3i-th queue, of course wrapping around the list of queues when the index of the queues to add goes over the number of queues. This ensures balanced queues if the number of queues is prime, because then each thread will add a vertex to all queues before adding to the same queue again. This is a direct consequence of ${0, 1,..,n-1}$ being a field if $n$ is prime. Moreover since all threads have different step sizes (ids), then if two threads use the same queue, they won't be using the same queue for next added vertices, reducing the number of collisions.
 
 \section{Parallel BFS Implementation}
 
-The mechanism of having multiple "global queues" was simply implemented by having a FixedAtomicList $nextVertices$ of AtomicLists containing the vertices in that partition of the next layer of vertices. Fixed atomic list was used to ensure thread safety and because the number of partitions does not change, using a fixed atomic list is slightly faster than using a regular atomic list. The underlying atomic lists for partitions of the next layer allow simple thread-safe addition of vertices to that partition.
+The mechanism of having multiple ``global queues'' was simply implemented by having a FixedAtomicList $nextVertices$ of AtomicLists containing the vertices in that partition of the next layer of vertices. Fixed atomic list was used to ensure thread safety and because the number of partitions does not change, using a fixed atomic list is slightly faster than using a regular atomic list. The underlying atomic lists for partitions of the next layer allow simple thread-safe addition of vertices to that partition.
 
-The number of used partitions depends on the number of used processors by HPC-GAP, since the more processors are available the more partitions are needed to have a small number of collisions and ensure balanced use of processors. For example if the number of partitions would be smaller than the number of processors, then there would be unused processors. Different functions from number of processors $P$ to the number of used partitions $K$ were tried. For example $K=NextPrime(2P)$, $K=NextPrime(10P)$, $K=NextPrime(P^2)$, where $NextPrime$ gives the next prime number. This is done to ensure that $K$ is always a prime number to balance queues.
+The number of used partitions depends on the number of used processors by HPC-GAP, since the more processors are available the more partitions are needed to have a small number of collisions and ensure balanced use of processors. For example if the number of partitions is smaller than the number of processors, then are unused processors. Different functions from the number of processors $P$ to the number of used partitions $K$ were tried. For example $K=NextPrime(2P)$, $K=NextPrime(10P)$, $K=NextPrime(P^2)$, where $NextPrime$ gives the next prime number. This is done to ensure that $K$ is always a prime number to balance queues.
 
-In GAP the tasks do not have accessible ids, so the mechanism of each task using a different offset was implemented by passing a different offset parameter to each function execution in the concurrent tasks. The task processing the first partition would get the offset 1, the second would get the offset 2 and so on with the last partition getting the offset 1 again to avoid using offset of 0.
+In GAP the tasks do not have accessible id's, so the mechanism of each task using a different offset was implemented by passing a different offset parameter to each function execution in the concurrent tasks. The task processing the first partition would get the offset 1, the second would get the offset 2 and so on with the last partition getting the offset 1 again to avoid using offset of 0.
 
 \section{Experiments and Evaluation}
 
@@ -365,32 +370,31 @@ In GAP the tasks do not have accessible ids, so the mechanism of each task using
 
 Serial experiments for BFS captured the execution time, the number of connected components (subgraphs) and average depth for random graphs with varied vertex count and density. To ensure uniform and comparable results BFS was run on all connected components of a graph, because then the number of found visited vertices by BFS is constant - all vertices. It was done by marking the found vertices by BFS and running it on a yet not found vertex until all vertices are found.
 
- The used graphs had vertex counts of 100, 500, 1000, 5000, 10000 and densities of 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1. For each pair of vertex count and density 100 graphs were generated on which the experiments were run.
+ The used graphs had vertex counts of 100, 500, 1000, 5000, 10000 and densities of 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1. For each pair of vertex count and density 100 graphs were generated on which the experiments were run. These results can be found in onlySerialResults file.
 
 \includegraphics[width=\textwidth]{../experiments/plots/BFS_time}
 
-The execution times have the expected linear relationship with the number of vertices for constant density and with the density for constant number of vertices. The "drop" in 
-is explained by the graph becoming connected (see next chart), also note that the measurements are precise and reliable, because of the small error/variance displayed by the small error bars.
+The execution times have the expected linear relationship with the number of vertices for constant density and with the density for constant number of vertices. The "drop" in execution times is explained by the graph becoming connected (see next chart), also note that the measurements are precise and reliable, because of the small error/variance displayed by the small error bars.
 
 \includegraphics[width=\textwidth]{../experiments/plots/BFS_components}
 
-One can see that for small enough density as the number vertices increases so does the number of connected components, presumably since you have a lot of small components and there simply are more vertices to form components from. Moreover, the number of components quickly decreases one, once the graph becomes more connected. 
+One can see that for small enough density as the number vertices increases so does the number of connected components (presumably since you have a lot of small components and there simply are more vertices to form components from). Moreover, the number of components quickly decreases one, once the graph becomes more connected. 
 
 \includegraphics[width=\textwidth]{../experiments/plots/BFS_depth}
 
-Again the average depth is increasing while then number of vertices increases for graphs with small density, but once the number of edges per vertex reaches a certain threshold it decreases.
+Again the average depth is increasing while the number of vertices increases, for graphs with small density, but decreases once the number of edges per vertex reaches a certain threshold is reached.
 
 \subsection{Parallel BFS}
 
 Experiments for parallel BFS captured only the execution time, as the graph properties should stay the same. The only change in the generated graphs was that now they were made connected to again enforce uniform and comparable result. This time the search was not extended on all vertices, because it would complicate comparing parallel and serial implementations. 
 
-Different functions $pToK$ from the number of processors $P$ to number of partitions/queues used $K$ were tested to find the quickest one. Additionally the implementation of experiments was changed to allow changing the function on the fly, so that the different functions could be tested in the same run, since reading the graphs in GAP takes a significant time. The tested functions were $P, 2P, 10P, P^2, V$, where V is the number of vertices, let's call them "single", "double", "tenTimes", "square" and "one", respectively. The density parameter was changed to average number of edges per vertex, because this allows to easier control the average number of edges in the whole graph.
+Different functions $p-To-K$ from the number of processors $P$ to number of partitions/queues $K$ were tested to find the quickest one. Additionally the implementation of experiments was changed to allow changing the function on the fly, so that the different functions could be tested in the same run, since reading the graphs in GAP takes significant time. The tested functions were $P, 2P, 10P, P^2, V$, where V is the number of vertices, let us call them ``single'', ``double'', ``tenTimes'', ``square'' and ``one'', respectively. The density parameter was changed to the average number of edges per vertex, because this allows to easier control the average number of edges in the whole graph.
 
 The used graphs had vertex counts of 10, 100, 1000, 10000, 100000 and average number of edges per vertex 1, 5, 10, 50, 100, 1000. For each pair of vertex count and density 10 graphs were generated on which the experiments were run using 2, 4, 8, 16 and 32 processors. Only 10 graphs were generated, because with the addition of graphs with 1000000 vertices, the disk space used by these graphs was over 1TB which in combination with graphs for other experiments exceeded the available storage space.
 
 \includegraphics[width=\textwidth]{../experiments/plots/BFSP_10_32}
 
-This chart shows the execution times for the $pToK$ functions for a graphs with 10 edges per vertex on average when 32 processors are used. It confirms that measurements are precise, since error bars are small. Moreover, we can see that while "single" function implementation has the smallest execution times, but the "square" catches up and has a much better scaling factor. The other 29 charts can be seen by executing the R code in R studio, they were not included to save space and because they are very similar. 
+This chart shows the execution times for the $p-To-K$ functions for a graphs with 10 edges per vertex on average when 32 processors are used. It confirms that measurements are precise, since error bars are small. Moreover, we can see that while ``single'' function implementation has the smallest execution times, but the ``square'' catches up and has a much better scaling factor. The other 29 charts were not included to save space and because they are very similar. They can be seen by executing the R code (experiments/R/bfsAll.r) in R studio.
 
 \begin{center}
 $
@@ -410,17 +414,21 @@ $
 $
 \end{center}
 
-Since all the results were not show in the previous chart, the relationship between the average number of edges and execution time was plotted. These charts confirm that "single" function implementation has the smallest execution times, but the "square" catches up and has a much better scaling factor, moreover its scaling factor improves as the number of processors increases.
+Since all the results were not show in the previous chart, the relationship between the average number of edges and execution time was plotted. Note that there are no more error bars, because the results here are aggregated even for different numbers of vertices.
 
-Due these results, the "square" function was chosen as the default implementation, besides "square" function should have smaller execution times for graphs with large number of clusters. Because of the higher number of queues.
+These charts confirm that the ``single'' function implementation has the smallest execution times, but the ``square'' catches up and has a much better scaling factor, moreover its scaling factor improves as the number of processors increases. Due these results, the ``square'' function was chosen as the default implementation, besides ``square'' function should have smaller execution times for graphs with large number of clusters. Because of the higher number of queues.
 
 \includegraphics[width=\textwidth]{../experiments/plots/BFSP_S}
 
-The next chart shows the default (square) parallel BFS implementation scales with the number of processors for a fixed number of edges $E$. As we can see it does not  scale to the number of processors when $E$ is smaller than $10^7$, but when $E$ is at least $10^7$ adding up to 4 processors reduces the execution time, unfortunately the effect stops past 4 processors at least for the tested number of edges. As it is quite possible that even higher numbers of edges are necessary for extra processors to be useful.
+The next chart shows the default (square) parallel BFS implementation scales with the number of processors for a fixed number of edges $E$. As we can see most of the time it does not scale to the number of processors and surprisingly for smaller graphs it actually becomes slower when extra processors are added. A possible reason  for that might be the rapidly increasing number queues and the added overhead of managing them and their tasks. It was investigated by using simple print statements that the queues are fairly balanced and collisions of multiple vertices being added to the same queue simultaneously happen rarely, so that should not be the reason for inverse scaling. It might be possible that a completely different number of processors to number of queues is better or even a different strategy for deciding on the number of queues has to be used.
 
 \subsection{Comparison BFS}
 
-TODO
+\includegraphics[width=\textwidth]{../experiments/plots/BFSP_S_P}
+
+This chart compares the parallel and serial implementation for varying number of edges in the graph. The parallel implementation is tested under different number of processors. As one can see the parallel implementation catches up on the serial implementation, unfortunately additional processors slow do not reduce the execution time all of them are very similar for the very largest graph.
+
+All experiment results can be found in the experiments/results/bfsAll.res file.
 
 \chapter{Depth First Search}
 
@@ -556,7 +564,7 @@ Similarly as in other approaches \cite{Bader20061366} for finding a minimum span
 
 The approach with flexible adjacency lists \cite{Bader20061366} was not used, because having flexibly adjacency lists would either affect the implementations of other algorithms or require copying the graph which would be inefficient for an algorithm that has linear time complexity in many cases. Moreover flexible adjacency lists in GAP essentially would be a list of lists of lists since there are no pointers in GAP thus they would use more space and have higher access times than normal adjacency list. Note that merging two lists in GAP takes linear time.
 
-Initially there was an implementation written where the flexible adjacency lists were simulated in place by having a next vertex "pointer" for each vertex, i.e a list where the index of next vertex is stored for each vertex. Then when two adjacency lists were merged the next vertex "pointers" were changed accordingly. Unfortunately this implementation did not work in the end. The advantage of this approach would have been that all edges for a particular head are processed in the same thread therefore no locks on the minimum weight edge of each head would have been required. But in contrast it did require usage of locks when merging lists and there would not have been enough tasks for every processor when number of heads gets small, which probably would not have been a problem since the number of such steps is very small. Therefore it is hard to tell which approach would have been more efficient.
+Initially there was an implementation written where the flexible adjacency lists were simulated in place by having a next vertex "pointer" for each vertex, i.e a list where the index of next vertex is stored for each vertex. Then when two adjacency lists were merged the next vertex "pointers" were changed accordingly. Unfortunately this implementation did not work in the end. The advantage of this approach would have been that all edges for a particular head are processed in the same thread therefore no locks on the minimum weight edge of each head would have been required. But in contrast it did require usage of locks when merging lists and there would not have been enough tasks for every processor when number of heads gets small, which probably would not have been a problem since the number of such steps is very small. Therefore it is hard to tell which approach would have been more efficient In implementation, in a way, the other approach was simulated by having parallel find min step for groups of vertices instead of individual ones, the difference was that now they were not guaranteed to be in the same component, so locks have to be used.
 
 So the used approach achieves implicit elimination of edges between the same component by assigning to each vertex a vertex that indicates to which component the vertex currently belongs to, initially it is the vertex itself. We will call such vertices head vertices, so all vertices in the same component as the head vertex have it as head vertex. Now to deal with updating heads for each vertex when components are connected by edges a tree of heads is built and the root of it becomes the head vertex of all vertices in the new component. This tree is represented by each head vertex having a parent vertex that denotes the head of the component to which it was connected to.
 
@@ -676,21 +684,16 @@ end
 To find the head and parent of a vertex/head fixed atomic lists were used that, technically one could use smaller lists for parents in later iterations of the algorithm since its only used for heads, but initially all vertices are heads and so the old list of parents is just reused with the parents being updated. Due the same reason the minimum weight edge found for each component (head) by find min step is stored in a fixed size atomic list with the edges of old heads just being ignored. To quickly find the next unused minimum weight edge for each vertex there is another fixed atomic list $vertexEdge$ storing the index such edge, which is incremented when an edge is skipped or used. A vertex is a head if it is its own head, but to allow quick iteration over current heads instead of having to go over all vertices the heads are stored in a separate list.
 
 The parallelization of the find min step was slightly changed during implementation, because for a large number of vertices repeatedly launching a task for each vertex is expensive in GAP and adds quite a bit of overhead. Therefore instead of having a task per vertex in min step, the vertices were split into equal groups according to the number of processors available. Similarly as in parallel BFS, different functions from number of processors $P$ to the number of used groups $K$ were tried.
-This approach still should achieve high parallelism. Because there is roughly equal amount of work to be done for each vertex and therefore grouping them in large enough number of groups should not cause imbalanced use of processors. The necessary read-write locks in the find min step are implemented by having a list of empty lists for each vertex/head and locking that when its minimum weight edge is being changed.
-
-TODO This is how the list approach would have worked, unclear if it would have been better.
+This approach still should achieve high parallelism. Because there is roughly equal amount of work to be done for each vertex and therefore grouping them in large enough number of groups should not cause imbalanced use of processors. 
+The necessary read-write locks in the find min step are implemented by having a list of empty lists for each vertex/head and locking that when its minimum weight edge is being changed.
 
 \section{Experiments and Evaluation}
-
-TODO
 
 \subsection{Serial MST}
 
 Serial experiments for MST captured the average MST weight for random graphs with varied vertex count and density. To ensure uniform and comparable results MST was run on a connected graph and, moreover, Prim's algorithm out of the box works only for connected graphs. Note the implementation tested here does not have the optimization of only having one edge per vertex in the heap, since it was not implemented yet at the time when this set of experiments was run.
 
 The used graphs had vertex counts of 100, 250, 500, 750, 1000 and densities of 0.01, 0.05, 0.1, 0.5, 1. For each pair of vertex count and density 100 graphs were generated on which the experiments were run.
-
-TODO where these results can be found.
 
 \includegraphics[width=\textwidth]{../experiments/plots/MST_time}
 
@@ -699,8 +702,6 @@ This graph displays that in practice Prim's algorithm is linear against the numb
 \includegraphics[width=\textwidth]{../experiments/plots/MST_weight}
 
 This graph shows that the higher density the smaller the weight of the MST is, because there are more edges to pick from and the possible weight values range from 1 to number of vertices.
-
-TODO compare with Boruvka.
 
 \subsection{Parallel MST}
 
@@ -714,8 +715,6 @@ Moreover the execution times for the serial implementations were measured as wel
 \includegraphics[width=\textwidth]{../experiments/plots/MSTP_10_16}
 
 This chart shows the execution times for the $pToK$ functions for a graphs with 10 edges per vertex on average when 16 processors are used. It confirms that measurements are precise, since error bars are small. Moreover, we can see that all $pToK$ implementations have similar execution times, with "single" and "double" being slightly faster. The other 35 charts can be seen by executing the R code in R studio, they were not included to save space and because they are very similar.
-
-TODO this chart shows scaling ... lalal scales... a bit... Note log scale.
 
 \begin{center}
 $
@@ -746,38 +745,31 @@ The next chart shows how well the double implementation scales with the number o
 
 \includegraphics[width=\textwidth]{../experiments/plots/MST_S_vs_P}
 
-This chart compares the parallel implementation with different number of processors against the two serial implementations. We can see that the serial implementations are faster than the parallel implementations for any tested number of processors. More specifically the Prim's implementation is slightly faster than than Boruvka's. But the parallel implementation when the number of processors is sufficient (at least 8) scales better than the serial ones and seems to catch up. Moreover, a comparison of the parallel version when one processor is used compared against the equivalent serial implementation shows that there is quite a bit of overhead added when using elements of HPC-GAP, note that it is not due to simultaneous locks since only one processor is used.
+This chart compares the parallel implementation with different number of processors against the two serial implementations. We can see that the serial implementations are faster than the parallel implementations for any tested number of processors. More specifically the Prim's implementation is slightly faster than than Boruvka's. Despite that the Boruvka's version was chosen as the default implementation, because their performance is similar and Boruvka's version can also find the minimum spanning forest (forest of minimum spanning trees for each connected component) for unconnected graphs.
 
-TODO Experiments on graphs with even larger graphs should be run.
+Despite the parallel implementation being slower, it scales better than the serial implementations when the number of processors is sufficient (at least 8). And seems to catch up. Moreover, a comparison of the parallel version when one processor is used compared against the equivalent serial implementation shows that there is quite a bit of overhead added when using elements of HPC-GAP, note that it is not due to simultaneous locks since only one processor is used.
 
-TODO why not larger graphs. P = 1 shows there's a lot of overhead.
+Experiments on graphs with even larger graphs should be run to check if the number of processors to which the algorithm scales increases as the number of edges increases and to check if at some point the parallel implementation becomes faster. Unfortunately this was not done due to time constraints and some late changes in the implementation.
 
 \chapter{Conclusions}
 
-TODO
+The project achieved its goals by having both serial and parallel implementations of some classic graph theoretic algorithms organized in a GAP package with standard layout. The implemented serial algorithms were breadth first search, depth first search, Prim's minimum spanning trees and Boruvka's minimum spanning trees. The implemented parallel algorithms were for breadth first search and depth first search.
 
-You should summarise your project, emphasising your key achievements
-and significant drawbacks to your work, and discuss future directions your
-work could be taken in.
+The graph generation and experiments execution was also successfully implemented, moreover the experiments were successfully carried out for fairly large graphs. Although it turned out that the experiments should be run on even larger graphs to clearly understand the behaviour of both parallel algorithms. Therefore it would have been beneficial to implement the suit of experiments sooner so that longer experiments could have been run while work was done on different algorithms. In addition, this would have allowed to catch the problem of slow graph generation and some other bugs in the implementations much sooner.
 
+A parallel implementation of minimum spanning trees was designed and implemented that actually scales with the number of processors although in limited fashion and shows potential of being faster for large graphs. A parallel implementation of breadth first search was designed and implemented, unfortunately it did not scale with additional processors, although at least it was as fast as serial implementation for large graphs. This shows that this parallel approach for breadth first search despite its simplicity has potential, but a different scheme for choosing number of queues is probably needed.
 
-TODO boruvka works on not conncted graphs, ADVATNGE (out of the box).
-
-TODO number exaples for exp. res.
-
-TODO update numbers.
-
-TODO why removed error bars for edge totals graphs
-
-TODO don't count all impl.
-
-TODO hard to use in pratice bfsp due inverse scaling.
+For future work approaches by other authors can be implemented and compared with my solutions, larger experiments can be run to find a clear relationship between graph size, number of processors and performance of the parallel algorithms. The alternative approach for parallel minimum spanning trees that did not work can be fixed and analysed. Of course different graph theoretic algorithms can be implemented and parallelized, for example strongly connected components and graph colouring.
 
 \chapter{Appendices}
 
 \section{Testing summary}
 
 The algorithm implementations were tested using unit tests that can be found in the tst directory of the packages. The graphs and the expected output was made by hand. Some of the tests use the built in testing mechanism of GAP, but it only works on console output basis, i.e. it assumes a live session is running and checks the text output of each run command. Therefore some tests required their own implementation like counting the weight of a minimum spanning tree and checking that it matches the expected, because the parallel algorithms are not deterministic. For example the parallel minimum spanning tree algorithm could return different minimum spanning trees for different test runs. Moreover the outputs of serial and parallel versions were checked for equality. This actually allowed to discover a number of bugs in the parallel minimum spanning trees implementation. Moreover these failed tests were added to the test suite to ensure that their respective bugs are not reintroduced.
+
+\section{User manuals}
+
+User manuals are generated by autodoc and placed in the package's doc folder, see README file for each package for more details how to re-generate them. Unfortunately at the moment the generation of the manuals works only for serial package.
 
 \bibliographystyle{plain}
 \bibliography{References}
