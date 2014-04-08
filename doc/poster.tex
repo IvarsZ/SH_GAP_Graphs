@@ -1,0 +1,76 @@
+\documentclass[serif,mathserif,final]{beamer}
+\mode<presentation>{\usetheme{Lankton}}
+\usepackage{amsmath,amsfonts,amssymb,pxfonts,eulervm,xspace}
+\usepackage{graphicx}
+\graphicspath{{./figures/}}
+\usepackage[orientation=landscape,size=A2,,debug]{beamerposter}
+
+%-- Header and footer information ----------------------------------
+\title{Parallelising Graph Algorithms in GAP}
+\author{Ivars Zubkans}
+\institute{University of St Andrews}
+%-------------------------------------------------------------------
+\newcommand{\footleft}{Supervised by Stephen Linton}
+\newcommand{\footright}{Computer Science Department}
+
+%-- Main Document --------------------------------------------------
+\begin{document}
+\begin{frame}{}
+  \begin{columns}[t]
+
+    %-- Column 1 ---------------------------------------------------
+    \begin{column}{0.32\linewidth}
+
+      %-- Block 1-1
+      \begin{block}{Introduction}
+        Efficient implementations of graph algorithms are important due to their heavy use for modeling and solving problems. Unfortunately, the GAP system for computational discrete algebra did not have a general purpose package for graphs and graph theoretic algorithm, until now. Moreover parallelism capabilities were recently added to GAP which were used for parallel implementations.
+      \end{block}
+
+      %-- Block 1-2
+      \begin{block}{Implemented algorithms}
+        \begin{itemize}
+        	\item (Parallel) Breadth first search
+        	\item Depth first search
+        	\item (Parallel) Minimum spanning tree
+        	\item Strongly connected components
+        	\item Vertex coloring
+        	\item Single source shortest paths.
+        \end{itemize}
+      \end{block}
+      
+                %-- Block 3-2
+      \begin{block}{Conclusions}
+        Parallel MST scales with the number of processors (P) for large enough graphs and has better scaling factor than optimized serial MST. Parallel BFS is almost as quick as serial BFS, but larger graphs are needed to verify better scaling factor and scaling with P.
+      \end{block}
+
+    \end{column}%1
+
+    %-- Column 2 ---------------------------------------------------
+    \begin{column}{0.32\linewidth}
+
+      \begin{block}{Parallel MST}
+        For each connected component in parallel the smallest edge to a different component is found and added to the MST. This is repeated until no more edges can be added and MST is found. The components are modified and connected in place instead of modifying the graph or its copy.
+      \end{block}
+      
+      \begin{block}{Serial vs Parallel MST}
+          \includegraphics[width=1\columnwidth]{plot2}
+      \end{block}
+
+    \end{column}%2
+
+    %-- Column 3 ---------------------------------------------------
+    \begin{column}{0.32\linewidth}
+
+      
+            \begin{block}{Parallel BFS}
+        As in other approaches layer synchronization is used, but the problem of a single queue being a bottleneck of discovering and adding new vertices is solved with multiple global queues. A simple queue to add to selecting procedure ensures balanced queues and few conflicts between threads.
+      \end{block}
+
+      \begin{block}{Serial vs Parallel BFS}
+          \includegraphics[width=1\columnwidth]{plot1}
+      \end{block}
+    \end{column}%3
+
+  \end{columns}
+\end{frame}
+\end{document}

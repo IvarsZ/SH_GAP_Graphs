@@ -1,0 +1,49 @@
+\documentclass{report}
+
+\usepackage{fullpage}
+
+\title{Parallelising graph algorithms in HPC-GAP \\ \vspace{2 mm} {\large University of St Andrews}}
+\author{Ivars Zubkans \\ \small Supervised by: Dr James D Mitchell}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+
+TODO - write an abstract probably something similar to the one below from CS.
+
+The GAP system for computational discrete algebra did not have a general purpose package for graphs and graph theoretic algorithms. Moreover, parallelism capabilities were recently added in a high performance version of GAP. Therefore, this project implements a general purpose package for working with graphs. In addition, it is explored how the implemented algorithms can be modified to suit parallel execution. With the aim of having parallel implementations that scale with increase in number of processors and are faster than their serial counterparts, the parallel minimum spanning tree implementation partially scales with increase in number of processors and has a smaller scaling factor than its serial counterpart. The parallel breadth first search implementation did not scale very well with additional processors, but it is as fast as its serial counterpart for large graphs.
+\end{abstract}
+
+\tableofcontents
+
+\chapter{Introduction}
+
+TODO - the same as in CS at the moment, modify it at the end to reflect maths stuff covered.
+
+Efficient implementations of graph theoretic algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}. The aim of the project was to implements serial and parallel versions of graph algorithms in GAP and explore the possible performance gains of parallel implementations.
+
+The GAP (\url{www.gap-system.org}) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
+
+Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each central unit of processing (CPU) has its own private memory. All of the current implementations in GRAPE are non-parallel.
+
+Two GAP packages were made for serial and parallel implementations, so each made package is a self-contained extension to the core system of GAP. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. Then their performance was analysed and compared.
+
+\section{Basic Definitions}
+
+TODO self-explanatory common definitions between the next chapters.
+
+\chapter{Strongly Connected Components}
+
+TODO describe Tarjan, why it does not work, i.e. maybe even give a part of proof why DFS is sequential depending on complexity. Then could look at the other algorithms, maybe. Then move one FW-BW, check that there are not other approaches, expand the presentation for FW-BW, maybe some complexity analysis, real world graph discussion, the added optimizations for those.
+
+\chapter{Vertex Coloring}
+
+Describe bruteforce, greedy , backtrack, how you could parallelise backtrack, issues with that
+
+\chapter{shortest paths}
+
+describe dijsktra, etc, do research if have time for it.
+
+\end{document}
