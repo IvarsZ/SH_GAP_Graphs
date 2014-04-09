@@ -1,6 +1,35 @@
 \documentclass{report}
 
 \usepackage{fullpage}
+\usepackage{url}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{cite}
+\usepackage{tkz-graph}
+\usetikzlibrary{arrows}
+\usetikzlibrary{shapes}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{lemma}{Lemma}
+\newtheorem*{corollary}{Corollary}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{conjecture}{Conjecture}
+\newtheorem{example}{Example}
+\newtheorem{algorithm}{Algorithm}
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\newtheorem*{note}{Note}
+\newtheorem{case}{Case}
+
+\numberwithin{definition}{chapter}
+\numberwithin{example}{chapter}
+\numberwithin{figure}{chapter}
 
 \title{Parallelising graph algorithms in HPC-GAP \\ \vspace{2 mm} {\large University of St Andrews}}
 \author{Ivars Zubkans \\ \small Supervised by: Dr James D Mitchell}
@@ -32,7 +61,108 @@ Two GAP packages were made for serial and parallel implementations, so each made
 
 \section{Basic Definitions}
 
+A graph represents connections or relationships, called edges, between a set of elements, called vertices, more formally.
+
+\begin{definition}[Graph]
+A $graph$  $G$ is an ordered triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
+  \begin{equation}
+  ends:E\to \mathcal P \left({V}\right)
+  \end{equation}
+which assigns to each element of $E$ a set of one or two elements of $V$. The elements of $V$ are called $vertices$ or $nodes$ of $G$, and elements of $E$ are called $edges$ of $G$ \cite{bondy2008graph}.
+\end{definition}
+
+The above definition is the one that will be used throughout the text instead of the most common graph definition:
+
+\begin{definition}[Graph]
+A $graph$  $G$ is an ordered pair of disjoint sets $G = (V, E)$ such that E is a subset of the set $V^{(2)}$ of unordered pairs of V, not necessarily distinct \cite{bollobas1998modern}. 
+\end{definition} 
+
+But in the second definition the edges between vertices are defined implicitly in terms of vertices and it is less clear that edges are separate objects that define the relationships between vertices. Therefore the first definition is used. Furthermore, the first definition includes the second, but the second definition does not. The second definition does not allow multiple edges between the same pair of vertices since in a set of edges there can be only one subset of the pair of vertices.
+
+We will consider only $finite \ graphs$ - graphs with finite number of vertices and edges. Because the algorithmic problems and their considered solutions work in finite time only on finite graphs.
+
+TODO why edges don't have labels.
+
+\begin{example}
+An example of a graph is $G=(V, E, ends)$ where $V={1,2,3,4,5}$, $E={{1,2}, {2,3}, {3,1}, {4,3}}$ and is defined by the identity map, since $E \cup P(V)$. This illustrates how both graphs defined using the second definition could be defined using the first definition.
+
+\SetVertexNormal[Shape      = circle,
+                 FillColor  = blue!20,
+                 LineWidth  = 2pt]
+\SetUpEdge[lw         = 3pt,
+           color      = black,
+           labelcolor = white,
+           labeltext  = red,
+           labelstyle = {sloped,draw,text=blue}]
+\begin{figure}[h]
+\center
+\begin{tikzpicture}
+   \Vertex[x=0 ,y=0]{1}
+   \Vertex[x=2,y=0]{2}
+   \Vertex[x=2 ,y=2]{3}
+   \Vertex[x=0 ,y=2]{4}
+   \Vertex[x=3 ,y=1]{5}
+   \Edge(1)(2)
+   \Edge(2)(3)
+   \Edge(3)(1)
+   \Edge(3)(4)
+\end{tikzpicture}
+\caption{Graphical representation of the example graph.}
+\end{figure}
+\end{example}
+
+Week vs strong connectedness.
+
+Edges in a graph represent relationships among nodes, sometimes these are not symmetric.
+
+Adjacency definition in directed graphs.
+
+Define paths somewhere?
+
+Many problems can be expressed as path problems.
+
+Good path definition why there are multiple ones.
+
+\begin{definition}[Algorithm]
+An algorithm is a complete, step-by-step procedure for solving a specific problem in a finite amount of time. Each step has to be unambiguous and expressed in terms of finite number of rules \cite{berman1996fundamentals}.
+\end{definition}
+
+The rise of multi-processor and multi-core architectures has made the distinction between serial (sequential) and parallel algorithms an important one.
+
+\begin{definition}[Serial Algorithm]
+A serial algorithm performs its steps in a sequence one at a time \cite{berman1996fundamentals}.
+\end{definition}
+
+\begin{definition}[Parallel Algorithm]
+A parallel algorithm performs many of its steps at the same time \cite{berman1996fundamentals}.
+\end{definition}
+
 TODO self-explanatory common definitions between the next chapters.
+
+Seek correct and efficient algorithms. Preferably easy to implement. That's why proofs of correctness are given.
+Some discussion on efficiency vs correctness vs ease of impl.
+Algorithm vs heuristics in coloring section.
+Why eff. is important why not just buy faster.
+
+RAM model of computation maybe?
+
+Complexity definitions.
+
+Why look for log algos, why base does not really matter. Lost in Big O notation.
+
+Different parallel computation models.
+
+Justify picked algorithms.
+
+
+
+SCC's graph has no cycles.
+
+Where are SCC's used.
+
+Naive algorithms are sometimes better suited for parallelism as they have more reduncacy and you're not squeezing eveything out of the problem.
+
+TODO many computational applications naturally involve not just a set of itmems, but also a set of connections between them. The relationships lead to questions like is there a way to get from on item to another following the connections? How many other items can be reached. What is the best way to get from this item to this other item \cite{c++_sedgewick}. 
 
 \chapter{Strongly Connected Components}
 
@@ -40,10 +170,15 @@ TODO describe Tarjan, why it does not work, i.e. maybe even give a part of proof
 
 \chapter{Vertex Coloring}
 
-Describe bruteforce, greedy , backtrack, how you could parallelise backtrack, issues with that
+Describe bruteforce, greedy , backtrack, how you could parallelise backtrack, issues with that.
 
 \chapter{shortest paths}
 
 describe dijsktra, etc, do research if have time for it.
 
+
+TODO isomorphism?
+
+\bibliographystyle{plain}
+\bibliography{References}
 \end{document}
