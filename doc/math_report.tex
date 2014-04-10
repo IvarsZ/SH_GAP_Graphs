@@ -124,18 +124,53 @@ Many problems can be expressed as path problems.
 Good path definition why there are multiple ones.
 
 \begin{definition}[Algorithm]
-An algorithm is a complete, step-by-step procedure for solving a specific problem in a finite amount of time. Each step has to be unambiguous and expressed in terms of finite number of rules \cite{berman1996fundamentals}.
+An $algorithm$ is a complete, step-by-step procedure for solving a specific problem in a finite amount of time. Each step has to be unambiguous and expressed in terms of finite number of rules \cite{berman1996fundamentals}.
 \end{definition}
 
 The rise of multi-processor and multi-core architectures has made the distinction between serial (sequential) and parallel algorithms an important one.
 
 \begin{definition}[Serial Algorithm]
-A serial algorithm performs its steps in a sequence one at a time \cite{berman1996fundamentals}.
+A $serial \ algorithm$ performs its steps in a sequence one at a time \cite{berman1996fundamentals}.
 \end{definition}
 
 \begin{definition}[Parallel Algorithm]
-A parallel algorithm performs many of its steps at the same time \cite{berman1996fundamentals}.
+A $parallel \ algorithm$ performs many of its steps at the same time \cite{berman1996fundamentals}.
 \end{definition}
+
+We would like to compare different algorithms and analyse their theoretical performance without implementing them. Therefore we need to abstract away machine dependant details. The most common way of doing this is to use a hypothetical computer called $the Random Access Machine$. In Random Access machine every simple operation takes (arithmetic operations, branching, function calls) takes exactly one time step and loops are compositions of the simple operations. Furthermore, memory access takes exactly one time step, as caching is ignored and we assume to have enough random access memory \cite{skiena504algorithm}. Of course not all operations take exactly the same time, but this model is simple and captures the behaviour of a computer well enough. Therefore is used despite its limitations.
+
+This model allows to count the number of steps an algorithm will take on a specific instance of a problem. So it only tells how good or bad and an algorithm is on a specific instance. Therefore we define worst-case, best-case and average-case complexities.
+
+\begin{definition}[Worst-case complexity]
+The $worst-case \ complexity$ of an algorithm is a function on natural numbers - the maximum number of steps taken by the algorithm on any instance of size n \cite{skiena504algorithm}.
+\end{definition}
+
+\begin{definition}[Average-case complexity]
+The $average-case \ complexity$ of an algorithm is a function on natural numbers - the average number of steps taken by the algorithm on any instance of size n \cite{skiena504algorithm}.
+\end{definition}
+
+\begin{definition}[Best-case complexity]
+The $best-case \ complexity$ of an algorithm is a function on natural numbers - the minimum number of steps taken by the algorithm on any instance of size n \cite{skiena504algorithm}.
+\end{definition}
+
+Best-case complexity is fairly useless in practice, because an algorithm could be really good on one instance (e.g. with a hard-coded solution), and really bad and take very long time on all other instances. Average-case complexity is hard to use, because 
+We will use the worst-case complexity, because determining and characterising mathematically average inputs is difficult. Therefore we will generally use worst-case complexity.
+
+Unfortunately these functions are often very complicated, therefore we will use their upper and lower bounds and discard their growth rates, because we mostly care how the algorithms scale anyway.
+
+\begin{definition}[Upper bound]
+A function $g(n)$ is an $upper \ bound$ of a function $f(n)$ if there exists some constant $c$ such that $f(n)\leq cg(n)$ always holds for large enough n. It is denoted by $f(n) = O(g(n))$ \cite{skiena504algorithm}.
+\end{definition}
+
+\begin{definition}[Lower bound]
+A function $g(n)$ is an $lower \ bound$ of a function $f(n)$ if there exists some constant $c$ such that $f(n)\geq cg(n)$ always holds for large enough n. It is denoted by $f(n) = \Omega(g(n))$ \cite{skiena504algorithm}.
+\end{definition}
+
+\begin{definition}[Exact bound]
+A function $g(n)$ is an $exact \ bound$ if it is both a lower and an upper bound (with possibly different constants) on another function $f(n)$, then it is denoted by $f(n) = \Theta(g(n))$
+\end{definition}
+
+We will generally try to find an upper bound, because the exact bound is usually harder to find and the lower bound is generally useless on its own.
 
 TODO self-explanatory common definitions between the next chapters.
 
@@ -144,17 +179,11 @@ Some discussion on efficiency vs correctness vs ease of impl.
 Algorithm vs heuristics in coloring section.
 Why eff. is important why not just buy faster.
 
-RAM model of computation maybe?
-
-Complexity definitions.
-
 Why look for log algos, why base does not really matter. Lost in Big O notation.
 
 Different parallel computation models.
 
 Justify picked algorithms.
-
-
 
 SCC's graph has no cycles.
 
