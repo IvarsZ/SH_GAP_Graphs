@@ -57,7 +57,11 @@ The GAP (\url{www.gap-system.org}) is a free open-source program for computing w
 
 Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each central unit of processing (CPU) has its own private memory. All of the current implementations in GRAPE are non-parallel.
 
+TODO references why picked shared.
+
 Two GAP packages were made for serial and parallel implementations, so each made package is a self-contained extension to the core system of GAP. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. Then their performance was analysed and compared.
+
+TODO many computational applications naturally involve not just a set of items, but also a set of connections between them. The relationships lead to questions like is there a way to get from on item to another following the connections? How many other items can be reached. What is the best way to get from this item to this other item \cite{c++_sedgewick}. 
 
 \section{Basic Definitions}
 
@@ -170,34 +174,53 @@ A function $g(n)$ is an $lower \ bound$ of a function $f(n)$ if there exists som
 A function $g(n)$ is an $exact \ bound$ if it is both a lower and an upper bound (with possibly different constants) on another function $f(n)$, then it is denoted by $f(n) = \Theta(g(n))$
 \end{definition}
 
-We will generally try to find an upper bound, because the exact bound is usually harder to find and the lower bound is generally useless on its own.
+We will generally try to find an upper bound, because the exact bound is usually harder to find and the lower bound is generally useless on its own. Note this ignores the constant growth factor of the complexity, i.e. functions $5n^2$ and $2n^2+1$ have the same lowest upper bound of $n^2$, therefore sometimes in practice one has to consider the growth factor at least for functions with the same lowest upper bound.
 
-TODO self-explanatory common definitions between the next chapters.
+An algorithm is considered efficient time wise if its time complexity is $O(n)=log(n)$, because the logarithm function grows very slowly. Note that the logarithm base does not really matter, as it does not have a big impact on scaling. Although even polynomial time algorithms are considered good, especially when the polynomial is small. For parallel algorithms we strive to have a polylogarithmic worst-case complexity with a polynomial number of processors. Problems solvable by such algorithms are considered to be in the class called NC \cite{berman1996fundamentals}.
 
-Seek correct and efficient algorithms. Preferably easy to implement. That's why proofs of correctness are given.
-Some discussion on efficiency vs correctness vs ease of impl.
-Algorithm vs heuristics in coloring section.
-Why eff. is important why not just buy faster.
+TODO cost, and speedup from berman if used.
 
-Why look for log algos, why base does not really matter. Lost in Big O notation.
+In this project we strived to implement algorithms that are correct, efficient both time and memory wise, while being easy to implement. Of course not always all three goals are achievable. Of course the most emphasis is placed on correctness, otherwise the implementations are useless. Therefore proofs of correctness are given. Note heuristics, algorithms giving approximate answers, are not considered in this project. Next we consider the efficiency the most important, because it allows to work with larger datasets faster without upgrading hardware. Despite that a balance is struck between efficiency and ease of implementation, as implementing very complicated algorithms is beyond the scope of this project. Efficiency wise bigger impact was placed on time complexity than space complexity, since machines with many processors generally have a lot of available memory.
 
-Different parallel computation models.
+Parallel algorithms have issues and constraints only specific to them \cite{berman1996fundamentals}:
 
-Justify picked algorithms.
+\begin{itemize}
+  \item Single instruction versus multiple instruction architecture. In a single instruction architecture only the same instruction can be executed in parallel, but possibly on different date. While in multiple instruction architecture does not have such a limitation. GAP follows multiple instruction architecture.
+  \item Number and type of processors available. Parallel architectures have processors of varying capabilities. In GAP it is assumed that all processors are powerful enough to execute all normal instructions of a serial machine.
+  \item Shared versus distributed memory model. GAP supports both, but we will use shared memory model, as it is easier to work with.
+  \item Read and write restrictions. In GAP standard techniques of read and write locks and atomic objects are used to control concurrent access to the shared memory.
+\end{itemize}
 
-SCC's graph has no cycles.
+Thus designing and implementing parallel algorithms is generally harder. Therefore a number of approaches are used when designing parallel algorithms \cite{berman1996fundamentals}:
+\begin{itemize}
+  \item Modify an existing sequential algorithm exploiting those parts of the algorithm that are easily paralllizable. This approach is used to tackle vertex colouring.
+  \item Come up with a completely new approach that may have not natural sequential analogue algorithm or it is not used for serial implementations. Naive algorithms are sometimes better suited for parallelism as they have more redundancy and are not squeezing everything out of the problem. This approach is used for finding the strongly connected components.
+  \item For some problems just execute the same algorithm with different starting conditions on many processors until one finds a solution or the whole search space is covered.
+\end{itemize}
 
-Where are SCC's used.
+The algorithms picked for implementation were:
+\begin{itemize}
+  \item Breadth first search
+  \item Depth first search
+  \item Strongly connected components
+  \item Vertex colouring
+  \item Minimum spanning trees
+  \item Single source shortest paths
+\end{itemize}
 
-Naive algorithms are sometimes better suited for parallelism as they have more reduncacy and you're not squeezing eveything out of the problem.
-
-TODO many computational applications naturally involve not just a set of itmems, but also a set of connections between them. The relationships lead to questions like is there a way to get from on item to another following the connections? How many other items can be reached. What is the best way to get from this item to this other item \cite{c++_sedgewick}. 
+These algorithms were picked, because they are some of the most common graph algorithms that solve the most common graph problems. The other popular graph problems are travelling salesman problem, graph isomorphism and clique problem. Furthermore, they cover a wide range of different graphs (directed, undirected, weighted) and a range of different time complexities from linear to exponential. Note in this paper we describe only the strongly connected components, vertex colouring and single source shortest paths. For reference to other algorithms implemented see the computer science parts paper that is attached.
 
 \chapter{Strongly Connected Components}
 
 TODO describe Tarjan, why it does not work, i.e. maybe even give a part of proof why DFS is sequential depending on complexity. Then could look at the other algorithms, maybe. Then move one FW-BW, check that there are not other approaches, expand the presentation for FW-BW, maybe some complexity analysis, real world graph discussion, the added optimizations for those.
 
+TODO SCC's graph has no cycles.
+
+TODO Where are SCC's used.
+
 \chapter{Vertex Coloring}
+
+TODO Algorithm vs heuristics in colouring section.
 
 Describe bruteforce, greedy , backtrack, how you could parallelise backtrack, issues with that.
 
