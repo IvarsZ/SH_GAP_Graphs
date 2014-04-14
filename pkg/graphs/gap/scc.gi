@@ -40,24 +40,27 @@ SCC_REC.DFS := function(graph, vertex, p)
   p.B.top := p.B.top + 1;
   p.B.nodes[p.B.top] := p.S.top;
 
-  # Temporarely mark the vertex as in its own componentt
+  # Mark the vertex as visited.
   p.I[vertex] := p.S.top;
 
   for successor in VertexSuccessors(graph, vertex) do
    
     # Run dfs on all unvisited successor vertices recursively.
-    if (p.I[successor] = 0) then
+    if p.I[successor] = 0 then
       SCC_REC.DFS(graph, successor, p);
     else
       
-      # If the successor has been visited, cutoff the path after it from B.
-      while (p.I[successor] < p.B.nodes[p.B.top]) do
+      # If the successor has been visited in this iteration, cutoff the path after it from B.
+      while p.I[successor] < p.B.nodes[p.B.top] do
         p.B.top := p.B.top - 1;
       od;
     fi;
   od;
 
   # If there was no cutoff, 
+  #Print("I ", p.I, " at ", vertex, "\n");
+  #Print("S ", p.S.nodes, " ", p.S.top, "\n");
+  #Print("B ", p.B.nodes, " ", p.B.top, "\n");
   if (p.I[vertex] = p.B.nodes[p.B.top]) then
 
     # the vertex is in a new component.
@@ -65,10 +68,19 @@ SCC_REC.DFS := function(graph, vertex, p)
     p.c := p.c + 1;
 
     # So add all visited vertices after the vertex to the component.
-    while (p.S.top > 0 and p.I[vertex] <= p.S.nodes[p.S.top]) do
+    while (vertex <> p.S.nodes[p.S.top]) do
       p.I[p.S.nodes[p.S.top]] := p.c;
       p.S.top := p.S.top - 1;
     od;
+
+    # And the vertex itself as well.
+    p.I[p.S.nodes[p.S.top]] := p.c;
+    p.S.top := p.S.top - 1;
+
+    #Print("NEW COMPONENT at ", vertex, "\n");
+    #Print("I ", p.I, "\n");
+    #Print("S ", p.S.nodes, " ", p.S.top, "\n");
+    #Print("B ", p.B.nodes, " ", p.B.top, "\n");
 
   fi;
 end;
