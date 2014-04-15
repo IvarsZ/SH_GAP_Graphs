@@ -33,6 +33,8 @@
 \numberwithin{definition}{chapter}
 \numberwithin{example}{chapter}
 \numberwithin{figure}{chapter}
+\numberwithin{theorem}{chapter}
+\numberwithin{lemma}{chapter}
 
 \SetVertexNormal[Shape      = circle,
                  FillColor  = blue!20,
@@ -52,24 +54,25 @@
 
 \begin{abstract}
 
-TODO - write an abstract probably something similar to the one below for CS.
+TODO - write an abstract.
 
-The GAP system for computational discrete algebra did not have a general purpose package for graphs and graph theoretic algorithms. Moreover, parallelism capabilities were recently added in a high performance version of GAP. Therefore, this project implements a general purpose package for working with graphs. In addition, it is explored how the implemented algorithms can be modified to suit parallel execution. With the aim of having parallel implementations that scale with increase in number of processors and are faster than their serial counterparts, the parallel minimum spanning tree implementation partially scales with increase in number of processors and has a smaller scaling factor than its serial counterpart. The parallel breadth first search implementation did not scale very well with additional processors, but it is as fast as its serial counterpart for large graphs.
 \end{abstract}
 
 \tableofcontents
 
 \chapter{Introduction}
 
-TODO - the same as in CS at the moment, modify it at the end to reflect maths stuff covered.
+[Fairly similar to CS one, is that ok?]
 
-Efficient implementations of graph theoretic algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}. The aim of the project was to implements serial and parallel versions of graph algorithms in GAP and explore the possible performance gains of parallel implementations.
+Efficient implementations of graph theoretic algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. These connections induce questions like are these two objects connected? Can we get from one object to another? How many objects can be reached from some specific object? What is the best way to reach another object and so on.
 
-The GAP (\url{www.gap-system.org}) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and connected components in directed graphs.
+Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}.
 
-Moreover, in a recent addition HPC-GAP supports both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each central unit of processing (CPU) has its own private memory. All of the current implementations in GRAPE are non-parallel.
+The aim of the project was to explore and implement serial and parallel versions of graph algorithms in GAP. The GAP (\url{www.gap-system.org}) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and strongly connected components.
 
-Two GAP packages were made for serial and parallel implementations, so each made package is a self-contained extension to the core system of GAP. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. Then their performance was analysed and compared.
+Moreover, in a recent addition HPC-GAP supports parallelism with both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each central unit of processing (CPU) has its own private memory \cite{berman1996fundamentals}. Note that all of the current implementations in GRAPE are non-parallel.
+
+In the end two GAP packages were made for serial and parallel implementations, so each made package is a self-contained extension to the core system of GAP. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. In this submission we will examine and implement the strongly connected components, vertex colouring and single source shortest paths algorithms.
 
 \section{Basic Graph Definitions}
 
@@ -134,7 +137,7 @@ Let $G = (V, E, ends)$ be a graph, then $G$ is simple if
 \end{itemize}
 \end{definition}
 
-We will generally consider simple graphs, but some of the implemented algorithms work on any graphs.
+We will generally consider simple graphs, but all of the implemented algorithms work on graphs with multiple edges between two vertices or on graphs with loops. Of course they do not work for infinite graphs. We consider simple graphs, because they are easier to work with.
 
 \begin{example}
 The graph in the next example (figure \ref{loop}) has a loop at 4 and so is not simple. And for example the vertices 1 and 2 are adjacent, while 1 and 4 are not. Moreover, the edge between the vertices 1 and 2 is incident to 1 and 2.
@@ -173,7 +176,10 @@ Let $G = (V, E, ends)$ be a graph, then a subgraph of $G$ is a graph $G'=(V', E'
 Let $G = (V, E, ends)$ be a graph, then a maximal connected subgraph of $G$ is called a $connected \ component$ \cite{bollobas1998modern}.
 \end{definition}
 
-Checking connectedness and finding connected components of a (undirected) graph is relatively easy, because in if there is a path from a vertex $v$ to a vertex $w$, then there is a path from $w$ to $v$, i.e. the connectedness is symmetric in (undirected) graphs. So connected components can be found by using BFS or DFS. Just pick a vertex and find all of its connected vertices using BFS or DFS. Repeat the process for vertices not yet in any component.
+Checking connectedness and finding connected components of a (undirected) graph is relatively easy, because in if there is a path from a vertex $v$ to a vertex $w$, then there is a path from $w$ to $v$, i.e. the connectedness is symmetric in (undirected) graphs.
+The connected components can be found by using breadth first search (BFS) or depth first search (DFS). Just pick a vertex and find all of its connected vertices using BFS or DFS. Repeat the process for vertices not yet in any component.
+
+BFS visits vertices level by level - the vertices closer to the starting vertex are visited first. For that it uses a First-In-First-Out (FIFO) queue, where all adjacent undiscovered vertices of the vertex being visited are enqueued and marked as discovered \cite{c++_sedgewick}. Meanwhile DFS visits a path as far as it can before backtracking until the latest branching option in the path options considered. It uses a Last-In-First-Out (LIFO) stack, where all adjacent undiscovered vertices of the vertex being visited are pushed on the stack and marked as discovered \cite{c++_sedgewick}. So both BFS and DFS are very similar, except that the order in which they visit vertices is different. Since BFS and DFS consider each edge and vertex only once they have linear time complexity - $O(|V| + |E|)$. For more detail on BFS and DFS, queues and stacks, and how they were implemented see the attached computer science submission.
 
 \section{Basic Algorithm Definitions}
 
@@ -242,7 +248,7 @@ Parallel algorithms have issues and constraints only specific to them \cite{berm
 Thus designing and implementing parallel algorithms is generally harder. Therefore a number of approaches are used when designing parallel algorithms \cite{berman1996fundamentals}:
 \begin{itemize}
   \item Modify an existing sequential algorithm exploiting those parts of the algorithm that are easily paralllizable. This approach is used to tackle vertex colouring.
-  \item Come up with a completely new approach that may have not natural sequential analogue algorithm or it is not used for serial implementations. Naive algorithms are sometimes better suited for parallelism as they have more redundancy and are not squeezing everything out of the problem. This approach is used for finding the strongly connected components.
+  \item Come up with a completely new approach that may have not natural sequential analogue algorithm or it is not used for serial implementations. This often involves splitting the problem in smaller independent subproblems. Naive algorithms are sometimes better suited for parallelism as they have more redundancy and are not squeezing everything out of the problem. This approach is used for finding the strongly connected components.
   \item For some problems just execute the same algorithm with different starting conditions on many processors until one finds a solution or the whole search space is covered.
 \end{itemize}
 
@@ -258,11 +264,13 @@ Thus designing and implementing parallel algorithms is generally harder. Therefo
 
 These algorithms were picked, because they are some of the most common graph algorithms that solve the most common graph problems. The other popular graph problems are travelling salesman problem, graph isomorphism and clique problem. Furthermore, they cover a wide range of different graphs (directed, undirected, weighted) and a range of different time complexities from linear to exponential. Note in this paper we describe only the strongly connected components, vertex colouring and single source shortest paths. For reference to other algorithms implemented see the computer science parts paper that is attached.
 
+The graphs in both packages are represented using adjacency lists, i.e. the graph is a list of lists storing the adjacent vertices for each vertex of the graph. This approach was picked over adjacency matrix representation. For graphs with weights there is an additional list of lists storing the weights of edges. For more details on how the graphs are represented in the implementations and why, again see the computer science parts paper that is attached.
+
 \chapter{Strongly Connected Components}
 
 \section{Defining strongly connected components}
 
-As discussed edges in a graph represent relationships between vertices. Often these are not symmetric and are represented using directed graphs, where edges have direction, i.e. there is a start and end vertex for each vertex.
+As discussed edges in a graph represent relationships between vertices. Often these are not symmetric and are represented using directed graphs, where edges have direction, i.e. there is a start and end vertex for each vertex. In this chapter we will consider directed graphs and by a graph we will mean a directed graph, unless specified otherwise unlike in other chapters were by default graph is undirected.
 
 \begin{definition}[Directed graph]
 A $directed \ graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
@@ -362,6 +370,8 @@ An example of strongly connected components of a directed graph. The components 
 
 Now that we have defined strongly connected components, the goal of a strongly connected components algorithm is to partition the vertices $V$ of a directed graph $G=(V,E,ends)$ into strongly connected components. It is usually done by assigning component index numbers to each vertex, either starting from zero or $|V|$ (1 or $|V|+1$ for 1-index based programming languages), this also allows to easily determine the number of strongly connected components.
 
+Finding strongly connected components allows to treat all vertices of a strongly connected component as the same, since they are reachable from each other. Strong connectedness is an equivalence relation and thus by finding equivalence classes of it in a graph we can remove redundancy from a graph by collapsing all strongly connected vertices to a single vertex to get an acyclic graph of strongly connected components. This allows to tell how well connected a network is. In addition strongly connected components can be used to solve 2-satisfiability problems \cite{aspvall1979linear}, in set oriented methods for the numerical study of discrete dynamical systems \cite{dellnitz2002set} and in the discrete ordinates method for modeling radiation transport \cite{fleischer2000identifying}.
+
 \section{Serial algorithms}
 
 The very simplest approach to find strongly connected components is brute force algorithm. Using DFS or BFS check for every pair of two vertices $v$ and $w$ that there is a path from $v$ to $w$ and from $w$ to $v$, i.e. just run BFS or DFS on $v$ and then on $w$ until $w$ and $v$ is found, respectively. Of course this algorithm is very inefficient. Its time complexity is $O(V^2E)$ (for a strongly connected graph). It is because we are repeating almost the same search for every pair of vertices in the same strongly connected component. Therefore we can do much better. As we will see later, strongly connected components can be found in linear time, i.e. its time complexity is $O(V + E)$.
@@ -390,7 +400,7 @@ This algorithm builds $H$, because all cycles are contracted and the last vertex
 
 \begin{example}
 
-An example of executing the high level algorithm on the graph $G$ in example \ref{SCC_example} to find its strongly connected components graph. The first contracted cycle is $(1,6,3,4)$, the next is $(7,2)$ and then $(8,7)$. The vertices of each contracted cycle are in the same strongly connected component, so in the end vertex $1$ represents strongly connected component with vertices $1,6,3,4$ and $8$ with $8,7,2$. Thus this gives us all 4 strongly connected components of $G$.
+An example of executing the high level algorithm on the graph $G$ in example \ref{SCC_example} to find its strongly connected components graph is seen in figure \ref{high_figure}. The first contracted cycle is $(1,6,3,4)$, the next is $(7,2)$ and then $(8,7)$. The vertices of each contracted cycle are in the same strongly connected component, so in the end vertex $1$ represents strongly connected component with vertices $1,6,3,4$ and $8$ with $8,7,2$. Thus this gives us all 4 strongly connected components of $G$.
 
 \begin{figure}[h]
 \center
@@ -491,6 +501,7 @@ and $w=8$
 \endminipage\hfill
 
 \caption{Example of finding the strongly connected components graph}
+\label{high_figure}
 \end{figure}
 \label{high_example}
 \end{example}
@@ -717,6 +728,268 @@ At D9 we have processed all adjacent vertices to $v$ and check if vertex's $v$ p
 
 Proving second part of the theorem is relatively straightforward. If the given graph $G$ is stored using adjacency lists. Note that every vertex is pushed (when visited) and popped (when added to a strongly connected component or when contracted) from each stack S and B exactly once and every edge is examined exactly once, too. Thus the algorithm spends constant time and space for each vertex or edge. Therefore it is linear in time and space.
 \end{proof}
+
+\section{Parallel algorithm}
+
+All three standard serial algorithms for finding strongly connected components are not well suited for parallelism. It is because they are based on DFS, which is hard to parallelise. In 1985 Reif proved that DFS where adjacent vertices of a vertex are visited in fixed order is P-complete, thus suggesting that it is inherently sequential \cite{reif1985depth}. The approach of executing a standard serial algorithm with different starting conditions is not well suited either. Because, although we can pick a different starting vertices for say Gabow's algorithm iterations, it will be of no use when the graph has very few large strongly connected components. Therefore a completely different approach is needed.
+
+In 2000 a parallel algorithm, called forwards-backwards algorithm, for identifying strongly connected components of a directed graph for shared memory model was developed \cite{fleischer2000identifying}. It achieves parallelism by splitting the graph into four disjoint partitions - intersection of forwards and backwards reachable vertices for some vertex (its strongly connected component), the rest of backwards and the rest of forwards reachable vertices and the rest of vertices. Then the algorithm is recursively applied to the three parts. Furthermore adding a simple trim step to eliminate vertices without incoming or outgoing edges improves performance significantly \cite{mclendon2005finding}. Later the limited performance and poor scaling for large real-world graphs was improved as well by adding various extensions like parallel trimming, two-phase parallelisation and fast detection of size 2 strongly connected components \cite{hongtechnical}.
+
+\subsection{Forwards-backwards algorithm}
+
+This subsection is based on the paper\cite{fleischer2000identifying}. First we will formally define forwards and backwards reachable vertices. 
+
+\begin{definition}[Forwards reachable]
+Let $G=(V, E, ends)$ be a directed graph and $v,w \in V$ be two vertices of $G$, then $w$ is $forwards \ reachable$ from $v$ if there is a path from $v$ to $w$. Denote the set of forwards reachable vertices from $v$ in $G$ by $FW_G(v)$.
+\end{definition}
+
+\begin{definition}[Backwards reachable]
+Let $G=(V, E, ends)$ be a directed graph and $v,w \in V$ be two vertices of $G$, then $w$ is $backwards \ reachable$ from $v$ if there is a path from $w$ to $v$. Denote the set of backwards reachable vertices from $v$ in $G$ by $BW_G(v)$.
+\end{definition}
+
+The following lemma gives the reason why finding forwards and backwards reachable vertices helps finding strongly connected components.
+
+\begin{lemma}
+Let $G=(V, E, ends)$ be a directed graph and $v \in V$ be a vertex of $G$. Then the subgraph induced by vertices of $FW_G(v) \cap BW_G(v)$ is the strongly connected component $SCC_G(v)$ of $G$ containing $v$.
+\label{fw_bw_l1}
+\end{lemma}
+
+\begin{proof}
+Let $w$ be any vertex of $G$. Then
+
+$w \in FW_G(v) \cap BW_G(v) \Leftrightarrow$
+
+$w$ is both forwards and backwards reachable from $v$ $\Leftrightarrow$
+
+There is a path from $v$ to $w$ and a path from $w$ to $v$ $\Leftrightarrow$
+
+$v$ and $w$ are strongly connected $\Leftrightarrow$
+
+$w$ is in  $SCC_G(v)$.
+
+Thus $FW_G(v) \cap BW_G(v)$ and $SCC_G(v)$ contain the same vertices, therefore the subgraph induced by vertices of $FW_G(v) \cap BW_G(v)$ is the strongly connected component $SCC_G(v)$ of $G$ containing $v$. 
+\end{proof}
+
+\begin{definition}[Remainder]
+Let $G=(V, E, ends)$ be a directed graph and $v \in V$ be a vertex of $G$. The $remainder$ of $v$ in $G$ is the set of vertices $Rem_G(v)=V \setminus (FW_G(v) \cup BW_G(v))$, i.e. the vertices that are neither forwards or backwards reachable from $v$.
+\end{definition}
+
+Now we establish that any strongly connected compoenent is in one of the three disjoint partitions.
+
+\begin{lemma}
+Let $G=(V, E, ends)$ be a directed graph and $v \in V$ be a vertex of $G$. Then any other strongly connected component of $G$ apart from $SCC_G(v)$ is in exactly one of subgraphs induced by $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$.
+\label{fw_bw_l2}
+\end{lemma}
+
+\begin{proof}
+Let $u$ and $w$ be two vertices of the same strongly connected component in $G$ that is not $SCC_G(v)$. Now since $u$ and $w$ are in the same strongly connected component there is a path from $u$ to $w$ and a path from $w$ to $u$.
+
+If $u \in FW_G(v)$ then there is a path from $v$ to $u$, thus there is a path from $v$ to $w$ (through $u$) and so $w \in FW_G(v)$. Similarly if $w \in FW_G(v)$ then $u \in FW_G(v)$. Therefore $w \in FW_G(v) \Leftrightarrow u \in FW_G(v)$. Similar argument shows that $w \in BW_G(v) \Leftrightarrow u \in BW_G(v)$.
+Thus $w \in Rem_G(v) \Leftrightarrow u \in Rem_G(v)$, as $Rem_G(v)=V \setminus (FW_G(v) \cup BW_G(v))$.
+
+Now since $u$ and $w$ are in different strongly connected component that $SCC_G(v)$, then $u,v \not \in FW_G(v) \cap BW_G(v)$. And so both $u$ and $v$ are in exactly one of $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$, as they are disjoint. So all vertices of a strongly connected component that is not $SCC_G(v)$ are in exactly one of the tree sets. Therefore any other strongly connected component of $G$ apart from $SCC_G(v)$ is in exactly one of subgraphs induced by $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$.
+\end{proof}
+
+Now the algorithm itself as described before is fairly simple. We pick a vertex $v$ in $G$, then find $FW_G(v)$ and $BW_G(v)$ by using DFS or BFS on $v$. To find $BW_G(v)$ we at very beginning of the algorithm compute the reverse graph of $G$. Then we calculate $FW_G(v) \cap BW_G(v)$ and add it as a strongly connected component. After that just recursively repeat the same algorithm in parallel on $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) and $Rem_G(v)$, since any other strongly connected component of $G$ is in exactly one of those vertex set induced graphs.
+
+It achieves parallelism by splitting the graph into four disjoint partitions - intersection of forwards and backwards reachable vertices for some vertex (its strongly connected component), the rest of backwards and the rest of forwards reachable vertices and the rest of vertices. Then the algorithm is recursively applied to the three parts
+
+\subsubsection*{Pseudo-code}
+
+\begin{lstlisting}[language=Ruby, mathescape]
+def FW-BW(G, SCC)
+
+  if G has no vertices
+    return
+
+  v = any vertex of G
+  $FW_G(v) = $ forwards reachable vertices from v in G
+  $BW_G(v) = $ backwards reachable vertices from v in G
+  $S = FW_G(v) \cap BW_G(v)$
+  Add S to SCC
+  
+  do in parallel
+    FW-BW(InducedGraph($FW_G(v) \setminus BW_G(v)$), SCC)
+    FW-BW(InducedGraph($BW_G(v) \setminus FW_G(v)$), SCC)
+    FW-BW(InducedGraph($G \setminus (FW_G(v) \cup BW_G(v))$, SCC)
+end
+\end{lstlisting}
+
+\begin{example}
+An example of executing the forwards-backwards algorithm on the graph $G$ in example \ref{SCC_example} to find its strongly connected components. The algorithm say picks vertex 1 as the starting point, then $BW_G(v) = \{1, 6, 3, 4, 5\}$, $FW_G(v) = \{1, 6, 3, 4, 8, 7, 2\}$, so $S=\{1,6,3,4\}$. After that recursively apply the algorithm on $BW_G(v) \setminus FW_G(v) = \{5\}$, $FW_G(v) \setminus BW_G(v) = \{2, 7, 8\}$ and $Rem_G(v)=\{9\}$. All three of which turn out to be full strongly connected components by themselves, so we are done and have found all strongly connected components of $G$.
+
+\begin{figure}[!htb]
+			\minipage{0.32\textwidth}
+  			\SetVertexNormal[Shape      = circle,
+                 FillColor  = blue!20,
+                 LineWidth  = 2pt]
+\SetUpEdge[lw         = 3pt,
+           color      = black,
+           labelcolor = white,
+           labeltext  = red,
+           labelstyle = {sloped,draw,text=blue}]
+\begin{tikzpicture}[scale = 0.5]
+   \tikzset{EdgeStyle/.style={->}}
+   \tikzset{VertexStyle/.append  style={fill=red, scale = 0.7}}
+   \Vertex[x=0 ,y=0]{1}
+   \tikzset{VertexStyle/.append  style={fill=red!20}}
+   \Vertex[x=3,y=1]{3}
+   \Vertex[x=3 ,y=-1]{4}
+   \Vertex[x=0 ,y=2]{6}
+   \tikzset{VertexStyle/.append  style={fill=gray!20}}
+   \Vertex[x=0 ,y=-2]{2}
+   \Vertex[x=-2 ,y=-4]{7}
+   \Vertex[x=2 ,y=-4]{8}
+   \tikzset{VertexStyle/.append  style={fill=red!20}}
+   \Vertex[x=-3 ,y=0]{5}
+   \tikzset{VertexStyle/.append  style={fill=gray!20}}
+   \Vertex[x=1 ,y=-3]{9}
+   \Edge(6)(3)
+   \Edge(3)(4)
+   \Edge(4)(1)
+   \Edge(1)(6)
+   \Edge(4)(8)
+   \Edge(6)(7)
+   \Edge(2)(7)
+   \Edge(7)(2)
+   \Edge(7)(8)
+   \Edge(8)(7)
+   \Edge(5)(6)
+   \Edge(5)(7)
+\end{tikzpicture}
+\center{Backwards reachable}
+			\endminipage\hfill
+			\minipage{0.32\textwidth}
+  			\SetVertexNormal[Shape      = circle,
+                 FillColor  = blue!20,
+                 LineWidth  = 2pt]
+\SetUpEdge[lw         = 3pt,
+           color      = black,
+           labelcolor = white,
+           labeltext  = red,
+           labelstyle = {sloped,draw,text=blue}]
+\begin{tikzpicture}[scale=0.5]
+   \tikzset{EdgeStyle/.style={->}}
+   \tikzset{VertexStyle/.append  style={fill=green, scale=0.7]}}
+   \Vertex[x=0 ,y=0]{1}
+   \tikzset{VertexStyle/.append  style={fill=green!20}}
+   \Vertex[x=3,y=1]{3}
+   \Vertex[x=3 ,y=-1]{4}
+   \Vertex[x=0 ,y=2]{6}
+   \tikzset{VertexStyle/.append  style={fill=green!20}}
+   \Vertex[x=0 ,y=-2]{2}
+   \Vertex[x=-2 ,y=-4]{7}
+   \Vertex[x=2 ,y=-4]{8}
+   \tikzset{VertexStyle/.append  style={fill=gray!20}}
+   \Vertex[x=-3 ,y=0]{5}
+   \tikzset{VertexStyle/.append  style={fill=gray!20}}
+   \Vertex[x=1 ,y=-3]{9}
+   \Edge(6)(3)
+   \Edge(3)(4)
+   \Edge(4)(1)
+   \Edge(1)(6)
+   \Edge(4)(8)
+   \Edge(6)(7)
+   \Edge(2)(7)
+   \Edge(7)(2)
+   \Edge(7)(8)
+   \Edge(8)(7)
+   \Edge(5)(6)
+   \Edge(5)(7)
+\end{tikzpicture}
+\center{Forwards reachable}
+			\endminipage\hfill
+			\minipage{0.32\textwidth}
+  			\SetVertexNormal[Shape      = circle,
+                 FillColor  = blue!20,
+                 LineWidth  = 2pt]
+\SetUpEdge[lw         = 3pt,
+           color      = black,
+           labelcolor = white,
+           labeltext  = red,
+           labelstyle = {sloped,draw,text=blue}]
+\begin{tikzpicture}[scale=0.5]
+   \tikzset{EdgeStyle/.style={->}}
+   \tikzset{VertexStyle/.append  style={fill=yellow!20, scale=0.7]}}
+   \Vertex[x=0 ,y=0]{1}
+   \tikzset{VertexStyle/.append  style={fill=yellow!20}}
+   \Vertex[x=3,y=1]{3}
+   \Vertex[x=3 ,y=-1]{4}
+   \Vertex[x=0 ,y=2]{6}
+   \tikzset{VertexStyle/.append  style={fill=green!20}}
+   \Vertex[x=0 ,y=-2]{2}
+   \Vertex[x=-2 ,y=-4]{7}
+   \Vertex[x=2 ,y=-4]{8}
+   \tikzset{VertexStyle/.append  style={fill=red!20}}
+   \Vertex[x=-3 ,y=0]{5}
+   \tikzset{VertexStyle/.append  style={fill=gray!20}}
+   \Vertex[x=1 ,y=-3]{9}
+   \Edge(6)(3)
+   \Edge(3)(4)
+   \Edge(4)(1)
+   \Edge(1)(6)
+   \Edge(4)(8)
+   \Edge(6)(7)
+   \Edge(2)(7)
+   \Edge(7)(2)
+   \Edge(7)(8)
+   \Edge(8)(7)
+   \Edge(5)(6)
+   \Edge(5)(7)
+\end{tikzpicture}
+\center{Disjoint parts and S}
+			\endminipage\hfill
+			\label{fw_bw_fig}
+			\caption{Example of forwards-backwards algorithm execution}
+		\end{figure}
+		
+\end{example}
+
+complexity, discussion on efficiency.
+
+\begin{theorem}
+Let $G=(V, E, ends)$ be a directed graph. Then the forwards-backwards algorithm (FW-BW) correctly finds all strongly connected components of $G$.
+\end{theorem}
+\begin{proof}
+It is a direct consequence of lemmas \ref{fw_bw_l1} and \ref{fw_bw_l2}, because we find one strongly connected component using results from lemma \ref{fw_bw_l1}, then divide the problem in 3 disjoint parts using lemma \ref{fw_bw_l2} and recursively solve that.
+\end{proof}
+
+\begin{theorem}
+Let $G=(V, E, ends)$ be a directed graph in which all vertex degrees are bounded by a constant. Then the forwards-backwards algorithm (FW-BW) has expected serial time complexity $O(n \, logn)$ where $n=|V|$.
+\end{theorem}
+
+The proof of this theorem is not given as it is too long and complicated and so outside the scope of this text. This theorem means that forwards-backwards algorithm is not much more inefficient that the Gabow's algorithm, so it is worthwhile to parallelise. Moreover it should achieve good parallelism, since each partition produces three new partitions and so the number of partitions that can be processed in independently in parallel grows quickly \cite{hongtechnical}, especially for graphs that have many similar size strongly connected components.
+
+Unfortunately this is not always the case. Assume we have a real world network graph (e.g a graph of a social network). These usually have one strongly connected component that is very large. This causes load imbalance. Moreover, it is very likely that a vertex from it is picked first. So while it is identified by one processor all others stay idle. This issue with real world network graphs can be solved by adding various optimizations such as parallel trimming, two-phase parallelisation and fast detection of size 2 strongly connected component \cite{hongtechnical}.
+
+We will closer examine the parallel trimming optimization, as it is the most effective and not only for real world network graphs.
+
+\subsection{Parallel trim step}
+
+The trim step allows to identify trivial strongly connected components (those with only one vertex), because these have only incoming or outgoing edges after other trimmed vertices are removed. Therefore we can easily identify them by looking how many incoming and outgoing edges they have. If a vertex after other trimmed vertices are removed has zero incoming (in-degree) or zero outgoing edges (out-degree), then it is a trivial strongly connected component and can be trimmed. Note that trimming is applied iteratively since it can enable further trimming \cite{hongtechnical}.
+
+\subsubsection*{Pseudo-code}
+
+\begin{lstlisting}[language=Ruby]
+def Trim(G, SCC)
+  do
+    for each vertex v in G
+      if in-deg(G, v) = 0 or out-deg(G, v) = 0
+        Add v to SCC
+        Remove v and all its edges from G
+  while G is changed
+end
+\end{lstlisting}
+
+Note this can be implemented without actually modifying the graph and avoiding performance overhead by just keeping track of how many incoming and outgoing edges each vertex has and just marking the vertices as trimmed and not considering them for trimming again. Then constructing a new graph at the end without all trimmed vertices. Note we can parallelise the inner for-loop of the trim step, because "removal" of a vertex from $G$ only affects the vertices examined after it. So as long as we repeat the outer loop we will trim exactly the same vertices at the end as in serial implementation.
+
+\section{Partial strongly connected components}
+
+Often, instead of computing all strongly connected components of a directed graph $G=(V, E, ends)$, one would like to do that only partially step by step. For example find if two vertices are strongly connected or a strongly connected component of a specific vertex and then do that again for different vertices/vertex while remembering the results of previous computation. Both the Gabow's and forwards-backwards algorithms can be easily modified to achieve this.
+
+For Gabow's algorithm to find the strongly connected component of a vertex $v$ we execute it starting at that vertex and do only one iteration of it. At the end of that iteration we have found $SCC_G(v)$ and possibly other strongly connected components. More specifically, all of the strongly connected components that are forwards reachable from $v$. This intermediate result can be saved by simply keeping the list $I$ of strongly connected component's index each vertex of $G$ belongs to. Note that at the end of each iteration the stacks $S$ and $B$ are empty so we do not need to keep these and all entries in $I$ either mark a vertex as undiscovered or in some strongly connected component. Now whenever we want to find out something about strong connectedness in our graph we just reuse the list $I$. And if some vertex $w$ in question is marked as undiscovered we again execute one iteration of Gabow's algorithm starting at $w$.
+
+For forwards-backwards algorithm we again start at some specific vertex and keep the intermediate results. In this case we must keep track of the disjoint partitions and to which partition each vertex belongs to.
 
 \chapter{Vertex colouring}
 
