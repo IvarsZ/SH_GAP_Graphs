@@ -1,15 +1,15 @@
 #! @AutoDoc
-#! @Chapter Graphs
-#! @Section Graphs
+#! @Chapter PGraphs
+#! @Section PGraphs
 
 #
 # Declaration file for directed graps and their functions.
 #
 
-if IsBound(IsGraph) = false then
+if IsBound(IsGraphP) = false then
 
   #! A directed graph with vertices and edges between them.
-  DeclareCategory("IsGraph", IsObject);
+  DeclareCategory("IsGraphP", IsObject);
 fi;
 
 #! @Description
@@ -64,8 +64,17 @@ DeclareGlobalFunction("VertexSuccessorsP");
 #!
 DeclareGlobalFunction("VertexSuccessorP");
 
-# TODO comment BFSP
+#! @Description
+#! @Arguments graph, startVertex
+#!
+#! @Returns vertices of the given graph in ascending order by their distance to the given startVertex, of course only vertices reachable from start vertex are included. The exact output is a list of lists for each possible distance containing the vertices with that distance. Due to the parallel implementation each list containing the vertices of that particular distance is actually a list of lists, i.e. the vertices of that level are split into multiple disjoint partitions.
 DeclareGlobalFunction("BFSP");
 
-# TODO comment ColorVerticesP
+#! @Description
+#! @Arguments graph, numberOfColours
+#!
+#! @Returns a list of colours for vertices of the given undirected, loopless graph for the given number of colours or false if it can't be coloured such that no two adjacent vertices have the same colour.
+#!
+#! The implementation is a brute force search executed by recursively generating all possible combitnations in parallel.
+#!
 DeclareGlobalFunction("ColorVerticesP");

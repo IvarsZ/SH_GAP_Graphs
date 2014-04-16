@@ -1,10 +1,10 @@
 #! @AutoDoc
-#! @Chapter Graphs
-#! @Section Weighted Graphs
+#! @Chapter PGraphs
+#! @Section Weighted PGraphs
 
-if IsBound(IsWeightedGraph) = false then
+if IsBound(IsWeightedGraphP) = false then
   #! A directed graph with non-negative weights for edges.
-  DeclareCategory("IsWeightedGraph", IsGraph);
+  DeclareCategory("IsWeightedGraphP", IsGraphP);
 fi;
 
 #! @Description

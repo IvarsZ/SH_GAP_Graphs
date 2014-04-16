@@ -5,8 +5,8 @@
 #!
 #! The representation is a record with an adjacency list called successors where each vertex v has a list of end vertices for each edge starting at v.
 #!
-if IsBound(IsGraphAdjacencyListRep) = false then
-  DeclareRepresentation("IsGraphAdjacencyListRep", IsComponentObjectRep, ["successors"]);
+if IsBound(IsGraphAdjacencyListRepP) = false then
+  DeclareRepresentation("IsGraphAdjacencyListRepP", IsComponentObjectRep, ["successors"]);
 fi;
 
 InstallGlobalFunction(GraphP, function(successorsLists)
@@ -18,13 +18,13 @@ InstallGlobalFunction(GraphP, function(successorsLists)
     Add(atomicSuccessorsList, AtomicList(successors));
   od;
 
-  return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
+  return Objectify(NewType(NewFamily("GraphsP"), IsGraphP and IsGraphAdjacencyListRepP),
                    rec(successors := atomicSuccessorsList));
 end);
 
 InstallGlobalFunction(EmptyGraphP,  function()
 
-  return Objectify(NewType(NewFamily("Graphs"), IsGraph and IsGraphAdjacencyListRep),
+  return Objectify(NewType(NewFamily("GraphsP"), IsGraphP and IsGraphAdjacencyListRepP),
                    rec(successors := AtomicList([])));
 end);
 

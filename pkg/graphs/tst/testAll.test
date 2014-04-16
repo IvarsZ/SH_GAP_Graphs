@@ -5,4 +5,5 @@ ReadTest("pkg/graphs/tst/colouring.test");
 #ReadTest("pkg/graphs/tst/minimumSpanningTree.test");
 Read("pkg/graphs/tst/mst.test");
 #ReadTest("pkg/graphs/tst/shortestPaths.test");
-ReadTest("pkg/graphs/tst/strongComponents.test");
+Read("pkg/graphs/tst/strongComponents.test");
+#ReadTest("pkg/graphs/tst/strongComponents.test");

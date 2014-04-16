@@ -100,6 +100,6 @@ DeclareGlobalFunction("ColorVertices");
 #!
 #! @Returns a list that partitions vertices of the given graph into strongly connected components. Each vertex is assigned the index of its component, where the indexes of components start from vertex count + 1.
 #!
-#! It is an implementation of Gabov's algorithm. It traverses the graph with DFS and uses two stacks. One to keep track of visited vertices and another one to keep track of vertices which vertices are backwards reachable and are in the same strong component. 
+#! It is an implementation of Gabov's algorithm. It traverses the graph with DFS and uses two stacks. One to keep track of visited vertices and another one to keep track of vertices which are backwards reachable and are in the same strong component. 
 #!
 DeclareGlobalFunction("StrongComponents");

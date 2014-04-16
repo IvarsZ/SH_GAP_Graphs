@@ -1,9 +1,23 @@
-gap> START_TEST("strongComponentsTest");
-
 # Test strongly connected components.
-gap> g := Graph([[2, 6, 7], [3], [4, 6], [5, 7], [6], [2], [], [9, 10], [], [8]]);
-<object>
-gap> StrongComponents(g);
-[ 13, 12, 12, 12, 12, 12, 11, 15, 14, 15 ]
+testSCC := function(graph, expected)
+  local actual;
 
-gap> STOP_TEST("strongComponents.test", 1000);
+  actual := StrongComponents(graph);
+  if actual <> expected then
+    Print("SCC test failed\n");
+    Print("expected: ", expected, "\n");
+    Print("actual: ", actual, "\n");
+    Print("graph: ", graph!.successors, "\n");
+  else
+    Print("SCC test successful\n");
+  fi;
+end;
+
+g := Graph([[2, 6, 7], [3], [4, 6], [5, 7], [6], [2], [], [9, 10], [], [8]]);
+testSCC(g, [ 13, 12, 12, 12, 12, 12, 11, 15, 14, 15 ]);
+
+g := Graph([[6], [7], [4], [1, 8], [6, 7], [3], [2, 8], [7], []]);
+testSCC(g, [ 11, 10, 11, 11, 12, 11, 10, 10, 13 ]);
+
+g := Graph([[7, 6, 2], [], [1, 4], [3, 6], [4, 12, 3], [5], [5, 10], [7, 9], [8, 10], [11, 12], [13], [13], [10]]);
+testSCC(g, [16, 15, 16, 16, 16, 16, 16, 17, 17, 14, 14, 14, 14]);
