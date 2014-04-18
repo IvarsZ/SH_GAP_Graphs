@@ -331,3 +331,26 @@ mstp 1000000 100 60181600000 11771569203 4 double
 mstp 1000000 100 59016200000 11780356682 4 double
 mstp 1000000 100 62594000000 11757224409 4 double
 mstp 1000000 100 60040400000 11766408716 4 double
+ ┌───────┐   HPC-GAP, Version 4.dev of today (free software, GPL)
+ │  GAP  │   http://www.gap-system.org
+ └───────┘   Architecture: x86_64-unknown-linux-gnu-gcc-hpc
+             Maximum concurrent threads: 4
+ Libs used:  gmp
+
+#W <<< This is an alpha release.      >>>
+#W <<< Do not use for important work. >>>
+
+ Loading the library and packages ...
+ Components: trans 1.0, prim 2.1, small* 1.0, id* 1.0
+ Packages:   GAPDoc 1.5.1
+ Try '?help' for help. See also  '?copyright' and  '?authors'
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Loading  Graphs 0.0.1 (GAP package for creating and manipulating graphs)
+by Zubkans Ivars (iz2@st-andrews.ac.uk).
+Homepage: Will be provided in later release
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+Loading  PGraphs 0.0.1 (HPC-GAP package for creating and manipulating graphs)
+by Zubkans Ivars (iz2@st-andrews.ac.uk).
+Homepage: Will be provided in later release
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
