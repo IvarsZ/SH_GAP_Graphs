@@ -185,7 +185,7 @@ plot_type_time <- function(kF, p_range, name, x_max, y_min, y_max) {
     points(p_set$totalEdges, p_set$time, col=c, bg=c, pch=21)
   }
 }
-plot_type_time("double", c(1, 2, 4, 8, 16, 32), "Serial vs Parallel", 10000000, 0.00001, 10)
+plot_type_time("double", c(1, 2, 4, 8, 16, 32), "Serial vs Parallel", 10000000000, 0.00001, 10000)
 
 p_set <- subset(q, q$type=="mst")
 lines(p_set$totalEdges, p_set$time, col=7, lwd = 3)
