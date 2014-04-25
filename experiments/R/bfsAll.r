@@ -128,7 +128,7 @@ plot_type_time <- function(k, e_range, name, x_max, y_min, y_max) {
   plot(zero, zero, xlab="Number of processors", log="xy", ylab="Time, s", main=name, pch=p, xlim=c(0.8, x_max), ylim=c(y_min, y_max))
   for (c in c_range) {
     p_set <- subset(q, q$type=="bfsp" & q$kFunction == k & q$totalEdges == e_range[c])
-    lines(p_set$pCount, p_set$time, col=c)
+    lines(p_set$pCount, p_set$time, col=c, lwd = 3)
     points(p_set$pCount, p_set$time, col=c)
   }
   legend("bottomright", title="Average number of edges", legend=e_range, col=c_range, cex=0.5, pch=1)
