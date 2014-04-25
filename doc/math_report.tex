@@ -270,7 +270,7 @@ The graphs in both packages are represented using adjacency lists, i.e. the grap
 
 \section{Defining strongly connected components}
 
-As discussed edges in a graph represent relationships between vertices. Often these are not symmetric and are represented using directed graphs, where edges have direction, i.e. there is a start and end vertex for each vertex. In this chapter we will consider directed graphs and by a graph we will mean a directed graph, unless specified otherwise unlike in other chapters were by default graph is undirected.
+As discussed edges in a graph represent relationships between vertices. Often these are not symmetric and are represented using directed graphs, where edges have direction, i.e. there is a start and end vertex for each vertex. In this chapter we will consider directed graphs and by a graph we will mean a directed graph, unless specified otherwise unlike in other chapters were by default a graph is undirected.
 
 \begin{definition}[Directed graph]
 A $directed \ graph$  $G$ is a triple $G = (V, E, ends)$ where $V$ and $E$ are sets, while $ends$ is a function 
@@ -521,35 +521,38 @@ After processing all the edges for each vertex $v$ and returning from recursive 
 \subsubsection*{Pseudo-code}
 
 \begin{lstlisting}[language=Ruby]
-def SCC(G)
+    def SCC(G)
+S1:   Create an empty stack S
+S2:   Create an empty stack B
+S3:   Create a list I marking all vertices as unvisited
 
-S1:  Create an empty stack S
-S2:  Create an empty stack B
-S3:  Create a list I marking all vertices as unvisited
+S4:   for each yet undiscovered vertex v
+S5:     SCC_DFS(G, v)
+      end
+    end
 
-S4:  for each yet undiscovered vertex v
-S5:    SCC_DFS(G, v)
-end
-
-def SCC_DFS(G, v)
+     def SCC_DFS(G, v)  
+D1:    Push v onto S
+D2:    Push top(S) on B
   
-D1:  Push v onto S
-D2:  Push top(S) on B
-  
-D3:  for each vertex w adjacent to v
-D4:    if w is not discovered
-D5:      SCC_DFS(G, w)
-D6:    else
-         # Pop all positions of vertices discovered after w from B
-D7:      while I[w] < B[top(B)] do
-D8:        pop(B)
+D3:    for each vertex w adjacent to v
+D4:      if w is not discovered
+D5:        SCC_DFS(G, w)
+D6:      else
+           # Pop all positions of vertices discovered after w from B
+D7:        while I[w] < B[top(B)] do
+D8:          pop(B)
+           end
+         end
+       end
   
        # if position of v in S is at top of B
-D9:    if I[v] = B[top(B)]
-D11      pop(B)
+D9:    if I[v] = B[top(B)] then
+D11:     pop(B)
 D12:     Pop all vertices w after v from S
 D13:     Mark all w as in the same strongly connected component as v
-end
+       end
+     end
 \end{lstlisting}
 
 \begin{example}
@@ -993,7 +996,333 @@ For forwards-backwards algorithm we again start at some specific vertex and keep
 
 \chapter{Vertex colouring}
 
-\chapter{shortest paths}
+\section{Defining vertex colouring}
+
+\begin{definition}[Vertex colouring]
+Let $G=(V, E, ends)$ be a graph, then a $vertex \ colouring$ is an assignment of colours to all vertices of $G$ such that every pair of adjacent vertices has distinct colours. 
+\end{definition}
+
+We will often use natural numbers instead of real colours, due to simpler use when the number of colours is not small. Thus a $k-colouring$ of a graph $G$ is a function $c: V(G) \leftarrow \{1, 2,..., k\}$ such that $c(v) \not = c(w)$ for all adjacent vertices $v,w$ of $G$.
+
+\begin{example}
+
+An example of a vertex colouring with 4 colours (blue, green, yellow, red) where no two adjacent vertices have the same colour. Note that 4 colours is the minimum due to the complete subgraph (3,4,5,6) with 4 vertices - a graph that has an edge between every pair of distinct vertices, i.e. all possible edges. Moreover, this is not the only valid colouring.
+
+\begin{figure}[h]
+\center
+\begin{tikzpicture}[scale=0.5]
+   \tikzset{VertexStyle/.append style={scale=0.7}}
+   \tikzset{VertexStyle/.append style={fill=yellow!50}}
+   \Vertex[x=-1 ,y=4]{C}
+   \tikzset{VertexStyle/.append style={fill=green!50}}
+   \Vertex[x=1, y = -4]{D}
+   \tikzset{VertexStyle/.append style={fill=red!50}}
+   \Vertex[x=4 ,y=1]{B}
+   \Vertex[x=-1 ,y=-1]{E}
+   \tikzset{VertexStyle/.append style={fill=blue!50}}
+   \Vertex[x=-4 ,y=-1]{A}
+   \Vertex[x=1, y=1]{F}
+   \Edge(A)(C)
+   \Edge(A)(D)
+   \Edge(A)(E)
+   \Edge(B)(C)
+   \Edge(B)(D)
+   \Edge(B)(F)
+   \Edge(C)(D)
+   \Edge(C)(E)
+   \Edge(C)(F)
+   \Edge(D)(E)
+   \Edge(D)(F)
+   \Edge(E)(F)
+\end{tikzpicture}
+\caption{An example of a valid vertex colouring}
+\end{figure}
+\label{VC_example}
+\end{example}
+
+The problem we will look at is finding a vertex $k-colouring$ for some graph $G$ or establishing that $G$ cannot be coloured with $k$ colours for some positive integer $k$. It has many various applications, especially in scheduling and clustering type problems. One of the most famous examples is colouring a map, where the countries/regions of a map are vertices and there is an edge between them if they have a common border in the map. Vertex colouring of such a graph gives a way to colour the map, so that countries/regions with common borders have different colours for better visibility.
+
+Another common application is solving scheduling problems. For example scheduling student's classes so that no student has two at the same time. In this case vertices are the classes and there is an edge between them if some student is taking both of them, so the colours are timetable slots. Another scheduling example is compiler optimization - scheduling the use of registers, i.e. two variables whose lifetime overlaps cannot be placed in the same register. So variables are vertices and registers are colours \cite{skiena504algorithm}. Other brief examples are finding if a graph is bipartite or planar \cite{skiena504algorithm}, placing security cameras in an arts gallery, round-robin sports scheduling, aircraft scheduling and assigning frequencies to radio stations \cite{ahmed2012applications}.
+
+Unfortunately vertex colouring of general graphs is hard. In fact, it is NP-complete. So at the moment there is no known solution that has polynomial worst-case time complexity. The proof, which we will not cover here, converts a vertex colouring problem to a 3-SAT satisfiability problem, which is proven to be NP-complete \cite{gibbons1985algorithmic}. Thus, since vertex colouring is at least as hard as 3-SAT satisfiability problem, it has to be NP-complete.
+
+\section{Serial algorithms}
+
+Since vertex colouring is hard, many vertex colouring solutions are heuristic and are meant to find an approximation for the minimum number $k$ of colours for a graph to be $k-colourable$. Thus those approaches do not always give an optimal answer. Note that finding the minimum number of colours and whether a graph is $k-colourable$ for some positive integer $k$ are very similar problems and an algorithm for one gives an algorithm for another. Because, if we know that a graph can be coloured at minimum with $k$ colours and we have such a colouring, then we know that a graph cannot be coloured with less than $k$ colours and we already have a colouring with at least $k$ colours. For the other way around we just check if there is a colouring for $1,2,3,..$ colours until we find one, the process clearly stops since a graph with $v$ vertices can be clearly coloured with $v$ colours.
+
+Despite that in this text we are only interested in exact deterministic algorithms for finding a vertex $k-colouring$ for some graph $G$ or establishing that $G$ cannot be coloured with $k$ colours for some positive integer $k$.
+
+\subsection{Brute force}
+
+Now we will briefly consider one very simple way of finding a $k-colouring$ for some graph $G$ and a positive integer $k$. It is a brute force search - we look at every possible assignment of $k$ colours to the vertices of a graph and check if no two adjacent vertices have the same colour. We can generate all the possible colourings recursively and not recurse further for the partial colourings that are already invalid. 
+
+\subsubsection*{Pseudo-code}
+
+\begin{lstlisting}[language=Ruby]
+def IsValidColouring(G, v, colouring)
+  for each vertex w adjacent to v do
+      if colouring(v) = colouring(w) then
+        return false
+      end
+  end
+        
+  return true
+end
+
+def ColourVerticesBF(G, colouring)
+
+  if colouring has coloured all vertices of G then
+    return colouring
+  end
+  
+  pick next uncoloured vertex v  
+  
+  for each colour c
+    colouring(v) = c
+    if IsValidColouring(G, v, colouring) then
+      ColourVerticesBF(G, colouring)
+    end
+  end
+end
+\end{lstlisting}
+
+This method is very inefficient and impractical, because if $G$ has $v$ vertices and we use $k$ colours for each vertex, then there are $v^k$ possible colourings. Moreover, if $G$ cannot be $k-coloured$ we have to check all of these colourings, thus such an algorithm has an exponential worst case time complexity. Therefore we will not look into this method in more detail. Therefore we present an algorithm that has the same worst case time complexity, but is much more efficient in practice. It is the backtracking algorithm.
+
+\subsection{Backtrack}
+
+Since vertex colouring is NP-complete we cannot do much better than the brute force algorithm, but we still cannot do significantly better. The standard deterministic exact algorithm for vertex colouring is a backtracking solution \cite{skiena504algorithm}. It essentially tries a colouring and backtracks to the last assigned vertex that caused a clash of colours. More precisely it assigns colours one by one to the vertices of a graph $G$ and before assigning a colour $c$ to a vertex $v$ checks if it is still valid. To do that it just considers all adjacent vertices of $v$ and checks that none of them have colour $c$. If after assigning the colour $c$ the colouring is still valid, we just pick the next vertex and try to assign a colour to that. If the colouring is not valid, we backtrack.
+
+We backtrack until the last coloured vertex whose colour is used at least for one other vertex and whose colour is not $k$, assuming  the $k$ colours are numbered from 1 to $k$. We skip vertices whose colour has been assigned only to them, is because they clearly could not have caused a clash anywhere. And we skip vertices whose colour is $k$, because that is the last colour we try, and so that vertex does not have any other options left. When we find such a vertex we just increase its colour by one, check it and repeat the same process. If we do not find such a vertex, it means that we have explored all possible valid colourings and thus there is no colouring with $k$ colours.
+
+\subsubsection*{Pseudo-code}
+
+\begin{lstlisting}[language=Ruby]
+def IsValidAssignment(G, v)
+  for each vertex w adjacent to v do
+    if colour(v) = colour(w) then
+      return false
+    end
+  end
+        
+  return true
+end
+
+def ColourVerticesBT(G)
+
+  while there are uncoloured vertices v do
+  
+    colour v  with the next colour
+    if  IsValidAssignment(G, v) then
+      numberOfColours(colour(v)) = numberOfColours(colour(v)) + 1
+      pick v to be next vertex
+    else
+      # backtrack
+      while  numberOfColours(colour(v)) == 1 or colour(v) == k do
+      
+        uncolour v      
+      
+        if there are no more vertices left to backtrack to then
+          return no solutions
+        else
+          pick v to be the previous vertex
+        end
+        
+      colour v with the next colour
+    end
+  end    
+   
+  return the colouring
+end
+\end{lstlisting}
+
+\begin{theorem}
+For a graph $G$ and some positive integer $k$, if $G$ can be $k-coloured$ then the backtracking vertex colouring algorithm finds a valid vertex $k-colouring$ (possibly with even less colours). If $G$ cannot be $k-coloured$ then the algorithm correctly identifies that it is the case.
+\end{theorem}
+
+\begin{proof}
+We already know that we can find a $k-colouring$ or establish its non-existence by considering all possible colourings. To prove the correctness of the backtracking algorithm we will show that it considers all possible colourings worth exploring. More precisely, only colourings it does not consider are the ones that we know will not yield a solution or will yield a solution only if some other colouring that we are considering will yield a solution. 
+
+Let $v_1,v_2,...,v_n$ be all vertices of $G$ and assume the algorithm is picking the vertices in that order.
+Now there are only four different possibilities for some of the colourings to be discarded by the backtracking algorithm. First is when a vertex $v_i$ has just been assigned a colour, but it clashes with a colour of another adjacent vertex $v_j$. More precisely, we assign a colour $c$ to the vertex $v_i$, but there is an adjacent vertex $v_j$ such that $j<i$ and the colour of $v_j$ is $c$. In this case no matter how we colour the rest of vertices $v_{i+1},v_{i+2},...,v_n$, we will not find a solution, because vertices $v_i$ and $v_j$ will still be adjacent and have the same colour $c$. Therefore we can safely backtrack and consider the next colour for $v_i$.
+
+Second, skipping a vertex which is the only vertex of that colour is fine, too. Because no other vertex has the same colour thus changing its colour reduces the number of colours in the current colouring. But if we can complete the colouring with one less colour, then we can clearly complete it using one more. Third, we clearly have to backtrack when we have exhausted all colours of a vertex. Forth, when we backtrack to the first vertex there is no point in trying any other colours than the first one, because we can permute the colours of a colouring in such a way that the first vertex always has the first colour.
+
+Thus we have shown that the backtracking algorithm considers all possible colourings worth exploring. Therefore it is correct.
+\end{proof}
+
+\begin{example}
+
+An example of colouring the graph from the example \ref{VC_example} with 4 colours using the backtracking algorithm. In this example we assume that vertices are in alphabetic order, i.e. the backtrack algorithm considers them in the order A, B, C, D, E, F and that the colours are in the order blue, red, yellow, green. We present the search tree of the backtracking algorithm - the tree of the explored colouring assignments. The leaves of the tree are the dead ends where we found a clash of colours. While the right most path is the valid colouring found by the backtracking algorithm.
+
+\begin{figure}[h]
+
+\tikzset{
+  treenode/.style = {align=center, inner sep=0pt, text centered, circle, font=\sffamily\bfseries,  text width=1em, font=\sffamily},
+  arn_b/.style = {treenode, draw=black, fill=blue!50},
+  arn_r/.style = {treenode, draw=black, fill=red!50},
+  arn_y/.style = {treenode, draw=black, fill=yellow!50},
+  arn_g/.style = {treenode, draw=black, fill=green!50},
+}
+
+\center
+\begin{tikzpicture}[->,>=stealth',level/.style={sibling distance = 4cm/#1,
+  level distance = 1.5cm}] 
+\node[arn_b] {A}
+  child { node[arn_b]{B}
+    child{ node[arn_b]{C} }
+    child{ node[arn_r]{C}
+      child{ node[arn_b]{D} }
+      child{ node[arn_r]{D} }
+      child{ node[arn_y]{D}
+        child{ node[arn_b]{E} }
+        child{ node[arn_r]{E} }
+        child{ node[arn_y]{E} }
+        child{ node[arn_g]{E}
+          child{ node[arn_b]{F} }
+          child{ node[arn_r]{F} } 
+          child{ node[arn_y]{F} } 
+          child{ node[arn_g]{F} } 
+        }
+      }
+    }
+  }
+  child {node[arn_r]{B}
+    child {node[arn_b]{C} }
+    child {node[arn_r]{C} }  
+    child {node[arn_y]{C}
+      child{ node[arn_b]{D} }
+      child{ node[arn_r]{D} }
+      child{ node[arn_y]{D} }
+      child{ node[arn_g]{D}
+        child{ node[arn_b]{E} }
+        child{ node[arn_r]{E}
+          child{ node[arn_b]{F} }      
+        } 
+      }
+    }  
+  }
+
+; 
+\end{tikzpicture}
+\caption{An example of the backtracking algorithm finding a solution}
+\end{figure}
+\end{example}
+
+\begin{example}
+
+An example of trying to colour the graph from the example \ref{VC_example} with 3 colours using the backtracking algorithm. Again we assume that vertices are in alphabetic order, i.e. the backtrack algorithm considers them in the order A, B, C, D, E, F and that the colours are in the order blue, red, yellow. And again we present the search tree of the backtracking algorithm. Note that the graph cannot be coloured with 3 colours due to having a complete subgraph of 4 vertices (3,4,5,6). Therefore the backtracking algorithm backtracks back to the first vertex A. Thus it fails and so correctly returns that there are no solutions. So this time all leaves are dead ends of clashing colours.
+
+\begin{figure}[h]
+
+\tikzset{
+  treenode/.style = {align=center, inner sep=0pt, text centered, circle, font=\sffamily\bfseries,  text width=1em, font=\sffamily},
+  arn_b/.style = {treenode, draw=black, fill=blue!50},
+  arn_r/.style = {treenode, draw=black, fill=red!50},
+  arn_y/.style = {treenode, draw=black, fill=yellow!50},
+  arn_g/.style = {treenode, draw=black, fill=green!50},
+}
+
+\center
+\begin{tikzpicture}[->,>=stealth',level/.style={sibling distance = 4cm/#1,
+  level distance = 1.5cm}] 
+\node[arn_b] {A}
+  child { node[arn_b]{B}
+    child{ node[arn_b]{C} }
+    child{ node[arn_r]{C}
+      child{ node[arn_b]{D} }
+      child{ node[arn_r]{D} }
+      child{ node[arn_y]{D}
+        child{ node[arn_b]{E} }
+        child{ node[arn_r]{E} }
+        child{ node[arn_y]{E} }
+      }
+    }
+  }
+  child {node[arn_r]{B}
+    child {node[arn_b]{C} }
+    child {node[arn_r]{C} }  
+    child {node[arn_y]{C}
+      child{ node[arn_b]{D} }
+      child{ node[arn_r]{D} }
+      child{ node[arn_y]{D} }
+    }  
+  }
+; 
+\end{tikzpicture}
+\caption{An example of the backtracking algorithm not finding a solution}
+\end{figure}
+\end{example}
+
+\begin{theorem}
+For a graph $G$ with $n$ vertices and some positive integer $k$, if $G$ can be $k-coloured$ the backtracking algorithm has worst case time complexity of $O(n^k)$
+\end{theorem}
+
+\begin{proof}
+The backtracking algorithm does not consider an assignment of colours multiple times, because when backtracking we never consider the previous colour. We always pick the next colour. Therefore the backtracking algorithm is no worse than the brute force algorithm and has the worst case time complexity of $O(k^n)$.
+
+Note that we cannot have a smaller upper bound for the worst case time complexity than $O(k^n)$. To show that we give for any number of colours $k$ an example of a graph to which adding $m$ vertices always means that the number of colourings considered is at least $k^m$. Thus backtracking for such a graph would have worst-case time complexity of at least $O(n^k)$, as it has exponential growth factor of $k$.
+
+Consider the complete graph $K_{k+1}$ with $k+1$ vertices. We already know that it cannot be coloured with $k$ colours, thus we know that the backtracking algorithm will not find a solution and thus will not stop early. So it will keep going until it backtracks to the first vertex it considered. Furthermore, the same holds for any graph $G$ which we get by adding $m$ vertices to $K_{k+1}$. Now add $m$ vertices with no edges to the graph $K_{k+1}$ and assume that the backtracking algorithm considers them before the vertices of $K_{k+1}$. This means that it will consider all possible colourings for the $m$ added vertices, because there are no edges between them and therefore no clashes. Therefore it will explore at least $k^m$ colourings.
+\end{proof}
+
+Now lets compare the backtracking algorithm versus the brute force algorithm. The backtracking algorithm considers a colouring and all of its possible colour permutations, because it considers all possible colourings. So for example if we have a graph with 2 vertices and use 2 colours ($1$ and $2$) two of the colourings it will consider $1,1$ and the colouring $2,2$. But this is clearly it is sufficient to consider only one of them, because $1,1$ is a valid colouring if and only if $2,2$ is a valid colouring. Because the only condition is that no two adjacent vertices have the same colour and there is no distinction between different colours. Therefore we can freely permute them.
+
+This is exactly what the backtracking algorithm does for each colour assignment it considers only one of its colour permutations.
+
+\begin{theorem}
+The backtracking algorithm does not consider multiple colour assignments that can be obtained from each other by permuting the colours.
+\end{theorem}
+
+\begin{proof}
+Let $1,2,..,k$ be the $k$ colours and $v_1,v_2,...,v_n$ be vertices, i.e. we just enumerate them. We will refer to a colour assignment as list of colours where the vertex $v_i$ has the $i-th$ element of the list as its colour or 0 if it has no colour assigned yet. So for example if we have a graph with three vertices and $v_1$ has colour 3, and $v_3$ has colour 2, while $v_2$ has no colour. We denote it by $3,0,2$.
+
+We will prove the theorem using induction on the number of vertices with assigned colour. Let $C_1$ be a colour assignment only to the first vertex. The only $C_1$ the backtracking algorithm considers is $C_1=1$, because when we backtrack to the first vertex the algorithm stops and returns no solutions. This is the base case of the induction.
+
+Now assume than for some natural number $n$ any colour assignment on the first $n$ vertices considered by the algorithm is not a permutation of of some other considered colouring assignment. Not let $C_{n+1}$ be a colouring assignment. The algorithm considers it if and only if there is some colouring assignment $C_n$ on the first $n$ vertices considered by the algorithm. By the inductive assumption the colouring assignment $C_n$ is not a permutation of some other considered colouring assignment. Note that if two colourings are not colour permutations of each other, then even after colouring some extra vertices these colourings are still not colour permutations of each other. Therefore $C_{n+1}$ can only be a colouring permutation of an assignment that is obtained from $C_n$ by colouring the $v_{n+1}$ vertex. 
+
+Consider the colour $c$ assigned to the $v_{n+1}$ vertex. If $c$ has been already assigned a vertex $v_i$ for some $i<n$, then $C_{n+1}$ is not a permutation of some other colouring assignment obtained from $C_n$ by colouring the $v_{n+1}$ vertex. Because in these two assignments $v_i$ has the same colour assigned, but $v_{n+1}$ has different colours assigned.
+
+If $c$ has not already been assigned to some vertex, then $c=max(C_n)+1$, where $max(C_n)$ is the largest colour assigned in $C_n$. Because, while backtracking the algorithm backtracks to the previous vertex instead of picking the next colour, when the colour used for the last vertex has not been used before. So once we assign colour $max(C_n)+1$ to $v_{n+1}$ we will not assign any larger colour to it without backtracking to vertex $v_{n}$ and thus considering different assignment from $C_n$ on the first $n$ vertices. Note this also means that every colour smaller than $max(C_n)$ has also been assigned in $C_n$. Therefore if $c$ has not already been assigned to some vertex, the algorithm considers only one possibility for $C_{n+1}$, which clearly is not a colour permutation of the other considered assignments obtained from $C_n$ by colouring the $v_{n+1}$ vertex, because in those the vertex $v_{n+1}$ has a colour that has already been assigned. This completes the inductive step, hence by induction the proof is complete.
+\end{proof}
+
+\begin{example}
+An example of the maximum search tree explored by the backtracking algorithm for a graph with 3 vertices and 3 colours (blue, red, yellow) is seen in figure \ref{bt_tree}. So for no graph with 3 vertices and 3 colours any other colour assignments than those shown in the tree are explored.
+
+\begin{figure}
+\tikzset{
+  treenode/.style = {align=center, inner sep=0pt, text centered, circle, font=\sffamily\bfseries,  text width=1em, font=\sffamily},
+  arn_b/.style = {treenode, draw=black, fill=blue!50},
+  arn_r/.style = {treenode, draw=black, fill=red!50},
+  arn_y/.style = {treenode, draw=black, fill=yellow!50},
+}
+
+\center
+\begin{tikzpicture}[->,>=stealth',level/.style={sibling distance = 2cm/#1,
+  level distance = 1cm}] 
+\node[arn_b] {A}
+  child { node[arn_b]{B}
+    child{ node[arn_b]{C}}
+    child{ node[arn_r]{C}}
+  }
+  child {node[arn_r]{B}
+    child {node[arn_b]{C}}
+    child {node[arn_r]{C}}  
+    child {node[arn_y]{C}}  
+  }
+; 
+\end{tikzpicture}
+\label{bt_tree} 
+\caption{An example of the maximum search tree explored by the backtracking algorithm}
+\end{figure}
+\end{example}
+
+Due to this result, although both algorithms have the same worst case time complexity, the backtracking solution is much faster in practice and for most graphs finds a solution quickly. What is even more surprising is that the backtracking algorithm has constant average-case time complexity although with a large constant, i.e. the backtrack search tree has an average of $O(1)$ nodes, as the number of vertices grows without bounds. This is established in the following theorem from \cite{wilf1984backtrack}, which we will not prove here.
+
+\begin{theorem}
+If $\beta_{n,k}$ is the average number of colourings explored by the backtracking algorithm for a graph with $n$ nodes with $k$ colours, then for every fixed $k$, $\beta_{n,k}$ is bounded as $n$ approaches infinity.
+\end{theorem}
+
+For parallel look at brute force, easy to parallelise. But not very good, does not beat backtrack, need different approach, so try to parallelise backtrack - how, results?
 
 \bibliographystyle{plain}
 \bibliography{References}
