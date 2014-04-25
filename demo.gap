@@ -31,5 +31,3 @@ MinimumSpanningTree(w);
 
 wP := WeightedGraphP(w!.successors, w!.weights);
 MinimumSpanningTreeP(wP);
-
-

@@ -169,7 +169,7 @@ plot_type_time <- function(k, e_range, name, x_max, y_min, y_max) {
 }
 
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
-plot_type_time(c("double"), c(10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 10000000), "", 32, 0.0005, 150)
+plot_type_time(c("double"), c(10, 50, 100, 500, 1000, 5000, 10000, 50000, 100000, 500000, 1000000, 5000000, 10000000, 50000000, 100000000, 500000000, 1000000000), "", 32, 0.0005, 8000)
 
 par(mar=c(5.1, 4.1, 4.1, 8.1), xpd=TRUE)
 zero <-c(0)
@@ -178,14 +178,14 @@ plot_type_time <- function(kF, p_range, name, x_max, y_min, y_max) {
   
   c_range <-c(seq(1, length(p_range)))
   print(c_range)
-  plot(zero, zero, xlab="Average number of edges", log="xy", ylab="Time, s", pch=p, xlim=c(1, x_max), ylim=c(y_min, y_max))
+  plot(zero, zero, xlab="Average number of edges", log="xy", main=name, ylab="Time, s", pch=p, xlim=c(1, x_max), ylim=c(y_min, y_max))
   for (c in c_range) {
     p_set <- subset(q, q$type=="mstp" & q$kFunction == kF & q$pCount == p_range[c])
     lines(p_set$totalEdges, p_set$time, col=c, lwd = 3)
     points(p_set$totalEdges, p_set$time, col=c, bg=c, pch=21)
   }
 }
-plot_type_time("double", c(1, 2, 4, 8, 16, 32), "Serial vs Parallel", 10000000000, 0.00001, 10000)
+plot_type_time("double", c(1, 2, 4, 8, 16, 32), "Serial vs Parallel", 10000000000, 0.00001, 50000)
 
 p_set <- subset(q, q$type=="mst")
 lines(p_set$totalEdges, p_set$time, col=7, lwd = 3)
