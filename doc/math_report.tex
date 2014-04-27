@@ -1053,7 +1053,7 @@ Despite that in this text we are only interested in exact deterministic algorith
 
 \subsection{Brute force}
 
-Now we will briefly consider one very simple way of finding a $k-colouring$ for some graph $G$ and a positive integer $k$. It is a brute force search - we look at every possible assignment of $k$ colours to the vertices of a graph and check if no two adjacent vertices have the same colour. We can generate all the possible colourings recursively and not recurse further for the partial colourings that are already invalid. 
+Now we will briefly consider one very simple way of finding a $k-colouring$ for some graph $G$ and a positive integer $k$. It is a brute force search - we look at every possible assignment of $k$ colours to the vertices of a graph and check if no two adjacent vertices have the same colour. We can generate all the possible colourings recursively and do not recurse further for the partial colourings that are already invalid. 
 
 \subsubsection*{Pseudo-code}
 
@@ -1205,6 +1205,7 @@ An example of colouring the graph from the example \ref{VC_example} with 4 colou
 \end{tikzpicture}
 \caption{An example of the backtracking algorithm finding a solution}
 \end{figure}
+\label{VC_example1}
 \end{example}
 
 \begin{example}
@@ -1254,6 +1255,7 @@ An example of trying to colour the graph from the example \ref{VC_example} with 
 
 \begin{theorem}
 For a graph $G$ with $n$ vertices and some positive integer $k$, if $G$ can be $k-coloured$ the backtracking algorithm has worst case time complexity of $O(n^k)$
+\label{BT_wc}
 \end{theorem}
 
 \begin{proof}
@@ -1321,7 +1323,102 @@ Due to this result, although both algorithms have the same worst case time compl
 If $\beta_{n,k}$ is the average number of colourings explored by the backtracking algorithm for a graph with $n$ nodes with $k$ colours, then for every fixed $k$, $\beta_{n,k}$ is bounded as $n$ approaches infinity.
 \end{theorem}
 
-For parallel look at brute force, easy to parallelise. But not very good, does not beat backtrack, need different approach, so try to parallelise backtrack - how, results?
+The last part of the proof of \ref{BT_wc} illustrates that the order in which the backtracking algorithm colours vertices is important, because it can greatly affect how many vertex colourings the algorithm considers. In the graph used in proof of \ref{BT_wc}, if the vertices of the complete subgraph would have been coloured first, the rest of vertices would not have been examined for colouring due to all colourings of the complete subgraph being invalid. Therefore an optimization was added to the implementation. The optimization is based on the following theorem.
+
+\begin{theorem}
+Let $G=(V,E,ends)$ be a graph and try to colour it using $k$ colours for some positive integer $k$. If $v$ is a vertex of $G$ with at most $k-1$ adjacent vertices, then $G$ can be coloured with $k$ colours if and only if the subgraph $H$ obtained by removing $v$ and the edges incident to it can be coloured with $k$ colours.
+\label{BT_opt}
+\end{theorem}
+
+\begin{proof}
+If we can colour the whole graph $G$ with $k$ colours, then clearly we can colour the subgraph $H$ with $k$ colours by just assigning the same colours to the same vertices. For the converse direction, assume $H$ can be coloured with $k$ colours, then we have coloured all vertices of $G$ except $v$. Moreover, if we colour  $v$ such that its colour is different from all colours of its adjacent vertices, then it is a valid colouring of $G$ and so we are done.  Denote the set of vertices adjacent to $v$ with $S$ and the set of colours used to colour them with $C$. Clearly $|C| \leq |S|$ as each vertex has only one colour. Therefore $|C| \leq |S| \leq k - 1$ and so there is a colour $c$ such that no vertex adjacent $v$ has it, thus we colour $v$ with $c$ and obtain a valid colouring of $G$.
+\end{proof}
+
+This result means that if the last $n$ vertices coloured by the backtracking algorithm of a graph $G$ are the ones with at most $k-1$ adjacent vertices, then the algorithm colours them without backtracking to previous vertices. That is the algorithm takes only $n$ steps to colour them. So essentially colouring all the other vertices has already given us a valid solution. Note, if a valid colouring for the other vertices was not found, then these vertices are not considered and thus take no time. 
+
+Moreover, this procedure of essentially only colouring the vertices with at least $k$ adjacent vertices can be applied multiple times. More precisely, consider the subgraph $H$ with a vertex with at most $k-1$ adjacent vertices removed. We already know that we can colour $H_1$ if and only if we can colour $G$. Now, if $H$ has a vertex with at most $k-1$ vertices, we can remove it, too, too get a subgraph $H_2$ of $H_1$ and thus $G$. Furthermore $H_2$ has a valid colouring if an only if $H_1$ has a valid colouring if and only if $G$ has a valid colouring. This way we can keep "removing" vertices and colour them last. Note a removal of a vertex can enable removal of another, so we only stop when no vertex has been removed,
+
+From \ref{BT_opt} we know that we can colour $G$ if and only if we can colour $H$. Now we can apply the theorem again and obtain a subgraph $H'$ of $H$. So $G$ can be coloured if and only if $H'$ can be coloured. We can repeat this until all left vertices have at least $k$ adjacent vertices, without including the removed vertices of course. This essentially allows us to reduce our colouring problem to possibly a much smaller one --- with much less vertices. Thus giving us possibly an exponential decrease in colourings considered by the algorithm. This optimization process allows us to sometimes essentially reduce the graph size and thus gives up to exponential speedup.
+
+\begin{lstlisting}[language=Ruby]
+def OrderVertices(G, k)
+  
+  unorderedVertices = vertices of G
+  order = empty list
+  do
+    for vertex v in unorderedVertices
+      if v has at most k - 1 adjacent vertices from unorderedVertices
+        remove v from unorderedVertices
+        add v in front of order
+  while (was reordering)
+  
+  add all vertices left in unorderedVertices in front of order
+  return order
+end
+\end{lstlisting}
+
+In the example \ref{VC_example1} applying this ordering optimization would have resulted in the vertex order F, E, D, C, B, A where all vertices are "removed". This is because we first "remove" A and B and then we can "remove" the rest. With that order the graph can be coloured without backtracking to previous vertices, because we "removed" all of them. Hence in this way it can be coloured really quickly.
+
+\section{Parallel algorithms}
+
+\subsection{Brute force}
+
+Parallelising the brute force algorithm is relatively simple, because checking if one colouring is valid does not affect checking if another colouring is valid. Thus we will start with a parallel brute force algorithm. As before we generate all possible colourings recursively and do not recurse further for the partial colourings that are already invalid. The only difference is that now all recursive calls are executed in parallel. So when picking a colour for a vertex we pick all colours in parallel.
+
+\begin{lstlisting}[language=Ruby]
+def ColourVerticesBFP(G, colouring)
+
+  if colouring has coloured all vertices of G then
+    return colouring
+  end
+  
+  pick next uncoloured vertex v  
+  
+  for each colour c in parallel
+    colouring(v) = c
+    if IsValidColouring(G, v, colouring) then
+      ColourVerticesBF(G, colouring)
+    end
+  end
+end
+\end{lstlisting}
+
+The parallel brute force algorithm has a couple of good properties. First, no work is wasted due to parallisation, i.e. no steps get repeated multiple times. Second, there is no communication needed between the parallel processes, which usually adds a lot of overhead to parallel algorithms. Third, no parallel process relies on computation results by other parallel processes, so the parallel processes do not have to synchronise and wait for each other. Having these properties means that the parallel brute force algorithm is able to take full advantage of multiple processors, i.e. it scales well with adding more processors. More precisely if we double the number of processors we halve the running time of the parallel brute force algorithm. Despite this good parallelisation the brute force algorithm is still much much slower than the backtracking algorithm, since it considers all colour permutations unlike the backtracking algorithm. Thus we will explore how the backtracking algorithm can be parallelised.
+
+\subsection{Backtrack}
+
+We parallelise the backtrack algorithm in a similar fashion. The backtrack algorithm, when it has a choice of a colour for the vertex, tries the first one and if it does not work out backtracks to the vertex and tries the next colour. Now for a vertex $v$ we just try all colours that would be tried by the algorithm in parallel and backtrack only until $v$ as we are already checking all colour options of $v$. So again we essentially traverse the search tree in parallel, but unlike in the brute force algorithm this search tree does not include multiple colourings that are colour permutations of each other.
+
+Now in GAP parallel execution is achieved using tasks, they execute some piece of code (method) in parallel. Unfortunately, tasks in GAP add quite a bit of extra overhead and therefore it is best to keep the number of tasks small. Of course we still need to have enough tasks for each processor to execute. Moreover, some processors might finish their tasks quicker, so we need multiple tasks per processor. This allows to balance the load between processors better, because some tasks might take a few times longer than others, so some processor might finish multiple tasks while in that time some other processor finishes just one. Having multiple tasks per processor allows to balance out most of this effect.
+
+So to control the number of tasks we just pick some sufficient depth $d$ of the search tree and launch a task for each partial colouring assignment of the first $d$ vertices that would be explored by the backtracking algorithm in parallel. Each task just runs a normal backtrack search and backtracks only up to the $d-th$ vertex, so the initial partial colouring for each backtrack search is fixed.
+
+\begin{lstlisting}[language=Ruby]
+def GenerateTasks(G, colouring)
+
+  colourings = empty list
+  newColourings = empty list
+  
+  Add first vertex coloured with the first colour to colourings
+  
+  while size of colourings is smaller than the number of tasks we want do
+    for each colouring in colourings do
+      k = largest colour used in colouring
+      for each colour c of k+1 first colours do
+        colour the next vertex with c in colouring and add it to newColourings
+      end
+    end
+    
+    colourings = newColourings
+  end
+  
+  for each colouring in colourings run backtrack in parallel where colouring is fixed
+end
+\end{lstlisting}
+
+\chapter{Conclusions}
+
+TODO
 
 \bibliographystyle{plain}
 \bibliography{References}
