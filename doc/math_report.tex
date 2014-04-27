@@ -54,27 +54,32 @@
 
 \begin{abstract}
 
-TODO - write an abstract.
-
-The GAP system for computational discrete algebra did not have a general purpose package for graphs and graph theoretic algorithms. Moreover, parallelism capabilities were recently added in a high performance version of GAP. Therefore, this project implements a general purpose package for working with graphs. In addition, it is explored how the implemented algorithms can be modified to suit parallel execution.[shayo: not sure what this sentence is saying] With the aim of having parallel implementations that scale with increase in number of processors and are faster than their serial counterparts, the parallel minimum spanning tree implementation partially scales with increase in number of processors and has a smaller scaling factor than its serial counterpart. The parallel breadth first search implementation did not scale very well with additional processors, but it is as fast as its serial counterpart for large graphs.
+The GAP system for computational discrete algebra did not have a general purpose package for general graphs and graph theoretic algorithms. Moreover, parallelism capabilities were recently added in a high performance version of GAP. Therefore, this project implements a general purpose package for working with graphs. In addition, it is explored how the implemented algorithms can be modified to suit parallel execution. If efficient parallelism modifications were not found, different algorithms better suited for parallel execution were introduced. This paper describes in detail how one can find strongly connected components of a graph using the Gabow's algorithm for serial execution and how they can be found using the forwards-backwards algorithm for parallel execution. Moreover, possible optimizations of the forwards-backwards algorithm are described. Furthermore, ways of how to find only the required strongly connected components without wasting computation are found. In addition, this paper describes in detail exact algorithms for vertex coloring, namely brute force and backtracking algorithms. The backtracking algorithm was optimized by reordering vertices and modifications for parallel execution of both algorithm were made.
 
 \end{abstract}
+
+TODO declaration.
 
 \tableofcontents
 
 \chapter{Introduction}
 
-[Fairly similar to CS one, is that ok?]
-
 Efficient implementations of graph theoretic algorithms are important due to their heavy use for modelling and solving problems in various fields. A graph represents connections between a set of objects. These connections induce questions like are these two objects connected? Can we get from one object to another? How many objects can be reached from some specific object? What is the best way to reach another object and so on.
 
-Thus graphs can be used to model relations in information, physical and social systems. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs~\cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds. In biology graphs are used to model inhabitance regions of certain species and their migration paths. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms~\cite{shirinivas2010applications}.
+Thus graphs can be used to model relations in information, physical and social systems \cite{6005872}. Graph theory is used in areas of computer science such as data mining, image segmentation, clustering, image capturing and networking \cite{6005872}. Problems of efficiently planning network routes and diagnosing faults in computer networks are solved using graphs \cite{6005872}. In chemistry and physics graphs are used to study molecules, atoms and construction of bonds \cite{shirinivas2010applications}. In biology graphs are used to model inhabitance regions of certain species and their migration paths \cite{shirinivas2010applications}. Similarly, graph theory is used in sociology to measure actors prestige or to explore diffusion mechanisms \cite{shirinivas2010applications}.
 
 The aim of the project was to explore and implement serial and parallel versions of graph algorithms in GAP. The GAP (\url{www.gap-system.org}) is a free open-source program for computing with various mathematical structures such as graphs, groups and fields. The graph related algorithms are in a package called Graph Algorithms Using Permutation Groups (GRAPE). This package is primarily used for working with graphs related to groups, finite geometries and designs. Thus it focuses on highly symmetric graphs to take advantage of the symmetries. There is no package for more standard graph algorithms such as traversal, path finding, minimum spanning tree algorithms and strongly connected components.
 
-Moreover, in a recent addition, HPC-GAP supports parallelism with both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy. In a distributed memory each central unit of processing (CPU) has its own private memory \cite{berman1996fundamentals}. Note that all of the current implementations in GRAPE are non-parallel.
+Moreover, in a recent addition, HPC-GAP supports parallelism with both shared and distributed memory models. A shared memory can be used simultaneously by multiple programs to provide communication and remove redundancy \cite{berman1996fundamentals}. In a distributed memory each central unit of processing (CPU) has its own private memory \cite{berman1996fundamentals}. Furthermore, all of the current implementations in GRAPE are non-parallel, while we would like to take advantage of the parallelism capabilities to execute our programs faster. The project's motivation is solving both of these problems --- the lack of a general graphs package and not taking advantage of the parallelism capabilities. Therefore this project aimed to create packages for working with graphs and solving some classical graph algorithm problems both for serial and parallel execution.
 
-In the end two GAP packages were made for serial and parallel implementations, so each made package is a self-contained extension to the core system of GAP. The serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabow's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. In this submission we will examine and implement the strongly connected components, vertex colouring and single source shortest paths algorithms.
+During the project two GAP packages were made one for serial and another for parallel implementations. Each made package is a self-contained extension to the core system of GAP. The serial package contains implementations for doing breadth first search, depth first search and solving vertex colouring, strongly connected components, minimum spanning trees and Dijkstra's shortest paths problems. These problems were picked, because they are some of the most common graph problems with many applications and are usually found in texts on graph theoretic algorithms.
+
+In this submission we will describe in detail the implementations of the strongly connected components and vertex colouring algorithms, while briefly explaining breadth first and depth first search. For both covered algorithms we define the problems themselves, give examples of their applications and look at how we can solve them. The target audience of this text a subhonours student with some background of pure mathematics and very brief knowledge of programming. The reader should be comfortable with working with abstract definitions, theorems and proofs and reading simple pseudo code.
+
+The packages source code can be found at a mercurial repository
+\url{http://mercurial.selenic.com/} on bitbucket \url{https://bitbucket.org/}. The url of the repository is \url{https://bitbucket.org/IvarsZ/parallelgraphs}. It can be accessed through a web browser or cloned for local browsing and execution. In the "pkg/graphs" and "pkg/pgraphs" folders there are a README files that desribe how to generate documentation for the packages. In the "doc" folder there is a tex file "Report.tex" that describes another separate part of the project including specific implementation details -- how packages are structured and graphs represented in detail, the other algorithm implementations and how random graphs can be generated for experiments.
+
+Now we will introduce the basic definitions and lay a foundation for the next chapters.
 
 \section{Basic Graph Definitions}
 
@@ -1406,13 +1411,17 @@ def GenerateTasks(G, colouring)
     colourings = newColourings
   end
   
-  for each colouring in colourings run backtrack in parallel where colouring is fixed
+  for each colouring in colourings run backtrack in parallel
 end
 \end{lstlisting}
 
 \chapter{Conclusions}
 
-TODO
+In this project two GAP packages for working with general graphs and solving some classical graph algorithm problems were made. One package is meant for serial execution, while the other is meant for parallel execution. The motivation behind this project was the lack of general graphs package in GAP and the introduction of parallelism in a new version of GAP. The two packages were successfully made. he serial package contains implementations of breadth first search, depth first search, vertex colouring using backtracking, Gabov's strongly connected components, Prim's minimum spanning tree and Dijkstra's shortest paths. The parallel implementation contains implementations for breadth first search, vertex colouring and finding minimum spanning trees under shared memory model. 
+
+In this paper we described in detail how to solve the strongly connected components and vertex colouring problems. We defined strongly connected components and gave applications of finding them. Then we briefly looked at the three most common algorithms for solving it - Kosaraju's, Tarjan's and Gabow's algorithms and why we preferred to implement the Gabow's algorithm. We described how it in high detail and gave examples. Then we proved its correctness and analyzed its performance. After that we moved to the parallel implementation, we quickly realized that the three serial algorithms discussed before are not well suited for parallelism. Therefore a new algorithm, the forwards-backwards algorithm, was introduced and described in detail with examples. Then we proved it correctness and analyzed its performance. At the end we looked at how it can be optimized for even better performance. We also briefly explored how the algorithms can be modified to find only the strongly components we actually need and without repeating computations when we want to find more strongly connected components.
+
+In the next chapter we defined vertex colouring problem and gave examples of some its many applications. Then we looked at how it can be solved using brute force or backtracking methods and why backtracking is much more preferable to brute force. We proved the correctness of the backtracking algorithm and gave examples of its execution. Then we looked at how the backtracking algorithm can be further improved by changing the order of vertices of the graph in which the algorithm colours them. Finally, we looked at how the brute force and backtracking algorithms can be parallelised. 
 
 \bibliographystyle{plain}
 \bibliography{References}
