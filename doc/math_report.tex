@@ -735,7 +735,7 @@ Proving second part of the theorem is relatively straightforward, if the given g
 
 All three standard serial algorithms for finding strongly connected components are not well suited for parallelism. It is because they are based on DFS, which is hard to parallelise. In 1985 Reif proved that DFS where adjacent vertices of a vertex are visited in fixed order is P-complete, thus suggesting that it is inherently sequential \cite{reif1985depth}. The approach of executing a standard serial algorithm with different starting conditions is not well suited either. Because, although we can pick a different starting vertices for say Gabow's algorithm iterations, it will be of no use when the graph has very few large strongly connected components. Therefore a completely different approach is needed.
 
-In 2000 a parallel algorithm, called forwards-backwards algorithm, for identifying strongly connected components of a directed graph for shared memory model was developed \cite{fleischer2000identifying}. It achieves parallelism by splitting the graph into four disjoint partitions - intersection of forwards and backwards reachable vertices for some vertex (its strongly connected component), the rest of backwards and the rest of forwards reachable vertices and the rest of vertices. Then the algorithm is recursively applied to the three parts. Furthermore adding a simple trim step to eliminate vertices without incoming or outgoing edges improves performance significantly \cite{mclendon2005finding}. Later the limited performance and poor scaling for large real-world graphs was improved as well by adding various extensions like parallel trimming, two-phase parallelisation and fast detection of size 2 strongly connected components \cite{hongtechnical}.
+In 2000 a parallel algorithm, called forwards-backwards algorithm, for identifying strongly connected components of a directed graph for shared memory model was developed \cite{fleischer2000identifying}. It achieves parallelism by splitting the graph into four disjoint partitions --- intersection of forwards and backwards reachable vertices for some vertex (its strongly connected component), the rest of the backwards and the rest of the forwards reachable vertices and the rest of the vertices. Then the algorithm is recursively applied to these three parts. Furthermore, adding a simple trim step to eliminate vertices without incoming or outgoing edges improves performance significantly \cite{mclendon2005finding}. Later, the limited performance and poor scaling for large real-world graphs was improved as well by adding various extensions like parallel trimming, two-phase parallelisation and fast detection of size 2 strongly connected components \cite{hongtechnical}.
 
 \subsection{Forwards-backwards algorithm}
 
@@ -749,7 +749,7 @@ Let $G=(V, E, ends)$ be a directed graph and $v,w \in V$ be two vertices of $G$,
 Let $G=(V, E, ends)$ be a directed graph and $v,w \in V$ be two vertices of $G$, then $w$ is $backwards \ reachable$ from $v$ if there is a path from $w$ to $v$. Denote the set of backwards reachable vertices from $v$ in $G$ by $BW_G(v)$.
 \end{definition}
 
-The following lemma gives the reason why finding forwards and backwards reachable vertices helps finding strongly connected components.
+The following lemma gives the reason why finding forwards and backwards reachable vertices helps in finding strongly connected components.
 
 \begin{lemma}
 Let $G=(V, E, ends)$ be a directed graph and $v \in V$ be a vertex of $G$. Then the subgraph induced by vertices of $FW_G(v) \cap BW_G(v)$ is the strongly connected component $SCC_G(v)$ of $G$ containing $v$.
@@ -760,13 +760,9 @@ Let $G=(V, E, ends)$ be a directed graph and $v \in V$ be a vertex of $G$. Then 
 Let $w$ be any vertex of $G$. Then
 
 $w \in FW_G(v) \cap BW_G(v) \Leftrightarrow$
-
 $w$ is both forwards and backwards reachable from $v$ $\Leftrightarrow$
-
 There is a path from $v$ to $w$ and a path from $w$ to $v$ $\Leftrightarrow$
-
 $v$ and $w$ are strongly connected $\Leftrightarrow$
-
 $w$ is in  $SCC_G(v)$.
 
 Thus $FW_G(v) \cap BW_G(v)$ and $SCC_G(v)$ contain the same vertices, therefore the subgraph induced by vertices of $FW_G(v) \cap BW_G(v)$ is the strongly connected component $SCC_G(v)$ of $G$ containing $v$. 
@@ -786,27 +782,27 @@ Let $G=(V, E, ends)$ be a directed graph and $v \in V$ be a vertex of $G$. Then 
 \begin{proof}
 Let $u$ and $w$ be two vertices of the same strongly connected component in $G$ that is not $SCC_G(v)$. Now since $u$ and $w$ are in the same strongly connected component there is a path from $u$ to $w$ and a path from $w$ to $u$.
 
-If $u \in FW_G(v)$ then there is a path from $v$ to $u$, thus there is a path from $v$ to $w$ (through $u$) and so $w \in FW_G(v)$. Similarly if $w \in FW_G(v)$ then $u \in FW_G(v)$. Therefore $w \in FW_G(v) \Leftrightarrow u \in FW_G(v)$. Similar argument shows that $w \in BW_G(v) \Leftrightarrow u \in BW_G(v)$.
+If $u \in FW_G(v)$ then there is a path from $v$ to $u$, thus there is a path from $v$ to $w$ (through $u$) and so $w \in FW_G(v)$. Similarly if $w \in FW_G(v)$ then $u \in FW_G(v)$. Therefore $w \in FW_G(v) \Leftrightarrow u \in FW_G(v)$. A similar argument shows that $w \in BW_G(v) \Leftrightarrow u \in BW_G(v)$.
 Thus $w \in Rem_G(v) \Leftrightarrow u \in Rem_G(v)$, as $Rem_G(v)=V \setminus (FW_G(v) \cup BW_G(v))$.
 
-Now since $u$ and $w$ are in different strongly connected component that $SCC_G(v)$, then $u,v \not \in FW_G(v) \cap BW_G(v)$. And so both $u$ and $v$ are in exactly one of $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$, as they are disjoint. So all vertices of a strongly connected component that is not $SCC_G(v)$ are in exactly one of the tree sets. Therefore any other strongly connected component of $G$ apart from $SCC_G(v)$ is in exactly one of subgraphs induced by $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$.
+Now since $u$ and $w$ are in different strongly connected component to $SCC_G(v)$, then $u,v \not \in FW_G(v) \cap BW_G(v)$. And so both $u$ and $v$ are in exactly one of $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$, as they are disjoint. So all vertices of a strongly connected component that is not in $SCC_G(v)$ are in exactly one of the three sets. Therefore any other strongly connected component of $G$ apart from $SCC_G(v)$ is in exactly one of subgraphs induced by $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) or $Rem_G(v)$.
 \end{proof}
 
-Now the algorithm itself as described before is fairly simple. We pick a vertex $v$ in $G$, then find $FW_G(v)$ and $BW_G(v)$ by using DFS or BFS on $v$. To find $BW_G(v)$ we at very beginning of the algorithm compute the reverse graph of $G$. Then we calculate $FW_G(v) \cap BW_G(v)$ and add it as a strongly connected component. After that just recursively repeat the same algorithm in parallel on $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) and $Rem_G(v)$, since any other strongly connected component of $G$ is in exactly one of those vertex set induced graphs.
+Now the algorithm itself as described before is fairly simple. We pick a vertex $v$ in $G$, then find $FW_G(v)$ and $BW_G(v)$ by using DFS or BFS on $v$. To find $BW_G(v)$ we compute the reverse graph of $G$ at the very beginning of the algorithm by just reversing all edges. Then we calculate $FW_G(v) \cap BW_G(v)$ and add it as a strongly connected component. After that just recursively repeat the same algorithm in parallel on $FW_G(v) \setminus BW_G(v)$, $BW_G(v) \setminus FW_G(v)$) and $Rem_G(v)$, since any other strongly connected component of $G$ is in exactly one of those vertex set induced graphs.
 
-It achieves parallelism by splitting the graph into four disjoint partitions - intersection of forwards and backwards reachable vertices for some vertex (its strongly connected component), the rest of backwards and the rest of forwards reachable vertices and the rest of vertices. Then the algorithm is recursively applied to the three parts
+The algorithm achieves parallelism by splitting the graph into four disjoint partitions --- intersection of forwards and backwards reachable vertices for some vertex (its strongly connected component), the rest of backwards and the rest of forwards reachable vertices and the rest of vertices. Then the algorithm is recursively applied to the three parts
 
 \subsubsection*{Pseudo-code}
 
 \begin{lstlisting}[language=Ruby, mathescape]
 def FW-BW(G, SCC)
 
-  if G has no vertices
+  if $G$ has no vertices
     return
 
-  v = any vertex of G
-  $FW_G(v) = $ forwards reachable vertices from v in G
-  $BW_G(v) = $ backwards reachable vertices from v in G
+  $v$ = any vertex of $G$
+  $FW_G(v) = $ forwards reachable vertices from $v$ in $G$
+  $BW_G(v) = $ backwards reachable vertices from $v$ in $G$
   $S = FW_G(v) \cap BW_G(v)$
   Add S to SCC
   
@@ -818,7 +814,7 @@ end
 \end{lstlisting}
 
 \begin{example}
-An example of executing the forwards-backwards algorithm on the graph $G$ in example \ref{SCC_example} to find its strongly connected components. The algorithm say picks vertex 1 as the starting point, then $BW_G(v) = \{1, 6, 3, 4, 5\}$, $FW_G(v) = \{1, 6, 3, 4, 8, 7, 2\}$, so $S=\{1,6,3,4\}$. After that recursively apply the algorithm on $BW_G(v) \setminus FW_G(v) = \{5\}$, $FW_G(v) \setminus BW_G(v) = \{2, 7, 8\}$ and $Rem_G(v)=\{9\}$. All three of which turn out to be full strongly connected components by themselves, so we are done and have found all strongly connected components of $G$.
+An example of executing the forwards-backwards algorithm on the graph $G$ in example \ref{SCC_example} to find its strongly connected components. The algorithm picks a vertex, say vertex 1, as the starting point, then $BW_G(v) = \{1, 6, 3, 4, 5\}$, $FW_G(v) = \{1, 6, 3, 4, 8, 7, 2\}$, so $S=\{1,6,3,4\}$. After that recursively apply the algorithm on $BW_G(v) \setminus FW_G(v) = \{5\}$, $FW_G(v) \setminus BW_G(v) = \{2, 7, 8\}$ and $Rem_G(v)=\{9\}$. All three of which turn out to be full strongly connected components by themselves, so we are done and have found all strongly connected components of $G$.
 
 \begin{figure}[!htb]
 			\minipage{0.32\textwidth}
@@ -947,8 +943,6 @@ An example of executing the forwards-backwards algorithm on the graph $G$ in exa
 		
 \end{example}
 
-complexity, discussion on efficiency.
-
 \begin{theorem}
 Let $G=(V, E, ends)$ be a directed graph. Then the forwards-backwards algorithm (FW-BW) correctly finds all strongly connected components of $G$.
 \end{theorem}
@@ -960,7 +954,7 @@ It is a direct consequence of lemmas \ref{fw_bw_l1} and \ref{fw_bw_l2}, because 
 Let $G=(V, E, ends)$ be a directed graph in which all vertex degrees are bounded by a constant. Then the forwards-backwards algorithm (FW-BW) has expected serial time complexity $O(n \, logn)$ where $n=|V|$.
 \end{theorem}
 
-The proof of this theorem is not given as it is too long and complicated and so outside the scope of this text. This theorem means that forwards-backwards algorithm is not much more inefficient that the Gabow's algorithm, so it is worthwhile to parallelise. Moreover it should achieve good parallelism, since each partition produces three new partitions and so the number of partitions that can be processed in independently in parallel grows quickly \cite{hongtechnical}, especially for graphs that have many similar size strongly connected components.
+The proof of this theorem is not given as it is too long and complicated and so outside the scope of this text. This theorem means that forwards-backwards algorithm is not much more inefficient that the Gabow's algorithm, so it is worthwhile to parallelise. Moreover it should achieve good parallelism, since each partition produces three new partitions and so the number of partitions that can be processed independently in parallel grows quickly \cite{hongtechnical}, especially for graphs that have many similar size strongly connected components.
 
 Unfortunately this is not always the case. Assume we have a real world network graph (e.g a graph of a social network). These usually have one strongly connected component that is very large. This causes load imbalance. Moreover, it is very likely that a vertex from it is picked first. So while it is identified by one processor all others stay idle. This issue with real world network graphs can be solved by adding various optimizations such as parallel trimming, two-phase parallelisation and fast detection of size 2 strongly connected component \cite{hongtechnical}.
 
@@ -968,7 +962,7 @@ We will closer examine the parallel trimming optimization, as it is the most eff
 
 \subsection{Parallel trim step}
 
-The trim step allows to identify trivial strongly connected components (those with only one vertex), because these have only incoming or outgoing edges after other trimmed vertices are removed. Therefore we can easily identify them by looking how many incoming and outgoing edges they have. If a vertex after other trimmed vertices are removed has zero incoming (in-degree) or zero outgoing edges (out-degree), then it is a trivial strongly connected component and can be trimmed. Note that trimming is applied iteratively since it can enable further trimming \cite{hongtechnical}.
+The trim step allows to identify trivial strongly connected components (those with only one vertex), because these have only incoming or outgoing edges after other trimmed vertices are removed. Therefore we can easily identify them by looking at how many incoming and outgoing edges they have. If a vertex after other trimmed vertices are removed has zero incoming (in-degree) or zero outgoing edges (out-degree), then it is a trivial strongly connected component and can be trimmed. Note that trimming is applied iteratively since it can enable further trimming \cite{hongtechnical}.
 
 \subsubsection*{Pseudo-code}
 
@@ -983,13 +977,13 @@ def Trim(G, SCC)
 end
 \end{lstlisting}
 
-Note this can be implemented without actually modifying the graph and avoiding performance overhead by just keeping track of how many incoming and outgoing edges each vertex has and just marking the vertices as trimmed and not considering them for trimming again. Then constructing a new graph at the end without all trimmed vertices. Note we can parallelise the inner for-loop of the trim step, because "removal" of a vertex from $G$ only affects the vertices examined after it. So as long as we repeat the outer loop we will trim exactly the same vertices at the end as in serial implementation.
+Note, this can be implemented without actually modifying the graph and avoiding performance overhead by just keeping track of how many incoming and outgoing edges each vertex has. Then just marking the vertices as trimmed and not consider them for trimming again. Having done this, we then construct a new graph at the end without all trimmed vertices. Note, we can parallelise the inner for-loop of the trim step, because "removal" of a vertex from $G$ only affects the vertices examined after it. So as long as we repeat the outer loop we will trim exactly the same vertices at the end as in the serial implementation.
 
 \section{Partial strongly connected components}
 
-Often, instead of computing all strongly connected components of a directed graph $G=(V, E, ends)$, one would like to do that only partially step by step. For example find if two vertices are strongly connected or a strongly connected component of a specific vertex and then do that again for different vertices/vertex while remembering the results of previous computation. Both the Gabow's and forwards-backwards algorithms can be easily modified to achieve this.
+Often, instead of computing all strongly connected components of a directed graph $G=(V, E, ends)$, one would like to do that only partially step by step. For example we might want to  out find if two vertices are strongly connected or find a strongly connected component of a specific vertex and then do that again for different vertices or a single vertex while remembering the results of previous computation. Both the Gabow's and forwards-backwards algorithms can be easily modified to achieve this.
 
-For Gabow's algorithm to find the strongly connected component of a vertex $v$ we execute it starting at that vertex and do only one iteration of it. At the end of that iteration we have found $SCC_G(v)$ and possibly other strongly connected components. More specifically, all of the strongly connected components that are forwards reachable from $v$. This intermediate result can be saved by simply keeping the list $I$ of strongly connected component's index each vertex of $G$ belongs to. Note that at the end of each iteration the stacks $S$ and $B$ are empty so we do not need to keep these and all entries in $I$ either mark a vertex as undiscovered or in some strongly connected component. Now whenever we want to find out something about strong connectedness in our graph we just reuse the list $I$. And if some vertex $w$ in question is marked as undiscovered we again execute one iteration of Gabow's algorithm starting at $w$.
+For Gabow's algorithm, to find the strongly connected component of a vertex $v$ we execute it starting at that vertex and do only one iteration of it. At the end of that iteration we have found $SCC_G(v)$ and possibly other strongly connected components. More specifically, all of the strongly connected components that are forwards reachable from $v$. This intermediate result can be saved by simply keeping the list $I$ of strongly connected component's index each vertex of $G$ belongs to. Note that at the end of each iteration the stacks $S$ and $B$ are empty so we do not need to keep these and all entries in $I$ either mark a vertex as undiscovered or in some strongly connected component. Now whenever we want to find out something about strong connectedness in our graph we just reuse the list $I$. And if some vertex $w$ in question is marked as undiscovered we again execute one iteration of Gabow's algorithm starting at $w$.
 
 For forwards-backwards algorithm we again start at some specific vertex and keep the intermediate results. In this case we must keep track of the disjoint partitions and to which partition each vertex belongs to.
 
