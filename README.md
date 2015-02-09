@@ -1,0 +1,1 @@
+A a general purpose package for working with graphs in GAP with implementations for both serial and parallel execution. The algorithms implemented are for breadth first search, depth first search, minimum spanning trees, strongly connected components, shortest path and vertex coloring.
